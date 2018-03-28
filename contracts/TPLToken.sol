@@ -17,7 +17,7 @@ contract TPLToken is StandardToken {
   }
 
   function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
-    require(validator.transferAllowed(msg.sender, _to, _value));
+    require(validator.transferAllowed(_from, _to, _value));
     super.transferFrom(_from, _to, _value);
   }
 
