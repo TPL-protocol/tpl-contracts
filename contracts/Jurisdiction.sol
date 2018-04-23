@@ -6,6 +6,7 @@ import "./Registry.sol";
 contract Jurisdiction is Ownable, Registry {
 
   event ValidatorAdded(address validator);
+  event ValidatorRemoved(address validator);
 
   mapping(address => mapping(string => uint256)) attributes;
 
@@ -23,6 +24,7 @@ contract Jurisdiction is Ownable, Registry {
 
   function removeValidator(address validator) public onlyOwner {
     validators[validator] = false;
+    ValidatorRemoved(validator);
   }
 
   function isValidator(address who) public view returns (bool) {
