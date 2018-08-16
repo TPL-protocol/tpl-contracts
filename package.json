@@ -1,20 +1,10 @@
 {
-  "name": "tpl-contracts",
-  "version": "0.1.0",
-  "description": "TPL contracts",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/TPL-protocol/contracts.git"
-  },
-  "author": "santiago@zeppelin.solutions",
+  "name": "TPL-1.0-rc1",
+  "version": "1.0-rc1",
+  "main": "index.js",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/TPL-protocol/contracts/issues"
-  },
-  "homepage": "https://github.com/TPL-protocol/contracts#readme",
-  "devDependencies": {
-    "multisig-wallet-gnosis": "git+https://github.com/gnosis/MultiSigWallet.git",
-    "truffle": "^4.1.3",
-    "zeppelin-solidity": "^1.7.0"
+  "dependencies": {
+    "openzeppelin-solidity": "1.11.0",
+    "web3": "^1.0.0-beta.35"
   }
 }
