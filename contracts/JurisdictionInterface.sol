@@ -1,8 +1,7 @@
 pragma solidity ^0.4.24;
 
-import "./Registry.sol";
 
-contract JurisdictionInterface is Registry {
+interface JurisdictionInterface {
 
   // declare events (NOTE: consider which fields should be indexed)
   event AttributeTypeAdded(uint256 indexed attribute, string description);
@@ -52,20 +51,9 @@ contract JurisdictionInterface is Registry {
   // the jurisdiction owner and issuing validators may also remove attributes
   function removeAttributeFrom(address _who, uint256 _attribute) external;
 
-  // external interface for determining the existence of an attribute
-  function hasAttribute(address _who, uint256 _attribute)
-    external view returns (bool);
-
-  // external interface for getting the value of an attribute
-  function getAttribute(address _who, uint256 _attribute)
-    external view returns (uint256 value);
-
   // external interface for getting the description of an attribute by ID
   function getAttributeInformation(uint256 _attribute)
     external view returns (string description, bool isRestricted, uint256 minimumRequiredStake);
-
-  // external interface for getting the list of all available attributes by ID
-  function getAvailableAttributes() external view returns (uint256[]);
 
   // external interface for determining the validator of an issued attribute
   function getAttributeValidator(address _who, uint256 _attribute)

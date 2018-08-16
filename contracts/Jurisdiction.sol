@@ -1,11 +1,12 @@
 pragma solidity ^0.4.24;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'openzeppelin-solidity/contracts/ECRecovery.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
-import "./JurisdictionInterface.sol";
+import './Registry.sol';
+import './JurisdictionInterface.sol';
 
-contract Jurisdiction is Ownable, JurisdictionInterface {
+contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
   using ECRecovery for bytes32;
   using SafeMath for uint256;
 
