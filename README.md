@@ -36,8 +36,11 @@ $ node scripts/test.js
 Contracts may also be deployed to local testRPC using `$ node scripts/deploy.js`.
 
 
-### Summary & definition of key terms
-* The **jurisdiction** is implemented as a single contract that stores validated attributes for each participant, where each attribute is a `uint256 => uint256` key-value pair. It implements a `Registry` interface, allowing other contracts to check for attributes that are recognized by the jurisdiction.
+### Summary & Key Terms
+* A **registry** is any smart contract that implements an [interface](https://github.com/TPL-protocol/tpl-contracts/blob/1.0-rc1/contracts/Registry.sol) containing a small set of external methods related to determining the existence of attributes. It enables implementing tokens and other contracts to avoid much of the complexity inherent in attribute validation and assignment by instead retrieving information from a trusted source. Attributes can be considered a lightweight alternative to claims as laid out in [EIP-735](https://github.com/ethereum/EIPs/issues/735).
+
+
+* The **jurisdiction** is [implemented](https://github.com/TPL-protocol/tpl-contracts/blob/1.0-rc1/contracts/Jurisdiction.sol) as a single contract that stores validated attributes for each participant, where each attribute is a `uint256 => uint256` key-value pair. It implements a `Registry` interface along with associated [EIP-165](https://eips.ethereum.org/EIPS/eip-165) support, allowing other contracts to identify and confirm attributes recognized by the jurisdiction. It also implements an additional [interface](https://github.com/TPL-protocol/tpl-contracts/blob/1.0-rc1/contracts/JurisdictionInterface.sol) that provides methods and events that provide further context regarding actions within the jurisdiction.
 
 
 * A jurisdiction defines **attribute types**, or permitted attribute groups, with the following fields *(with optional fields set to* `0 | false | 0x | ""`  *depending on the field's type)*:
@@ -49,7 +52,7 @@ Contracts may also be deployed to local testRPC using `$ node scripts/deploy.js`
 
 
 
-* The jurisdiction designates **validators** (analogous to Certificate Authorities), which are addresses that can:
+* The jurisdiction also designates **validators** (analogous to Certificate Authorities), which are addresses that can:
     * add or remove attributes of participants in the jurisdiction directly, assuming they have been approved to issue them by the validator,
     * sign off-chain approvals for adding attributes that can then be relayed by prospective attribute holders, and
     * modify their `signingKey`, an address corresponding to a private key used to sign approvals.
@@ -61,18 +64,19 @@ Contracts may also be deployed to local testRPC using `$ node scripts/deploy.js`
     * a valid or invalid state, contingent on the state of the issuing validator, the attribute type, or the validator's approval to issue attributes of that type.
 
 
-* The **jurisdiction owner** is an address (such as an a DAO, a multisig contract, or simply a standard externally-owned account) that can:
+* The **jurisdiction owner** is an address (such as an a DAO, a [multisig contract](https://github.com/gnosis/MultiSigWallet), or simply a standard externally-owned account) that can:
     * add or remove attribute types to the jurisdiction,
     * add or remove validators to the jurisdiction,
     * add or remove approvals for validators to assign attribute types, and
     * remove attributes from participants as required.
 
 
-* The **TPLToken** is a standard OpenZeppelin ERC20 token, that enforces certain attributes to be present in the participants of each transaction. For this implementation, the token checks the jurisdiction's registry for an attribute used to whitelist valid token senders and recipients. *(NOTE: the attributes defined in the jurisdiction and required by TPLToken have been arbitrarily defined for this PoC, and are not intended to serve as a proposal for the attributes that will be used for validating transactions.)*
+* The **TPLToken** is a standard [OpenZeppelin ERC20 token](https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/StandardToken.sol) that requires certain attributes to be present for the participants in each transaction. For this [implementation](https://github.com/TPL-protocol/tpl-contracts/blob/1.0-rc1/contracts/TPLToken.sol), the token checks the jurisdiction's registry for an attribute used to whitelist valid token senders and recipients. *(NOTE: the attributes defined in the jurisdiction and required by TPLToken have been arbitrarily defined for this PoC, and are not intended to serve as a proposal for the attributes that will be used for validating transactions.)*
 
 
 ### Attribute scope
 Issued attributes exist in the scope of the issuing validator - if a validator is removed, all attributes issued by that validator become invalid and must be renewed. Furthermore, an attribute exists in the scope of it's attribute type, and if the attribute type is removed from the jurisdiction the associated attributes will become invalid. Finally, each attribute type that a validator is approved to add has a scope, and if a validator has its approval for issuing attributes of a particular type, all attributes it has issued with the given type will become invalid.
+
 
 *__NOTE:__ two additional fields not currently included in TPL attribute types but under active consideration are an optional* `uint256 jursdictionFee` *field to be paid upon assignment of any attribute of the given type, as well as an optional* `bytes extraData` *field to support forward-compatibility.*
 
@@ -115,7 +119,7 @@ async function signValidation(
 }
 ```
 
-Under this scheme, handling the management of signing keys in an effective manner takes on critical importance. Validators can specify an address associated with a signing key, which the jurisdiction will enforce via `ecrecover` using opennzeppelin's `ECRecovery` library. Management of keys and revokations can then be handled seperately (potentially via a validator contract, which would not be able to sign approvals due to the lack of an associated private key on contracts) from the actual signing of attribute approvals. If a signing key is then lost or compromised, the validator can modify the key, which will invalidate any unsubmitted attribtue approvals signed using the old key, but any existing attributes issued using the old key will remain valid.
+Under this scheme, handling the management of signing keys in an effective manner takes on critical importance. Validators can specify an address associated with a signing key, which the jurisdiction will enforce via `ecrecover` using OpenZeppelin's [ECRecovery library]() (with direct [EIP-1271](https://eips.ethereum.org/EIPS/eip-1271) support also under consideration). Management of keys and revokations can then be handled seperately (potentially via a validator contract, which would not be able to sign approvals due to the lack of an associated private key on contracts) from the actual signing of attribute approvals. If a signing key is then lost or compromised, the validator can modify the key, which will invalidate any unsubmitted attribtue approvals signed using the old key, but any existing attributes issued using the old key will remain valid.
 
 
 *__NOTE:__ a requirement not currently included in TPL but under active consideration is the submission of a* `bytes proof` *field when modifying a key - there is a requirement for signing keys to be unique so that they point back to a specific validator, which creates an opportunity for existing validators to set their "signing key" as the address of a contract under consideration for addition as a new validator, blocking the addition of said validator, as the signing key is initially set to the validator's address. Requiring a signature proving that the validator controls the associated private key would prevent this admittedly obscure attack.*
