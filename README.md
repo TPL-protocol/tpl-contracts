@@ -57,7 +57,7 @@ Contracts may also be deployed to local testRPC using `$ node scripts/deploy.js`
     * a valid or invalid state, contingent on the state of the issuing validator, the attribute type, or the validator's approval to issue attributes of that type.
 
 
-* The **jurisdiction owner** is an address (such as an a DAO, a multisig, or an EOA) that can:
+* The **jurisdiction owner** is an address (such as an a DAO, a multisig contract, or simply a standard externally-owned account) that can:
     * add or remove attribute types to the jurisdiction,
     * add or remove validators to the jurisdiction,
     * add or remove approvals for validators to assign attribute types, and
@@ -81,7 +81,7 @@ Validators may issue and revoke attributes themselves on-chain (and, indeed, thi
 * Validators do not have to pay transaction fees in order to assign attributes,
 * Participants may decide when they want to add the attribute, enhancing privacy and saving on fees when attributes are not ultimately required, and
 * Participants can optionally be required to stake some ether when assigning the attribute, which will go toward paying the transaction fee should the validator or jurisdiction owner need to revoke the attribute in the future.
-* Furthermore, participants can optionally be required to include additional fees to the jurisdiction owner and/or to the validator, as required in the attribute type or signed attribute approval, respectively. *__NOTE:__ an additional optional* `uint256 valdiatorFee` *field on the signed attribute approval to be paid upon assignment of the attribute in question, not currently included in TPL but under active consideration, would be required to support this feature.*
+* Furthermore, participants can optionally be required to include additional fees to the jurisdiction owner and/or to the validator, as required in the attribute type or signed attribute approval, respectively. *__NOTE:__ an additional optional* `uint256 validatorFee` *field on the signed attribute approval to be paid upon assignment of the attribute in question, not currently included in TPL but under active consideration, would be required to support this feature.*
 
 
 To sign an attribute approval, a validator may call the following with appropriate arguments:
