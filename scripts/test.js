@@ -1,7 +1,5 @@
 var assert = require('assert');
 
-var contractAddresses = require('../build/contractDeploymentAddresses.json')
-
 var Web3 = require('web3')
 
 var JurisdictionContractData = require('../build/contracts/Jurisdiction.json')
