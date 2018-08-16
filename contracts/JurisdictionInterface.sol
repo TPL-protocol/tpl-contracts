@@ -1,6 +1,5 @@
 pragma solidity ^0.4.24;
 
-
 interface JurisdictionInterface {
 
   // declare events (NOTE: consider which fields should be indexed)
@@ -13,6 +12,7 @@ interface JurisdictionInterface {
   event ValidatorSigningKeyModified(address indexed validator, address newSigningKey);
   event AttributeAdded(address validator, address indexed attributee, uint256 attribute);
   event AttributeRemoved(address validator, address indexed attributee, uint256 attribute);
+  // NOTE: consider event on value transfers: fees, stake, & transaction rebates
 
   // the contract owner may declare attributes recognized by the jurisdiction
   function addAttributeType(uint256 _id, bool _restrictedAccess, uint256 _minimumStake, string _description)

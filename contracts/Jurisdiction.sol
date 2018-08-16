@@ -20,6 +20,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
   event ValidatorSigningKeyModified(address indexed validator, address newSigningKey);
   event AttributeAdded(address validator, address indexed attributee, uint256 attribute);
   event AttributeRemoved(address validator, address indexed attributee, uint256 attribute);
+  // NOTE: consider event on value transfers: fees, stake, & transaction rebates
 
   // validators are entities who can add or authorize addition of new attributes
   struct Validator {
@@ -44,6 +45,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     bool restricted;
     uint240 index;
     uint256 minimumStake;
+    // uint256 jurisdictionFee; // consider to enable payments to jurisdiction
     string description;
     mapping(address => bool) approvedValidators;
   }
@@ -291,6 +293,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     // NOTE: consider utilizing bytes32 type for attributes and values
     // NOTE: does not currently support an extraData parameter, consider adding
     // NOTE: does not currently support assigning an operator to set attributes
+    // NOTE: consider including _validatorFee and _jurisdictionFee arguments
     // NOTE: if msg.sender is a proxy contract, its ownership may be transferred
     // at will, circumventing any token transfer restrictions. Restricting usage
     // to only externally owned accounts may partially alleviate this concern.
