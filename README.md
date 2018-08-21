@@ -15,7 +15,7 @@ Proof of concept for contracts implementing a TPL jurisdiction and an ERC20-enfo
 This release candidate enables an optional fee mechanism for both jurisdictions and validators. When the jurisdiction adds an attribute type, it may specify a fee that must be paid (in addition to any staked funds, if appliciable) whenever an attribute of that type is set, whether manually by validators or directly by participants. Additionally, when a validator signs an attribute approval, they may include a fee that must be paid (in addition to any staked funds and the attribute type's jurisdiction fee, if applicable) in order for the participant to successfully add the attribute.
 
 
-A few methods on the jurisdiction interface have been extended: `addAttributeType` takes an additional `_jurisdictionFee` argument, `addAttribute` takes an additional `validatorFee` argument, and `canAddAttribute` takes `_fundsRequired` (a placeholder for `msg.value`) and `_validatorFee` arguments. Additionally, `getAttributeInformation` will now include `jurisdictionFee` as a return value. Finally, the interface has four new related event types: `StakeAllocated`, `StakeRefunded`, `FeePaid`, and `TransactionRebatePaid`.
+A few methods on the jurisdiction interface have been extended: `addAttributeType` takes an additional `_jurisdictionFee` argument, `addAttribute` takes an additional `_validatorFee` argument, and `canAddAttribute` takes `_fundsRequired` (a placeholder for `msg.value`) and `_validatorFee` arguments. Additionally, `getAttributeInformation` will now include `jurisdictionFee` as a return value. Finally, the interface has four new related event types: `StakeAllocated`, `StakeRefunded`, `FeePaid`, and `TransactionRebatePaid`.
 
 
 In the event that fees are not currently deemed necessary, the entire mechanism can be avoided by leaving them set to 0 - this also applies to the mechanism of staking funds to pay for transaction rebates. These features can also be phased in gradually by either party without invalidating any existing attributes or disrupting any ongoing permissioned transfers of TPL-compliant tokens.
@@ -70,7 +70,7 @@ Contracts may also be deployed to local testRPC using `$ node scripts/deploy.js`
 
 * Validators then issue **attributes** to participants, which have the following properties:
     * a `uint256 value` field for attributes that require an associated quantity,
-    * a `uint256 stake` amount greater than or equal to the minimum required by the attribute's type that must equal `msg.value` when submitting a transaction to add the attribute, and
+    * a `uint256 stake` amount greater than or equal to the minimum required by the attribute's type that, together with any `jurisdictionFee` (specified by the attribute type) and/or `validatorFee` (specified in the validator's approval signature), must be provided in `msg.value` when submitting a transaction to add the attribute, and
     * a valid or invalid state, contingent on the state of the issuing validator, the attribute type, or the validator's approval to issue attributes of that type.
 
 
