@@ -587,7 +587,8 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     address validator = signingKeys[signingKey];
 
     return (
-      _stake < attributeTypes[_attribute].minimumStake &&
+      _stake >= attributeTypes[_attribute].minimumStake &&
+      usedAttributeApprovalHashes[msgHash] == false &&
       canValidate(validator, _attribute)
     );
   }
