@@ -673,6 +673,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
 
     return (
       _fundsRequired >= minimumStake.add(jurisdictionFee).add(_validatorFee) &&
+      usedAttributeApprovalHashes[msgHash] == false &&
       canValidate(validator, _attribute)
     );
   }
