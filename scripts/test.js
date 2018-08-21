@@ -7,12 +7,13 @@ var TPLTokenContractData = require('../build/contracts/TPLToken.json')
 
 var web3 = new Web3('ws://localhost:8545')
 
-async function signValidation(validatorSigningKeyAccount, jurisdiction, who, stake, attribute, value) {
+async function signValidation(validatorSigningKeyAccount, jurisdiction, who, fundsRequired, validatorFee, attribute, value) {
   return web3.eth.sign(
     web3.utils.soliditySha3(
       {t: 'address', v: jurisdiction},
       {t: 'address', v: who},
-      {t: 'uint256', v: stake},
+      {t: 'uint256', v: fundsRequired}, // stake + jurisdiction & validator fees
+      {t: 'uint256', v: validatorFee},
       {t: 'uint256', v: attribute},
       {t: 'uint256', v: value}
     ),
@@ -21,6 +22,8 @@ async function signValidation(validatorSigningKeyAccount, jurisdiction, who, sta
 }
 
 async function test() {
+  // NOTE: still needs additional tests written to cover fees and related events
+
   let passed = 0
   let failed = 0
   console.log('running tests...')
@@ -47,9 +50,17 @@ async function test() {
   )
 
   // set up some variables that will be used for tracking account balances
-  let gasCost
-  let difference
-  let expectedDifference
+  let balance = new web3.utils.BN()
+  let updatedBalanceOne = new web3.utils.BN()
+  let updatedBalanceTwo = new web3.utils.BN()
+  let validatorBalance = new web3.utils.BN()
+  let validatorBalanceOne = new web3.utils.BN()
+  let validatorBalanceTwo = new web3.utils.BN()
+  let expectedTransactionRebate = new web3.utils.BN()
+  let updatedJurisdictionSubmitterBalance = new web3.utils.BN()
+  let gasCost = new web3.utils.BN()
+  let difference = new web3.utils.BN()
+  let expectedDifference = new web3.utils.BN()
   let stakeAmount = 2 * 10 ** 14
   let expectedTransactionGas = 139000
 
@@ -65,7 +76,7 @@ async function test() {
     }
   ).send({
     from: address,
-    gas: 5500000,
+    gas: 6000000,
     gasPrice: 10 ** 9
   }).catch(error => {
     console.error(error)
@@ -156,14 +167,17 @@ async function test() {
     attributeId: 11111,
     restricted: false,
     minimumStake: 0,
+    jurisdictionFee: 0,
     description: 'VALID_ADDRESS_ATTRIBUTE',
     targetValidator: validatorAddress,
+    validatorFee: 0,
     targetValue: 0,
     targetValueTwo: 67890,
     targetTwoSignature: await signValidation(
       validator.address,
       Jurisdiction.options.address,
       attributedAddress,
+      0,
       0,
       11111,
       67890
@@ -174,13 +188,16 @@ async function test() {
     attributeId: 22222,
     restricted: true,
     minimumStake: 0,
+    jurisdictionFee: 0,
     description: 'VALID_ADDRESS_ATTRIBUTE_RESTRICTED',
     targetValidator: validatorAddress,
+    validatorFee: 0,
     targetValue: 55555,
     targetSignature: await signValidation(
       validator.replacementSigningKey,
       Jurisdiction.options.address,
       attributedAddress,
+      0,
       0,
       22222,
       55555
@@ -191,14 +208,17 @@ async function test() {
     attributeId: 33333,
     restricted: false,
     minimumStake: 10 ** 5,
+    jurisdictionFee: 0,
     description: 'VALID_ADDRESS_ATTRIBUTE_STAKED',
     targetValidator: validatorAddress,
+    validatorFee: 0,
     targetValue: 66666,
     targetSignature: await signValidation(
       validator.address,
       Jurisdiction.options.address,
       attributedAddress,
       2 * 10 ** 14,
+      0,
       33333,
       66666
     ),
@@ -207,8 +227,38 @@ async function test() {
       Jurisdiction.options.address,
       attributedAddress,
       10 ** 3,
+      0,
       33333,
       66666
+    )
+  }
+
+  const stakedFeeAttribute = {
+    attributeId: 77777,
+    restricted: false,
+    minimumStake: 10 ** 5,
+    jurisdictionFee: 10 ** 7,
+    description: 'VALID_ADDRESS_ATTRIBUTE_STAKED',
+    targetValidator: validator.address,
+    validatorFee: 10 ** 8,
+    targetValue: 88888,
+    targetSignature: await signValidation(
+      validator.address,
+      Jurisdiction.options.address,
+      attributedAddress,
+      2 * 10 ** 14 + 10 ** 7 + 10 ** 8, // fundsRequired: stake, j. fee, v. fee
+      10 ** 8,
+      77777,
+      88888
+    ),
+    badSignature: await signValidation(
+      validator.address,
+      Jurisdiction.options.address,
+      attributedAddress,
+      10 ** 3,
+      10 ** 8,
+      77777,
+      88888
     )
   }
 
@@ -287,6 +337,7 @@ async function test() {
     attribute.attributeId,
     attribute.restricted,
     attribute.minimumStake,
+    attribute.jurisdictionFee,
     attribute.description
   ).send({
     from: address,
@@ -308,6 +359,7 @@ async function test() {
     attribute.attributeId,
     attribute.restricted,
     attribute.minimumStake,
+    attribute.jurisdictionFee,
     attribute.description
   ).send({
     from: address,
@@ -322,6 +374,7 @@ async function test() {
     attribute.attributeId + 1, // not a duplicate
     attribute.restricted,
     attribute.minimumStake,
+    attribute.jurisdictionFee,
     attribute.description
   ).send({
     from: inattributedAddress,
@@ -336,6 +389,7 @@ async function test() {
     restrictedAttribute.attributeId, // not a duplicate
     restrictedAttribute.restricted,
     restrictedAttribute.minimumStake,
+    restrictedAttribute.jurisdictionFee,
     restrictedAttribute.description
   ).send({
     from: address,
@@ -770,6 +824,11 @@ async function test() {
     from: address,
     gas: 5000000,
     gasPrice: 10 ** 9
+  }).then(receipt => { 
+    console.log(
+      " ✘  - attempt to add validator with same address as a signing key fails"
+    )
+    failed++
   }).catch(error => {
     console.log(
       ' ✓  - attempt to add validator with same address as a signing key fails'
@@ -780,6 +839,7 @@ async function test() {
   await Jurisdiction.methods.addAttribute(
     attribute.attributeId,
     attribute.targetValueTwo,
+    attribute.validatorFee,
     attribute.targetTwoSignature
   ).send({
     from: attributedAddress,
@@ -1350,6 +1410,7 @@ async function test() {
     attribute.attributeId,
     !attribute.restricted,  // modified to be restricted - how tricky of them...
     attribute.minimumStake,
+    attribute.jurisdictionFee,
     attribute.description
   ).send({
     from: address,
@@ -1371,6 +1432,7 @@ async function test() {
     attribute.attributeId,
     attribute.restricted,
     attribute.minimumStake,
+    attribute.jurisdictionFee,
     attribute.description
   ).send({
     from: address,
@@ -1506,6 +1568,7 @@ async function test() {
   await Jurisdiction.methods.addAttribute(
     attribute.attributeId,
     attribute.targetValueTwo,
+    attribute.validatorFee,
     attribute.targetTwoSignature
   ).send({
     from: attributedAddress,
@@ -1564,6 +1627,7 @@ async function test() {
   await Jurisdiction.methods.addAttribute(
     attribute.attributeId,
     attribute.targetValueTwo,
+    attribute.validatorFee,
     attribute.targetTwoSignature
   ).send({
     from: attributedAddress,
@@ -1578,6 +1642,7 @@ async function test() {
   await Jurisdiction.methods.addAttribute(
     attribute.attributeId,
     attribute.targetValueTwo + 1,
+    attribute.validatorFee,
     attribute.targetTwoSignature
   ).send({
     from: attributedAddress,
@@ -1612,6 +1677,7 @@ async function test() {
   await Jurisdiction.methods.addAttribute(
     attribute.attributeId,
     attribute.targetValueTwo,
+    attribute.validatorFee,
     attribute.targetTwoSignature
   ).send({
     from: attributedAddress,
@@ -1697,6 +1763,7 @@ async function test() {
     stakedAttribute.attributeId,
     stakedAttribute.restricted,
     stakedAttribute.minimumStake,
+    stakedAttribute.jurisdictionFee,
     stakedAttribute.description
   ).send({
     from: address,
@@ -1726,6 +1793,7 @@ async function test() {
   await Jurisdiction.methods.addAttribute(
     stakedAttribute.attributeId,
     stakedAttribute.targetValue,
+    stakedAttribute.validatorFee,
     stakedAttribute.targetSignature
   ).send({
     from: attributedAddress,
@@ -1742,6 +1810,7 @@ async function test() {
   await Jurisdiction.methods.addAttribute(
     stakedAttribute.attributeId,
     stakedAttribute.targetValue,
+    stakedAttribute.validatorFee,
     stakedAttribute.targetSignature
   ).send({
     from: attributedAddress,
@@ -1758,6 +1827,7 @@ async function test() {
   await Jurisdiction.methods.addAttribute(
     stakedAttribute.attributeId,
     stakedAttribute.targetValue,
+    stakedAttribute.validatorFee,
     stakedAttribute.targetSignature
   ).send({
     from: attributedAddress,
@@ -1774,6 +1844,7 @@ async function test() {
   await Jurisdiction.methods.addAttribute(
     stakedAttribute.attributeId,
     stakedAttribute.targetValue,
+    stakedAttribute.validatorFee,
     stakedAttribute.badSignature
   ).send({
     from: attributedAddress,
@@ -1787,11 +1858,12 @@ async function test() {
     passed++
   })
 
-  const balance = await web3.eth.getBalance(attributedAddress)
+  balance = await web3.eth.getBalance(attributedAddress)
 
   await Jurisdiction.methods.addAttribute(
     stakedAttribute.attributeId,
     stakedAttribute.targetValue,
+    stakedAttribute.validatorFee,
     stakedAttribute.targetSignature
   ).send({
     from: attributedAddress,
@@ -1805,14 +1877,25 @@ async function test() {
       ' ✓  - attribute is added if minumumRequiredStake <= stake == msg.value'
     )
     passed++
+
+    const logs = receipt.events.StakeAllocated.returnValues
+    assert.strictEqual(logs.staker, attributedAddress)
+    assert.strictEqual(logs.attribute, stakedAttribute.attributeId.toString())
+    assert.strictEqual(logs.amount, stakeAmount.toString())
+    console.log(' ✓  - StakeAllocated event is logged correctly')
+    passed++
+
   }).catch(error => {
     console.log(
       ' ✘  - attribute is added if minumumRequiredStake <= stake == msg.value'
     )
     failed++
+  
+    console.log(' ✘  - StakeAllocated event is logged correctly')
+    failed++
   })
 
-  const updatedBalanceOne = await web3.eth.getBalance(attributedAddress)
+  updatedBalanceOne = await web3.eth.getBalance(attributedAddress)
   difference = new web3.utils.BN(balance).sub(
     new web3.utils.BN(updatedBalanceOne)
   ).toString()
@@ -1838,20 +1921,42 @@ async function test() {
     gasCost = new web3.utils.BN(receipt.gasUsed).mul(new web3.utils.BN(10 ** 9))
     console.log(' ✓  - users can remove staked attributes directly')
     passed++
+
+    const logs = receipt.events.StakeRefunded.returnValues
+    assert.strictEqual(logs.staker, attributedAddress)
+    assert.strictEqual(logs.attribute, stakedAttribute.attributeId.toString())
+    assert.strictEqual(logs.amount, stakeAmount.toString())
+    console.log(' ✓  - StakeRefunded event is logged correctly')
+    passed++
+
+  }).catch(error => {
+    console.log(
+      ' ✘  - users can remove staked attributes directly'
+    )
+    failed++
+  
+    console.log(' ✘  - StakeRefunded event is logged correctly')
+    failed++
   })
 
-  const updatedBalanceTwo = await web3.eth.getBalance(attributedAddress)
+  updatedBalanceTwo = await web3.eth.getBalance(attributedAddress)
   difference = new web3.utils.BN(updatedBalanceOne).sub(
     new web3.utils.BN(updatedBalanceTwo)
-  ).toString()
-  expectedDifference = gasCost.sub(
-    new web3.utils.BN(stakeAmount)
-  ).toString()
-  assert.strictEqual(difference, expectedDifference)
-  console.log(
-    ' ✓  - address balance is credited by the expected amount'
   )
-  passed++
+  expectedDifference = new web3.utils.BN(gasCost).sub(
+    new web3.utils.BN(stakeAmount)
+  )
+  if (difference.cmp(expectedDifference) == 0) {
+    console.log(
+      ' ✓  - address balance is credited by the expected amount'
+    )
+    passed++
+  } else {
+    console.log(
+      ' ✘  - address balance is credited by the expected amount'
+    )
+    failed++
+  }
 
   await Jurisdiction.methods.addAttributeTo(
     attributedAddress,
@@ -1869,7 +1974,7 @@ async function test() {
     passed++
   })
 
-  const validatorBalance = await web3.eth.getBalance(validator.address)
+  validatorBalance = await web3.eth.getBalance(validator.address)
 
   await Jurisdiction.methods.addAttributeTo(
     attributedAddress,
@@ -1884,12 +1989,31 @@ async function test() {
     assert.ok(receipt.status)
     gasCost = new web3.utils.BN(receipt.gasUsed).mul(new web3.utils.BN(10 ** 9))
     console.log(
-      ' ✓  - validators can add attribute if minumumRequiredStake == msg.value'
+      ' ✓  - validators can add attribute if minumumRequiredStake >= msg.value'
     )
     passed++
+
+    const logs = receipt.events.StakeAllocated.returnValues
+    assert.strictEqual(logs.staker, validator.address)
+    assert.strictEqual(logs.attribute, stakedAttribute.attributeId.toString())
+    assert.strictEqual(
+      logs.amount,
+      new web3.utils.BN(stakeAmount).mul(new web3.utils.BN(2)).toString()
+    )
+    console.log(' ✓  - StakeAllocated event is logged correctly')
+    passed++
+
+  }).catch(error => {
+    console.log(
+      ' ✘  - validators can add attribute if minumumRequiredStake >= msg.value'
+    )
+    failed++
+  
+    console.log(' ✘  - StakeAllocated event is logged correctly')
+    failed++
   })
 
-  const validatorBalanceOne = await web3.eth.getBalance(validator.address)
+  validatorBalanceOne = await web3.eth.getBalance(validator.address)
   difference = new web3.utils.BN(validatorBalance).sub(
     new web3.utils.BN(validatorBalanceOne)
   ).toString()
@@ -1920,13 +2044,49 @@ async function test() {
       " ✓  - jurisdiction owner can remove a staked attribute"
     )
     passed++
+
+    expectedTransactionRebate = new web3.utils.BN(10 ** 9).mul(
+      new web3.utils.BN(expectedTransactionGas)
+    )
+
+    const logs = receipt.events.StakeRefunded.returnValues
+    assert.strictEqual(logs.staker, validator.address)
+    assert.strictEqual(logs.attribute, stakedAttribute.attributeId.toString())
+    assert.strictEqual(
+      logs.amount,
+      new web3.utils.BN(stakeAmount).mul(
+        new web3.utils.BN(2)).sub(
+        expectedTransactionRebate
+      ).toString()
+    )
+    console.log(' ✓  - StakeRefunded event is logged correctly')
+    passed++
+
+    const logs2 = receipt.events.TransactionRebatePaid.returnValues
+    assert.strictEqual(logs2.submitter, address)
+    assert.strictEqual(logs2.attribute, stakedAttribute.attributeId.toString())
+    assert.strictEqual(logs2.amount, expectedTransactionRebate.toString())
+    console.log(' ✓  - TransactionRebatePaid event is logged correctly')
+    passed++
+
+  }).catch(error => {
+    console.log(
+      ' ✘  - jurisdiction owner can remove a staked attribute'
+    )
+    failed++
+  
+    console.log(' ✘  - StakeRefunded event is logged correctly')
+    failed++
+
+    console.log(' ✘  - TransactionRebatePaid event is logged correctly')
+    failed++
   })
 
-  const expectedTransactionRebate = new web3.utils.BN(10 ** 9).mul(
+  expectedTransactionRebate = new web3.utils.BN(10 ** 9).mul(
     new web3.utils.BN(expectedTransactionGas)
   )
 
-  const updatedJurisdictionSubmitterBalance = await web3.eth.getBalance(address)
+  updatedJurisdictionSubmitterBalance = await web3.eth.getBalance(address)
   difference = new web3.utils.BN(updatedJurisdictionSubmitterBalance).sub(
     new web3.utils.BN(jurisdictionSubmitterBalance)
   )
@@ -1942,7 +2102,7 @@ async function test() {
   )
   passed++
 
-  const validatorBalanceTwo = await web3.eth.getBalance(validator.address)
+  validatorBalanceTwo = await web3.eth.getBalance(validator.address)
   difference = new web3.utils.BN(validatorBalanceTwo).sub(
     new web3.utils.BN(validatorBalanceOne)
   )
@@ -1951,11 +2111,381 @@ async function test() {
   ).sub(
     expectedTransactionRebate
   )
-  assert.strictEqual(difference.toString(), expectedDifference.toString())
+  if (difference.cmp(expectedDifference) == 0) {
+    console.log(
+      ' ✓  - validator gets back remaining staked amount when owner calls if paid'
+    )
+    passed++
+  } else {
+    console.log(
+      ' ✘  - validator gets back remaining staked amount when owner calls if paid'
+    )
+    failed++
+  }
+
+await Jurisdiction.methods.addAttributeType(
+    stakedFeeAttribute.attributeId,
+    stakedFeeAttribute.restricted,
+    stakedFeeAttribute.minimumStake,
+    stakedFeeAttribute.jurisdictionFee,
+    stakedFeeAttribute.description
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(receipt => { 
+    assert.ok(receipt.status)
+    console.log(' ✓ attributes can require fees in order to set them')
+    passed++
+  })
+
+  await Jurisdiction.methods.addValidatorApproval(
+    stakedFeeAttribute.targetValidator,
+    stakedFeeAttribute.attributeId
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(receipt => {
+    assert.ok(receipt.status)
+    console.log(
+      ' ✓  - validators can be approved to set attribute types requiring fees'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.addAttribute(
+    stakedFeeAttribute.attributeId,
+    stakedFeeAttribute.targetValue,
+    stakedFeeAttribute.validatorFee,
+    stakedFeeAttribute.targetSignature
+  ).send({
+    from: attributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 9,
+    value: 0
+  }).catch(error => {
+    console.log(
+      ' ✓  - attempt to add attribute without providing fees fails'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.addAttribute(
+    stakedFeeAttribute.attributeId,
+    stakedFeeAttribute.targetValue,
+    stakedFeeAttribute.validatorFee,
+    stakedFeeAttribute.targetSignature
+  ).send({
+    from: attributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 9,
+    value: stakeAmount + stakedFeeAttribute.jurisdictionFee + stakedFeeAttribute.validatorFee - 1
+  }).catch(error => {
+    console.log(
+      ' ✓  - attempt to add attribute when msg.value < stake + fees fails'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.addAttribute(
+    stakedFeeAttribute.attributeId,
+    stakedFeeAttribute.targetValue,
+    stakedFeeAttribute.validatorFee,
+    stakedFeeAttribute.targetSignature
+  ).send({
+    from: attributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 9,
+    value: stakeAmount + stakedFeeAttribute.jurisdictionFee + stakedFeeAttribute.validatorFee + 1
+  }).catch(error => {
+    console.log(
+      ' ✓  - attempt to add attribute when msg.value > stake fails: bad msgHash'
+    )
+    passed++
+  })
+
+  balance = await web3.eth.getBalance(attributedAddress)
+
+  await Jurisdiction.methods.addAttribute(
+    stakedFeeAttribute.attributeId,
+    stakedFeeAttribute.targetValue,
+    stakedFeeAttribute.validatorFee,
+    stakedFeeAttribute.targetSignature
+  ).send({
+    from: attributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 9,
+    value: stakeAmount + stakedFeeAttribute.jurisdictionFee + stakedFeeAttribute.validatorFee
+  }).then(receipt => {
+    assert.ok(receipt.status)
+    gasCost = new web3.utils.BN(receipt.gasUsed).mul(new web3.utils.BN(10 ** 9))
+    console.log(
+      ' ✓  - attribute is added if msg.value == stake + fees'
+    )
+    passed++
+
+    const logs = receipt.events.StakeAllocated.returnValues
+    assert.strictEqual(logs.staker, attributedAddress)
+    assert.strictEqual(logs.attribute, stakedFeeAttribute.attributeId.toString())
+    assert.strictEqual(logs.amount, new web3.utils.BN(stakeAmount).toString())
+    console.log(' ✓  - StakeAllocated event is logged correctly')
+    passed++
+
+    const logs2 = receipt.events.FeePaid[0].returnValues // jurisdiction fees
+    assert.strictEqual(logs2.recipient, address)
+    assert.strictEqual(logs2.payee, attributedAddress)
+    assert.strictEqual(logs2.attribute, stakedFeeAttribute.attributeId.toString())
+    assert.strictEqual(logs2.amount, stakedFeeAttribute.jurisdictionFee.toString())
+    console.log(' ✓  - FeePaid event for jurisdiction is logged correctly')
+    passed++
+
+    const logs3 = receipt.events.FeePaid[1].returnValues // validator fees
+    assert.strictEqual(logs3.recipient, validator.address)
+    assert.strictEqual(logs3.payee, attributedAddress)
+    assert.strictEqual(logs3.attribute, stakedFeeAttribute.attributeId.toString())
+    assert.strictEqual(logs3.amount, stakedFeeAttribute.validatorFee.toString())
+    console.log(' ✓  - FeePaid event for validator is logged correctly')
+    passed++
+
+  }).catch(error => {
+    console.log(
+      ' ✘  - attribute is added if msg.value == stake + fees'
+    )
+    failed++
+  
+    console.log(' ✘  - StakeAllocated event is logged correctly')
+    failed++
+
+    console.log(' ✘  - FeePaid event for jurisdiction is logged correctly')
+    failed++
+
+    console.log(' ✘  - FeePaid event for validator is logged correctly')
+    failed++
+  })
+
+  updatedBalanceOne = await web3.eth.getBalance(attributedAddress)
+  difference = new web3.utils.BN(balance).sub(
+    new web3.utils.BN(updatedBalanceOne)
+  )
+  expectedDifference = gasCost.add(
+    new web3.utils.BN(stakeAmount).add(
+    new web3.utils.BN(stakedFeeAttribute.jurisdictionFee)).add(
+    new web3.utils.BN(stakedFeeAttribute.validatorFee))
+  )
+  
+  if (difference.cmp(expectedDifference) == 0) {
+    console.log(
+      ' ✓  - address balance is reduced by the expected amount'
+    )
+    passed++
+  } else {
+    console.log(
+      ' ✘  - address balance is reduced by the expected amount'
+    )
+    failed++
+  }
+
+
+  // TODO: jurisdiction owner address balance is credited by the expected amount
+  // TODO: validator address balance is credited by the expected amount
+
+  await Jurisdiction.methods.removeAttribute(
+    stakedFeeAttribute.attributeId,
+  ).send({
+    from: attributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 9,
+    value: 0
+  }).then(receipt => {
+    assert.ok(receipt.status)
+    gasCost = new web3.utils.BN(receipt.gasUsed).mul(new web3.utils.BN(10 ** 9))
+    console.log(' ✓  - users can remove attributes with fees directly')
+    passed++
+  }).catch(error => {
+    console.log(
+      ' ✘  - users can remove attributes with fees directly'
+    )
+    failed++   
+  })
+
+  updatedBalanceTwo = await web3.eth.getBalance(attributedAddress)
+  difference = new web3.utils.BN(updatedBalanceOne).sub(
+    new web3.utils.BN(updatedBalanceTwo)
+  )
+  expectedDifference = gasCost.sub(
+    new web3.utils.BN(stakeAmount)
+  )
+  if (expectedDifference.cmp(difference) == 0) {
+    console.log(
+      ' ✓  - address balance is credited by the expected amount'
+    )
+    passed++
+  } else {
+    console.log(difference.toString(), expectedDifference.toString())
+    console.log(difference.sub(expectedDifference).toString())
+    console.log(
+      ' ✘  - address balance is credited by the expected amount'
+    )
+    failed++
+  }
+
+  await Jurisdiction.methods.addAttributeTo(
+    attributedAddress,
+    stakedFeeAttribute.attributeId,
+    stakedFeeAttribute.targetValue
+  ).send({
+    from: validator.address,
+    gas: 5000000,
+    gasPrice: 10 ** 9,
+    value: stakedFeeAttribute.minimumStake + stakedFeeAttribute.jurisdictionFee - 1
+  }).catch(error => {
+    console.log(
+      " ✓  - validators can't add attribute if minumumRequiredStake > msg.value"
+    )
+    passed++
+  })
+
+  validatorBalance = await web3.eth.getBalance(validator.address)
+
+  await Jurisdiction.methods.addAttributeTo(
+    attributedAddress,
+    stakedFeeAttribute.attributeId,
+    stakedFeeAttribute.targetValue
+  ).send({
+    from: validator.address,
+    gas: 5000000,
+    gasPrice: 10 ** 9,
+    value: stakedFeeAttribute.jurisdictionFee + stakeAmount * 2
+  }).then(receipt => {
+    assert.ok(receipt.status)
+    gasCost = new web3.utils.BN(receipt.gasUsed).mul(new web3.utils.BN(10 ** 9))
+    console.log(
+      ' ✓  - validators can add attribute if required stake + fee >= msg.value'
+    )
+    passed++
+
+
+    const logs = receipt.events.StakeAllocated.returnValues
+    assert.strictEqual(logs.staker, validator.address)
+    assert.strictEqual(logs.attribute, stakedFeeAttribute.attributeId.toString())
+    assert.strictEqual(logs.amount, new web3.utils.BN(stakeAmount * 2).toString())
+    console.log(
+      ' ✓  - StakeAllocated event is logged correctly on manual validator call'
+    )
+    passed++
+
+    const logs2 = receipt.events.FeePaid.returnValues // jurisdiction fees
+    assert.strictEqual(logs2.recipient, address)
+    assert.strictEqual(logs2.payee, validator.address)
+    assert.strictEqual(logs2.attribute, stakedFeeAttribute.attributeId.toString())
+    assert.strictEqual(logs2.amount, stakedFeeAttribute.jurisdictionFee.toString())
+    console.log(
+      ' ✓  - FeePaid event for jurisdiction logged correctly on validator call'
+    )
+    passed++
+
+
+  })
+
+  validatorBalanceOne = await web3.eth.getBalance(validator.address)
+  difference = new web3.utils.BN(validatorBalance).sub(
+    new web3.utils.BN(validatorBalanceOne)
+  ).toString()
+  expectedDifference = gasCost.add(
+    new web3.utils.BN(stakeAmount).mul(
+      new web3.utils.BN(2)
+    ).add(
+      new web3.utils.BN(stakedFeeAttribute.jurisdictionFee)
+    )
+  ).toString()
+  assert.strictEqual(difference, expectedDifference)
   console.log(
-    ' ✓  - validator gets back remaining staked amount when owner calls if paid'
+    ' ✓  - validator address balance is reduced by the expected amount'
   )
   passed++
+
+  // TODO: jurisdiction owner address balance is credited by the expected amount
+
+  jurisdictionSubmitterBalance = await web3.eth.getBalance(address)
+
+  await Jurisdiction.methods.removeAttributeFrom(
+    attributedAddress,
+    stakedFeeAttribute.attributeId
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(receipt => {
+    assert.ok(receipt.status)
+    gasCost = new web3.utils.BN(receipt.gasUsed).mul(new web3.utils.BN(10 ** 9))
+    console.log(
+      " ✓  - jurisdiction owner can remove an attribute with fees"
+    )
+    passed++
+
+    expectedTransactionRebate = new web3.utils.BN(10 ** 9).mul(
+      new web3.utils.BN(expectedTransactionGas)
+    )
+
+    const logs = receipt.events.StakeRefunded.returnValues
+    assert.strictEqual(logs.staker, validator.address)
+    assert.strictEqual(logs.attribute, stakedFeeAttribute.attributeId.toString())
+    assert.strictEqual(
+      logs.amount,
+      new web3.utils.BN(stakeAmount).mul(
+        new web3.utils.BN(2)).sub(
+        expectedTransactionRebate
+      ).toString()
+    )
+    console.log(' ✓  - StakeRefunded event is logged correctly')
+    passed++
+
+    const logs2 = receipt.events.TransactionRebatePaid.returnValues
+    assert.strictEqual(logs2.submitter, address)
+    assert.strictEqual(logs2.attribute, stakedFeeAttribute.attributeId.toString())
+    assert.strictEqual(logs2.amount, expectedTransactionRebate.toString())
+    console.log(' ✓  - TransactionRebatePaid event is logged correctly')
+    passed++
+  })
+
+  expectedTransactionRebate = new web3.utils.BN(10 ** 9).mul(
+    new web3.utils.BN(expectedTransactionGas)
+  )
+
+  updatedJurisdictionSubmitterBalance = await web3.eth.getBalance(address)
+  difference = new web3.utils.BN(updatedJurisdictionSubmitterBalance).sub(
+    new web3.utils.BN(jurisdictionSubmitterBalance)
+  )
+  expectedDifference = expectedTransactionRebate.sub(gasCost)
+  assert.strictEqual(difference.toString(), expectedDifference.toString())  
+  console.log(
+    " ✓  - jurisdiction's submitter gets transaction rebate from stake if s>t"
+  )
+  passed++
+
+  validatorBalanceTwo = await web3.eth.getBalance(validator.address)
+  difference = new web3.utils.BN(validatorBalanceTwo).sub(
+    new web3.utils.BN(validatorBalanceOne)
+  )
+  expectedDifference = new web3.utils.BN(stakeAmount).mul(
+    new web3.utils.BN(2)
+  ).sub(
+    new web3.utils.BN(expectedTransactionRebate)
+  )
+  if (difference.cmp(expectedDifference) == 0) {
+    console.log(
+      ' ✓  - validator gets back stake less rebate when owner calls if paid'
+    )
+    passed++
+  } else {
+    console.log(difference.toString(), expectedDifference.toString())
+    console.log(difference.sub(expectedDifference).toString())
+    console.log(
+      ' ✘  - validator gets back stake less rebate when owner calls if paid'
+    )
+    failed++
+  }
 
   // TODO: jurisdiction's submitter gets back back the total stake if s<=t
 
@@ -1972,6 +2502,8 @@ async function test() {
   // (this requires testing removed attribute types, validators, and approvals)
 
   // TODO: handle all failed test cases - a bunch will halt testing if they fail
+
+  // TODO: still needs additional tests written to cover fees and related events
 
   console.log(
     `completed ${passed + failed} tests with ${failed} ` +

@@ -20,7 +20,10 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
   event ValidatorSigningKeyModified(address indexed validator, address newSigningKey);
   event AttributeAdded(address validator, address indexed attributee, uint256 attribute);
   event AttributeRemoved(address validator, address indexed attributee, uint256 attribute);
-  // NOTE: consider event on value transfers: fees, stake, & transaction rebates
+  event StakeAllocated(address indexed staker, uint256 indexed attribute, uint256 amount);
+  event StakeRefunded(address indexed staker, uint256 indexed attribute, uint256 amount);
+  event FeePaid(address indexed recipient, address indexed payee, uint256 indexed attribute, uint256 amount);
+  event TransactionRebatePaid(address indexed submitter, address indexed payee, uint256 indexed attribute, uint256 amount);
 
   // validators are entities who can add or authorize addition of new attributes
   struct Validator {
@@ -45,7 +48,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     bool restricted;
     uint240 index;
     uint256 minimumStake;
-    // uint256 jurisdictionFee; // consider to enable payments to jurisdiction
+    uint256 jurisdictionFee;
     string description;
     mapping(address => bool) approvedValidators;
   }
@@ -79,6 +82,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     uint256 _id,
     bool _restrictedAccess,
     uint256 _minimumStake,
+    uint256 _jurisdictionFee,
     string _description
   ) external onlyOwner {
     // prevent existing attributes with the same id from being overwritten
@@ -88,9 +92,12 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     );
 
     // calculate a hash of the attribute type based on the type's properties
+    // NOTE: _jurisdictionFee and _minimumRequiredStake can be left out, since
+    // the jurisdiction can modify these properties without affecting existing
+    // attributes - these properties only apply to assignment of new attributes.
     bytes32 hash = keccak256(
       abi.encodePacked(
-        address(this), _id, _restrictedAccess, _minimumStake, _description
+        _id, _restrictedAccess, _description
       )
     );
 
@@ -111,6 +118,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
       restricted: _restrictedAccess, // when true: users can't remove attribute
       index: uint240(attributeIds.length),
       minimumStake: _minimumStake, // when > 0: users must stake ether to set
+      jurisdictionFee: _jurisdictionFee,
       description: _description
       // NOTE: no approvedValidators variable declaration - must be added later
     });
@@ -251,6 +259,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     emit ValidatorApprovalRemoved(_validator, _attribute);
   }
 
+  // validators may modify the public key corresponding to their signing key.
   function modifyValidatorSigningKey(address _newSigningKey) external {
     // NOTE: consider having the validator submit a signed proof demonstrating
     // that the provided signing key is indeed a signing key in their control -
@@ -287,13 +296,13 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
   function addAttribute(
     uint256 _attribute,
     uint256 _value,
+    uint256 _validatorFee,
     bytes _signature
   ) external payable {
     // NOTE: determine best course of action when the attribute already exists
     // NOTE: consider utilizing bytes32 type for attributes and values
     // NOTE: does not currently support an extraData parameter, consider adding
     // NOTE: does not currently support assigning an operator to set attributes
-    // NOTE: consider including _validatorFee and _jurisdictionFee arguments
     // NOTE: if msg.sender is a proxy contract, its ownership may be transferred
     // at will, circumventing any token transfer restrictions. Restricting usage
     // to only externally owned accounts may partially alleviate this concern.
@@ -303,14 +312,26 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     // downside is that everyone will have to keep track of the extra parameter.
     // Another solution is to just modifiy the required staked amount slightly!
 
+    // retrieve required minimum stake and jurisdiction fees on attribute type
+    uint256 minimumStake = attributeTypes[_attribute].minimumStake;
+    uint256 jurisdictionFee = attributeTypes[_attribute].jurisdictionFee;
+    uint256 stake = msg.value.sub(_validatorFee).sub(jurisdictionFee);
+
     require(
-      msg.value >= attributeTypes[_attribute].minimumStake,
-      "attribute requires a greater staked value than is currently provided"
+      stake >= minimumStake,
+      "attribute requires a greater value than is currently provided"
     );
 
     // signed data hash constructed according to EIP-191-0x45 to prevent replays
     bytes32 msgHash = keccak256(
-      abi.encodePacked(address(this), msg.sender, msg.value, _attribute, _value)
+      abi.encodePacked(
+        address(this),
+        msg.sender,
+        msg.value,
+        _validatorFee,
+        _attribute,
+        _value
+      )
     );
 
     require(
@@ -344,7 +365,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
       exists: true,
       setUsingSignature: true,
       value: _value,
-      stake: msg.value
+      stake: stake
       // NOTE: no extraData included
     });
 
@@ -353,6 +374,29 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
 
     // log the addition of the attribute
     emit AttributeAdded(validator, msg.sender, _attribute);
+
+    // log allocation of staked funds to the attribute if applicable
+    if (stake > 0) {
+      emit StakeAllocated(msg.sender, _attribute, stake);
+    }
+
+    // pay jurisdiction fee to the owner of the jurisdiction if applicable
+    if (jurisdictionFee > 0) {
+      // NOTE: send is chosen over transfer to prevent cases where a improperly
+      // configured fallback function could block addition of an attribute
+      if (owner.send(jurisdictionFee) == true) {
+        emit FeePaid(owner, msg.sender, _attribute, jurisdictionFee);
+      }
+    }
+
+    // pay validator fee to the issuing validator's address if applicable
+    if (_validatorFee > 0) {
+      // NOTE: send is chosen over transfer to prevent cases where a improperly
+      // configured fallback function could block addition of an attribute
+      if (validator.send(_validatorFee) == true) {
+        emit FeePaid(validator, msg.sender, _attribute, _validatorFee);
+      }
+    }
   }
 
   // approved validators may also add attributes directly to a specified address
@@ -372,6 +416,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     // to only externally owned accounts may partially alleviate this concern.
     // NOTE: if an attribute type requires a minimum stake and the validator is
     // the one to pay it, they will be refunded instead of the attribute holder.
+    
     require(
       canValidate(msg.sender, _attribute),
       "only approved validators may assign attributes of this type"
@@ -384,9 +429,14 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     // alternately, check attributes[validator][msg.sender][_attribute].exists
     // and update value / increment stake if the validator is the same?
 
+    // retrieve required minimum stake and jurisdiction fees on attribute type
+    uint256 minimumStake = attributeTypes[_attribute].minimumStake;
+    uint256 jurisdictionFee = attributeTypes[_attribute].jurisdictionFee;
+    uint256 stake = msg.value.sub(jurisdictionFee);
+
     require(
-      msg.value >= attributeTypes[_attribute].minimumStake,
-      "attribute requires a greater staked value than is currently provided"
+      stake >= minimumStake,
+      "attribute requires a greater value than is currently provided"
     );
 
     // store the attribute's validator for identifying the validating scope
@@ -397,12 +447,26 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
       exists: true,
       setUsingSignature: false,
       value: _value,
-      stake: msg.value
+      stake: stake
       // NOTE: no extraData included
     });
 
     // log the addition of the attribute
     emit AttributeAdded(msg.sender, _who, _attribute);
+
+    // log allocation of staked funds to the attribute if applicable
+    if (stake > 0) {
+      emit StakeAllocated(msg.sender, _attribute, stake);
+    }
+
+    // pay jurisdiction fee to the owner of the jurisdiction if applicable
+    if (jurisdictionFee > 0) {
+      // NOTE: send is chosen over transfer to prevent cases where a improperly
+      // configured fallback function could block addition of an attribute
+      if (owner.send(jurisdictionFee) == true) {
+        emit FeePaid(owner, msg.sender, _attribute, jurisdictionFee);
+      }
+    }
   }
 
   // users may remove their own attributes from the jurisdiction at any time
@@ -445,7 +509,9 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     if (stake > 0 && address(this).balance >= stake) {
       // NOTE: send is chosen over transfer to prevent cases where a malicious
       // fallback function could forcibly block an attribute's removal
-      refundAddress.send(stake);
+      if (refundAddress.send(stake) == true) {
+        emit StakeRefunded(refundAddress, _attribute, stake);
+      }
     }
   }
 
@@ -500,17 +566,22 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
       // if stake exceeds allocated transaction cost, refund user the difference
       if (stake > transactionCost) {
         // refund the excess stake to the address that contributed the funds
-        refundAddress.send(stake.sub(transactionCost));
+        if (refundAddress.send(stake.sub(transactionCost))) {
+          emit StakeRefunded(refundAddress, _attribute, stake.sub(transactionCost));
+        }
 
         // refund the cost of the transaction to the trasaction submitter
-        tx.origin.send(transactionCost);
+        if (tx.origin.send(transactionCost)) {
+          emit TransactionRebatePaid(tx.origin, refundAddress, _attribute, transactionCost);
+        }
 
       // otherwise, allocate entire stake to partially refunding the transaction
       } else if (stake > 0 && address(this).balance >= stake) {
-        tx.origin.send(stake);
+        if (tx.origin.send(stake)) {
+          emit TransactionRebatePaid(tx.origin, refundAddress, _attribute, stake);
+        }
       }
     }
-
   }  
 
   // external interface for determining the existence of an attribute
@@ -543,12 +614,16 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
   function getAttributeInformation(
     uint256 _attribute
   ) external view returns (
-    string description, bool isRestricted, uint256 minimumRequiredStake
+    string description,
+    bool isRestricted,
+    uint256 minimumRequiredStake,
+    uint256 jurisdictionFee
   ) {
     return (
       attributeTypes[_attribute].description,
       attributeTypes[_attribute].restricted,
-      attributeTypes[_attribute].minimumStake
+      attributeTypes[_attribute].minimumStake,
+      attributeTypes[_attribute].jurisdictionFee
     );
   }
 
@@ -575,19 +650,29 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
   function canAddAttribute(
     uint256 _attribute,
     uint256 _value,
-    uint256 _stake,
+    uint256 _fundsRequired,
+    uint256 _validatorFee,
     bytes _signature
   ) external view returns (bool) {
     // signed data hash constructed according to EIP-191-0x45 to prevent replays
     bytes32 msgHash = keccak256(
-      abi.encodePacked(address(this), msg.sender, _stake, _attribute, _value)
+      abi.encodePacked(
+        address(this),
+        msg.sender,
+        _fundsRequired,
+        _validatorFee,
+        _attribute,
+        _value
+      )
     );
 
     address signingKey = msgHash.toEthSignedMessageHash().recover(_signature);
     address validator = signingKeys[signingKey];
+    uint256 minimumStake = attributeTypes[_attribute].minimumStake;
+    uint256 jurisdictionFee = attributeTypes[_attribute].jurisdictionFee;
 
     return (
-      _stake < attributeTypes[_attribute].minimumStake &&
+      _fundsRequired >= minimumStake.add(jurisdictionFee).add(_validatorFee) &&
       canValidate(validator, _attribute)
     );
   }

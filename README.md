@@ -1,7 +1,7 @@
 # Transaction Permission Layer PoC
 
 
-### ***** *TPL-1.0 Release Candidate 1* *****
+### ***** *TPL-1.0 Release Candidate 2* *****
 Proof of concept for contracts implementing a TPL jurisdiction and an ERC20-enforced TPL.
 
 
@@ -11,6 +11,16 @@ Proof of concept for contracts implementing a TPL jurisdiction and an ERC20-enfo
 **[WHITEPAPER (working draft)](https://tplprotocol.org/pdf/TPL%20-%20Transaction%20Permission%20Layer.pdf)**
 
 
+### Changes from Release Candidate 1
+This release candidate enables an optional fee mechanism for both jurisdictions and validators. When the jurisdiction adds an attribute type, it may specify a fee that must be paid (in addition to any staked funds, if appliciable) whenever an attribute of that type is set, whether manually by validators or directly by participants. Additionally, when a validator signs an attribute approval, they may include a fee that must be paid (in addition to any staked funds and the attribute type's jurisdiction fee, if applicable) in order for the participant to successfully add the attribute.
+
+
+A few methods on the jurisdiction interface have been extended: `addAttributeType` takes an additional `_jurisdictionFee` argument, `addAttribute` takes an additional `validatorFee` argument, and `canAddAttribute` takes `_fundsRequired` (a placeholder for `msg.value`) and `_validatorFee` arguments. Additionally, `getAttributeInformation` will now include `jurisdictionFee` as a return value. Finally, the interface has four new related event types: `StakeAllocated`, `StakeRefunded`, `FeePaid`, and `TransactionRebatePaid`.
+
+
+In the event that fees are not currently deemed necessary, the entire mechanism can be avoided by leaving them set to 0 - this also applies to the mechanism of staking funds to pay for transaction rebates. These features can also be phased in gradually by either party without invalidating any existing attributes or disrupting any ongoing permissioned transfers of TPL-compliant tokens.
+
+
 ### Usage
 First, ensure that [truffle](https://truffleframework.com/docs/truffle/getting-started/installation) and [ganache-cli](https://github.com/trufflesuite/ganache-cli#installation) are installed.
 
@@ -18,7 +28,7 @@ First, ensure that [truffle](https://truffleframework.com/docs/truffle/getting-s
 Next, install dependencies and compile contracts:
 
 ```sh
-$ git clone -b 1.0-rc1 https://github.com/TPL-protocol/tpl-contracts
+$ git clone -b 1.0-rc2 https://github.com/TPL-protocol/tpl-contracts
 $ cd tpl-contracts
 $ yarn install
 $ truffle compile
@@ -37,19 +47,19 @@ Contracts may also be deployed to local testRPC using `$ node scripts/deploy.js`
 
 
 ### Summary & Key Terms
-* A **registry** is any smart contract that implements an [interface](https://github.com/TPL-protocol/tpl-contracts/blob/1.0-rc1/contracts/Registry.sol) containing a small set of external methods related to determining the existence of attributes. It enables implementing tokens and other contracts to avoid much of the complexity inherent in attribute validation and assignment by instead retrieving information from a trusted source. Attributes can be considered a lightweight alternative to claims as laid out in [EIP-735](https://github.com/ethereum/EIPs/issues/735).
+* A **registry** is any smart contract that implements an [interface](https://github.com/TPL-protocol/tpl-contracts/blob/1.0-rc2/contracts/Registry.sol) containing a small set of external methods related to determining the existence of attributes. It enables implementing tokens and other contracts to avoid much of the complexity inherent in attribute validation and assignment by instead retrieving information from a trusted source. Attributes can be considered a lightweight alternative to claims as laid out in [EIP-735](https://github.com/ethereum/EIPs/issues/735).
 
 
-* The **jurisdiction** is [implemented](https://github.com/TPL-protocol/tpl-contracts/blob/1.0-rc1/contracts/Jurisdiction.sol) as a single contract that stores validated attributes for each participant, where each attribute is a `uint256 => uint256` key-value pair. It implements a `Registry` interface along with associated [EIP-165](https://eips.ethereum.org/EIPS/eip-165) support, allowing other contracts to identify and confirm attributes recognized by the jurisdiction. It also implements an additional [interface](https://github.com/TPL-protocol/tpl-contracts/blob/1.0-rc1/contracts/JurisdictionInterface.sol) that provides methods and events that provide further context regarding actions within the jurisdiction.
+* The **jurisdiction** is [implemented](https://github.com/TPL-protocol/tpl-contracts/blob/1.0-rc2/contracts/Jurisdiction.sol) as a single contract that stores validated attributes for each participant, where each attribute is a `uint256 => uint256` key-value pair. It implements a `Registry` interface along with associated [EIP-165](https://eips.ethereum.org/EIPS/eip-165) support, allowing other contracts to identify and confirm attributes recognized by the jurisdiction. It also implements an additional [interface](https://github.com/TPL-protocol/tpl-contracts/blob/1.0-rc2/contracts/JurisdictionInterface.sol) that provides methods and events that provide further context regarding actions within the jurisdiction.
 
 
 * A jurisdiction defines **attribute types**, or permitted attribute groups, with the following fields *(with optional fields set to* `0 | false | 0x | ""`  *depending on the field's type)*:
     * an arbitrary `uint256 attributeID` field, unique to each attribute type within the jurisdiction, for accessing the attribute,
     * an optional `bool isRestricted` field which prevents attributes of the given type from being removed by the participant directly when set,
-    * an optional `uint256 minimumRequiredStake` field, which requires that attributes of the given type must lock a minimum amount of ether in the jurisdiction in order to be added, and
+    * an optional `uint256 minimumRequiredStake` field, which requires that attributes of the given type must lock a minimum amount of ether in the jurisdiction in order to be added,
+    * an optional `uint256 jursdictionFee` field to be paid upon assignment of any attribute of the given type, and
     * an optional `string description` field for including additional context on the given attribute type.
-    * *__NOTE:__ two additional fields not currently included in TPL attribute types but under active consideration are an optional* `uint256 jursdictionFee` *field to be paid upon assignment of any attribute of the given type, as well as an optional* `bytes extraData` *field to support forward-compatibility.* 
-
+    * *__NOTE:__ one additional field not currently included in TPL attribute types but under active consideration is an optional* `bytes extraData` *field to support forward-compatibility.* 
 
 
 * The jurisdiction also designates **validators** (analogous to Certificate Authorities), which are addresses that can:
@@ -71,14 +81,11 @@ Contracts may also be deployed to local testRPC using `$ node scripts/deploy.js`
     * remove attributes from participants as required.
 
 
-* The **TPLToken** is a standard [OpenZeppelin ERC20 token](https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/StandardToken.sol) that requires certain attributes to be present for the participants in each transaction. For this [implementation](https://github.com/TPL-protocol/tpl-contracts/blob/1.0-rc1/contracts/TPLToken.sol), the token checks the jurisdiction's registry for an attribute used to whitelist valid token senders and recipients. *(NOTE: the attributes defined in the jurisdiction and required by TPLToken have been arbitrarily defined for this PoC, and are not intended to serve as a proposal for the attributes that will be used for validating transactions.)*
+* The **TPLToken** is a standard [OpenZeppelin ERC20 token](https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/StandardToken.sol) that requires certain attributes to be present for the participants in each transaction. For this [implementation](https://github.com/TPL-protocol/tpl-contracts/blob/1.0-rc2/contracts/TPLToken.sol), the token checks the jurisdiction's registry for an attribute used to whitelist valid token senders and recipients. *(NOTE: the attributes defined in the jurisdiction and required by TPLToken have been arbitrarily defined for this PoC, and are not intended to serve as a proposal for the attributes that will be used for validating transactions.)*
 
 
 ### Attribute scope
 Issued attributes exist in the scope of the issuing validator - if a validator is removed, all attributes issued by that validator become invalid and must be renewed. Furthermore, an attribute exists in the scope of it's attribute type, and if the attribute type is removed from the jurisdiction the associated attributes will become invalid. Finally, each attribute type that a validator is approved to add has a scope, and if a validator has its approval for issuing attributes of a particular type, all attributes it has issued with the given type will become invalid.
-
-
-*__NOTE:__ two additional fields not currently included in TPL attribute types but under active consideration are an optional* `uint256 jursdictionFee` *field to be paid upon assignment of any attribute of the given type, as well as an optional* `bytes extraData` *field to support forward-compatibility.*
 
 
 The validator that issued an attribute to a given address can be found by calling `getAttributeValidator`, but most contracts that implement a jurisdiction as the primary registry for performing transaction permission logic should not have to concern themselves with the validators at all - indeed, much of the point of the jurisdiction is to allow for tokens and other interfacing contracts to delegate managing validators and attributes to the jurisdiction altogether.
@@ -89,7 +96,7 @@ Validators may issue and revoke attributes themselves on-chain (and, indeed, thi
 * Validators do not have to pay transaction fees in order to assign attributes,
 * Participants may decide when they want to add the attribute, enhancing privacy and saving on fees when attributes are not ultimately required, and
 * Participants can optionally be required to stake some ether when assigning the attribute, which will go toward paying the transaction fee should the validator or jurisdiction owner need to revoke the attribute in the future.
-* Furthermore, participants can optionally be required to include additional fees to the jurisdiction owner and/or to the validator, as required in the attribute type or signed attribute approval, respectively. *__NOTE:__ an additional optional* `uint256 validatorFee` *field on the signed attribute approval to be paid upon assignment of the attribute in question, not currently included in TPL but under active consideration, would be required to support this feature.*
+* Furthermore, participants can optionally be required to include additional fees to the jurisdiction owner and/or to the validator, as required in the attribute type or signed attribute approval, respectively.
 
 
 To sign an attribute approval, a validator may call the following with appropriate arguments:
@@ -102,7 +109,8 @@ async function signValidation(
   validatorSigningKeyAccount,
   jurisdiction,
   who,
-  stake,
+  fundsRequired,
+  validatorFee,
   attribute,
   value
 ) {
@@ -110,7 +118,8 @@ async function signValidation(
     web3.utils.soliditySha3(
       {t: 'address', v: jurisdiction},
       {t: 'address', v: who},
-      {t: 'uint256', v: stake},
+      {t: 'uint256', v: fundsRequired}, // stake + jurisdiction & validator fees
+      {t: 'uint256', v: validatorFee},
       {t: 'uint256', v: attribute},
       {t: 'uint256', v: value}
     ),
@@ -140,6 +149,5 @@ Care should be taken when determining the estimated gas usage of the attribute r
 Some features of this implementation, and others that are not included as part of this implementation, are still under consideration for inclusion in TPL. Some of the most pressing open questions include:
 * the degree of support for various Ethereum Improvement Proposals (with a tradeoff cross-compatibility vs over-generalization & complexity),
 * the inclusion of attribute types that can specify addresses of a separate registry where their value can be found, thereby enabling composable groups of jurisdictions or other registries,
-* enabling batched attribute assignment and removal to facilitate both cost savings by validators and simultaneous assignment of multiple related attributes by participants,
-* the inclusion of an optional fee parameter (payable to the jurisdiction, the issuing validator, or both) upon attribute assignment, and
+* enabling batched attribute assignment and removal to facilitate both cost savings by validators and simultaneous assignment of multiple related attributes by participants, and
 * the possibility of integrating a native token for consistent internal accounting irregardless of external inputs (though this option is likely unneccessary and needlessly complex).

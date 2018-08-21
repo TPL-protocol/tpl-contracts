@@ -27,7 +27,7 @@ async function main() {
 	})
 	.send({
     from: address,
-    gas: 5500000,
+    gas: 6000000,
     gasPrice: '1000000000'
 	})
 	.on('error', error => { console.error(error) })

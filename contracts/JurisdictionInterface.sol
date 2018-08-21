@@ -12,10 +12,13 @@ interface JurisdictionInterface {
   event ValidatorSigningKeyModified(address indexed validator, address newSigningKey);
   event AttributeAdded(address validator, address indexed attributee, uint256 attribute);
   event AttributeRemoved(address validator, address indexed attributee, uint256 attribute);
-  // NOTE: consider event on value transfers: fees, stake, & transaction rebates
+  event StakeAllocated(address indexed staker, uint256 indexed attribute, uint256 amount);
+  event StakeRefunded(address indexed staker, uint256 indexed attribute, uint256 amount);
+  event FeePaid(address indexed recipient, address indexed payee, uint256 indexed attribute, uint256 amount);
+  event TransactionRebatePaid(address indexed submitter, address indexed payee, uint256 indexed attribute, uint256 amount);
 
   // the contract owner may declare attributes recognized by the jurisdiction
-  function addAttributeType(uint256 _id, bool _restrictedAccess, uint256 _minimumStake, string _description)
+  function addAttributeType(uint256 _id, bool _restrictedAccess, uint256 _minimumStake, uint256 _jurisdictionFee, string _description)
     external;
 
   // the owner may also remove attributes - necessary first step before updating
@@ -35,10 +38,11 @@ interface JurisdictionInterface {
   function removeValidatorApproval(address _validator, uint256 _attribute)
     external;
 
+  // validators may modify the public key corresponding to their signing key.
   function modifyValidatorSigningKey(address _newSigningKey) external;
 
   // users of the jurisdiction add attributes by including a validator signature
-  function addAttribute(uint256 _attribute, uint256 _value, bytes _signature)
+  function addAttribute(uint256 _attribute, uint256 _value, uint256 _validatorFee, bytes _signature)
     external payable;
 
   // approved validators may also add attributes directly to a specified address
@@ -53,14 +57,14 @@ interface JurisdictionInterface {
 
   // external interface for getting the description of an attribute by ID
   function getAttributeInformation(uint256 _attribute)
-    external view returns (string description, bool isRestricted, uint256 minimumRequiredStake);
+    external view returns (string description, bool isRestricted, uint256 minimumRequiredStake, uint256 jurisdictionFee);
 
   // external interface for determining the validator of an issued attribute
   function getAttributeValidator(address _who, uint256 _attribute)
     external view returns (address validator, bool isStillValid);
 
   // users can check whether a signature for adding an attribute is still valid
-  function canAddAttribute(uint256 _attribute, uint256 _value, uint256 _stake, bytes _signature)
+  function canAddAttribute(uint256 _attribute, uint256 _value, uint256 _fundsRequired, uint256 _validatorFee, bytes _signature)
     external view returns (bool);
 
 }
