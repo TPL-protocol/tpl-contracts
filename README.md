@@ -2,7 +2,7 @@
 
 
 ### ***** *TPL-1.0 & ZEP Validator - Release Candidate 1* *****
-Proof of concept for contracts implementing a TPL jurisdiction, a ZEP validator contract, and an mock ZEP ERC20 with enforced TPL.
+Proof of concept for contracts implementing a TPL jurisdiction, a ZEP validator contract, and a mock ZEP ERC20 with enforced TPL.
 
 
 **[PROJECT PAGE](https://tplprotocol.org/)**
