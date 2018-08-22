@@ -46,6 +46,7 @@ contract ZEPValidator is Ownable, Pausable {
   // the contract owner may add new organizations
   function addOrganization(
     address _organization,
+    uint248 _maximumAddresses,
     string _name
   ) external onlyOwner {
     // check that an empty address was not provided by mistake
@@ -59,7 +60,7 @@ contract ZEPValidator is Ownable, Pausable {
 
     // set up the organization in the organizations mapping
     organizations[_organization].exists = true;
-    organizations[_organization].maximumAddresses = uint248(20);
+    organizations[_organization].maximumAddresses = _maximumAddresses;
     organizations[_organization].name = _name;
     
     // add the organization to the end of the organizationAddresses array

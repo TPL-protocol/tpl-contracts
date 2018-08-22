@@ -214,6 +214,7 @@ async function test() {
 
   await ZEPValidatorContractInstance.methods.addOrganization(
     organizationAddress,
+    20, // maximumAddresses
     ZEPOrganizationName
   ).send({
     from: address,
@@ -260,6 +261,7 @@ async function test() {
 
   await ZEPValidatorContractInstance.methods.addOrganization(
     nullAddress,
+    100,
     ZEPOrganizationName
   ).send({
     from: address,
@@ -274,6 +276,7 @@ async function test() {
 
   await ZEPValidatorContractInstance.methods.addOrganization(
     organizationAddress,
+    100,
     ZEPOrganizationName
   ).send({
     from: address,
@@ -286,6 +289,7 @@ async function test() {
 
   await ZEPValidatorContractInstance.methods.addOrganization(
     address,
+    100,
     ZEPOrganizationName
   ).send({
     from: address,
@@ -298,6 +302,7 @@ async function test() {
 
   await ZEPValidatorContractInstance.methods.addOrganization(
     inattributedAddress,
+    100,
     ZEPOrganizationName
   ).send({
     from: inattributedAddress,
