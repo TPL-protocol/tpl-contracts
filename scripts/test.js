@@ -3,7 +3,7 @@ var assert = require('assert');
 var Web3 = require('web3')
 
 var JurisdictionContractData = require('../build/contracts/Jurisdiction.json')
-var TPLTokenContractData = require('../build/contracts/TPLToken.json')
+var TPLTokenContractData = require('../build/contracts/MockZEPToken.json')
 
 var web3 = new Web3('ws://localhost:8545')
 
@@ -86,7 +86,7 @@ async function test() {
   const TPLToken = await TPLTokenDeployer.deploy(
     {
       data: TPLTokenContractData.bytecode,
-      arguments: [Jurisdiction.options.address, 100]
+      arguments: [Jurisdiction.options.address, 11111, 100]
     }
   ).send({
     from: address,

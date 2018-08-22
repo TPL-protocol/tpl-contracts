@@ -416,7 +416,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     // to only externally owned accounts may partially alleviate this concern.
     // NOTE: if an attribute type requires a minimum stake and the validator is
     // the one to pay it, they will be refunded instead of the attribute holder.
-    
+
     require(
       canValidate(msg.sender, _attribute),
       "only approved validators may assign attributes of this type"
@@ -428,6 +428,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     );
     // alternately, check attributes[validator][msg.sender][_attribute].exists
     // and update value / increment stake if the validator is the same?
+
 
     // retrieve required minimum stake and jurisdiction fees on attribute type
     uint256 minimumStake = attributeTypes[_attribute].minimumStake;
