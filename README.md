@@ -37,4 +37,12 @@ $ node scripts/testZEPValidator.js
 ```
 
 
-Contracts may then be deployed to local testRPC and set up for the ZEP validator to issue attributes using `$ node scripts/deploy.js`.
+Contracts may then be deployed and set up using `deploy.js`, after which the ZEP validator can assign & modify organizations that can issue attributes *(to test, swap out the organization's address for one you control and set the second parameter to the maximum number of addresses that the organization can issue attributes for)*:
+
+```sh
+$ node scripts/deploy.js
+$ node scripts/addOrganization.js 0x1234567890123456789012345678901234567890 20 'an organization name'
+$ node scripts/setMaximumAddresses.js 0x1234567890123456789012345678901234567890 25
+$ node scripts/issueAttribute.js 0x9876543210987654321098765432109876543210
+$ node scripts/getZEPValidatorSummary.js
+```

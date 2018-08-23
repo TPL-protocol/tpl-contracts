@@ -96,7 +96,7 @@ async function main() {
   console.log(` - added ZEP attribute type to jurisdiction`)
 
   await JurisdictionContractInstance.methods.addValidator(
-    tokenAddress,
+    ZEPValidatorAddress,
     mockZEPTokenValidatorDescription
   ).send({
     from: address,
@@ -106,7 +106,7 @@ async function main() {
   console.log(` - added ZEP validator to jurisdiction`)
 
   await JurisdictionContractInstance.methods.addValidatorApproval(
-    tokenAddress,
+    ZEPValidatorAddress,
     mockZEPTokenAttributeID
   ).send({
     from: address,
