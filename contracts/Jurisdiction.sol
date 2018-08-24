@@ -649,6 +649,16 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     );
   }
 
+
+  // external interface for getting the description of a validator by ID
+  function getValidatorInformation(address _validator)
+    external view returns (address signingKey, string description) {
+      return (
+        validators[_validator].signingKey,
+        validators[_validator].description
+      );
+    }
+
   // external interface for getting the list of all available attributes by ID
   function getAvailableAttributes() external view returns (uint256[]) {
     return attributeIds;

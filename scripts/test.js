@@ -852,6 +852,22 @@ async function test() {
     passed++
   })
 
+  await Jurisdiction.methods.getValidatorInformation(
+    validator.address
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(validatorInformation => {
+    assert.strictEqual(
+      validatorInformation.signingKey,
+      validator.replacementSigningKey
+    )
+    assert.strictEqual(validatorInformation.description, validator.description)
+    console.log(' ✓  - external calls retrieve new information on validator')
+    passed++
+  })
+
   await Jurisdiction.methods.modifyValidatorSigningKey(
     validator.replacementSigningKey
   ).send({
@@ -1329,6 +1345,19 @@ async function test() {
   }).then(receipt => {
     assert.ok(receipt.status)
     console.log(' ✓  - revoked validators can be renewed')
+    passed++
+  })
+
+  await Jurisdiction.methods.getValidatorInformation(
+    validator.address
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(validatorInformation => {
+    assert.strictEqual(validatorInformation.signingKey, validator.address)
+    assert.strictEqual(validatorInformation.description, validator.description)
+    console.log(' ✓  - external calls can retrieve information on a validator')
     passed++
   })
 
