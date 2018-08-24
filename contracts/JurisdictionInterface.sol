@@ -55,6 +55,16 @@ interface JurisdictionInterface {
   // the jurisdiction owner and issuing validators may also remove attributes
   function removeAttributeFrom(address _who, uint256 _attribute) external;
 
+  // external interface for getting the list of all available attributes by ID
+  function getAvailableAttributes() external view returns (uint256[]);
+
+  // external interface for getting the list of all validators by address
+  function getAvailableValidators() external view returns (address[]);
+
+  // external interface to check if validator is approved to issue an attribute
+  function isApproved(address _validator, uint256 _attribute)
+    external view returns (bool);
+
   // external interface for getting the description of an attribute by ID
   function getAttributeInformation(uint256 _attribute)
     external view returns (string description, bool isRestricted, uint256 minimumRequiredStake, uint256 jurisdictionFee);
