@@ -11,16 +11,6 @@ Proof of concept for contracts implementing a TPL jurisdiction and an ERC20-enfo
 **[WHITEPAPER (working draft)](https://tplprotocol.org/pdf/TPL%20-%20Transaction%20Permission%20Layer.pdf)**
 
 
-### Changes from Release Candidate 1
-This release candidate enables an optional fee mechanism for both jurisdictions and validators. When the jurisdiction adds an attribute type, it may specify a fee that must be paid (in addition to any staked funds, if appliciable) whenever an attribute of that type is set, whether manually by validators or directly by participants. Additionally, when a validator signs an attribute approval, they may include a fee that must be paid (in addition to any staked funds and the attribute type's jurisdiction fee, if applicable) in order for the participant to successfully add the attribute.
-
-
-A few methods on the jurisdiction interface have been extended: `addAttributeType` takes an additional `_jurisdictionFee` argument, `addAttribute` takes an additional `_validatorFee` argument, and `canAddAttribute` takes `_fundsRequired` (a placeholder for `msg.value`) and `_validatorFee` arguments. Additionally, `getAttributeInformation` will now include `jurisdictionFee` as a return value. Finally, the interface has four new related event types: `StakeAllocated`, `StakeRefunded`, `FeePaid`, and `TransactionRebatePaid`.
-
-
-In the event that fees are not currently deemed necessary, the entire mechanism can be avoided by leaving them set to 0 - this also applies to the mechanism of staking funds to pay for transaction rebates. These features can also be phased in gradually by either party without invalidating any existing attributes or disrupting any ongoing permissioned transfers of TPL-compliant tokens.
-
-
 ### Usage
 First, ensure that [truffle](https://truffleframework.com/docs/truffle/getting-started/installation) and [ganache-cli](https://github.com/trufflesuite/ganache-cli#installation) are installed.
 
@@ -142,6 +132,16 @@ Should a validator elect to require a staked amount, they or the jurisdiction wi
 
 
 Care should be taken when determining the estimated gas usage of the attribute revocation, as setting the value too high will incentivize spurious revokations. Additionally, if there is a profit to be made by the revoker, they may elect to set as high a `tx.gasPrice` as possible to improve their profit margin at the expense of wasting any additional staked ether that would otherwise be returned to the staker. The actual gas usage will also depend on the attribute in question, as attributes with more data in contract storage will provide a larger gas rebate at the end of the transaction, and using `gasLeft()` to calculate gas usage will fail to account for this rebate. It is recommended to set this estimate to a conservative value, so as to provide the maximum possible transaction rebate without creating any cases where the rebate will exceed the realized transaction cost.
+
+
+### Changes from Release Candidate 1
+This release candidate enables an optional fee mechanism for both jurisdictions and validators. When the jurisdiction adds an attribute type, it may specify a fee that must be paid (in addition to any staked funds, if appliciable) whenever an attribute of that type is set, whether manually by validators or directly by participants. Additionally, when a validator signs an attribute approval, they may include a fee that must be paid (in addition to any staked funds and the attribute type's jurisdiction fee, if applicable) in order for the participant to successfully add the attribute.
+
+
+A few methods on the jurisdiction interface have been extended: `addAttributeType` takes an additional `_jurisdictionFee` argument, `addAttribute` takes an additional `_validatorFee` argument, and `canAddAttribute` takes `_fundsRequired` (a placeholder for `msg.value`) and `_validatorFee` arguments. Additionally, `getAttributeInformation` will now include `jurisdictionFee` as a return value. Finally, the interface has four new related event types: `StakeAllocated`, `StakeRefunded`, `FeePaid`, and `TransactionRebatePaid`.
+
+
+In the event that fees are not currently deemed necessary, the entire mechanism can be avoided by leaving them set to 0 - this also applies to the mechanism of staking funds to pay for transaction rebates. These features can also be phased in gradually by either party without invalidating any existing attributes or disrupting any ongoing permissioned transfers of TPL-compliant tokens.
 
 
 ### Additional features
