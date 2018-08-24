@@ -28,6 +28,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
   // validators are entities who can add or authorize addition of new attributes
   struct Validator {
     bool exists;
+    uint88 index;
     address signingKey;
     string description;
   }
@@ -76,6 +77,9 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
 
   // IDs for all supplied attributes are held in an array (enables enumeration)
   uint256[] attributeIds;
+
+  // addresses for all designated validators are also held in an array
+  address[] validatorAddresses;
 
   // the contract owner may declare attributes recognized by the jurisdiction
   function addAttributeType(
@@ -182,12 +186,16 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     // create a record for the validator
     validators[_validator] = Validator({
       exists: true,
+      index: uint88(validatorAddresses.length),
       signingKey: _validator, // set initial signing key to controlling address
       description: _description
     });
 
     // set the initial signing key (the validator's address) resolving to itself
     signingKeys[_validator] = _validator;
+
+    // add the validator to the end of the validatorAddresses array
+    validatorAddresses.push(_validator);
     
     // log the addition of the new validator
     emit ValidatorAdded(_validator, _description);
@@ -200,6 +208,19 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
       isValidator(_validator),
       "unable to remove, no validator located at the provided address"
     );
+
+    // get the validator address at the last index of the array
+    address lastAddress = validatorAddresses[validatorAddresses.length.sub(1)];
+
+    // set the address at validator-to-delete.index to last validator address
+    validatorAddresses[validators[_validator].index] = lastAddress;
+
+    // update the index of the attribute type that was moved
+    validators[lastAddress].index = validators[_validator].index;
+    
+    // remove the (now duplicate) validator address at the end & trim the array
+    delete validatorAddresses[validatorAddresses.length.sub(1)];
+    validatorAddresses.length--;
 
     // remove the validator's signing key from its mapping
     delete signingKeys[validators[_validator].signingKey];
@@ -416,7 +437,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     // to only externally owned accounts may partially alleviate this concern.
     // NOTE: if an attribute type requires a minimum stake and the validator is
     // the one to pay it, they will be refunded instead of the attribute holder.
-    
+
     require(
       canValidate(msg.sender, _attribute),
       "only approved validators may assign attributes of this type"
@@ -428,6 +449,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     );
     // alternately, check attributes[validator][msg.sender][_attribute].exists
     // and update value / increment stake if the validator is the same?
+
 
     // retrieve required minimum stake and jurisdiction fees on attribute type
     uint256 minimumStake = attributeTypes[_attribute].minimumStake;
@@ -632,6 +654,19 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     return attributeIds;
   }
 
+  // external interface for getting the list of all validators by address
+  function getAvailableValidators() external view returns (address[]) {
+    return validatorAddresses;
+  }
+
+  // external interface to check if validator is approved to issue an attribute
+  function isApproved(
+    address _validator,
+    uint256 _attribute
+  ) external view returns (bool) {
+    return canValidate(_validator, _attribute);
+  }
+
   // external interface for determining the validator of an issued attribute
   function getAttributeValidator(
     address _who,
@@ -702,12 +737,14 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
   function canValidate(
     address _validator,
     uint256 _attribute
-  ) public view returns (bool) {
+  ) internal view returns (bool) {
     return (
       isValidator(_validator) &&
       isDesignatedAttribute(_attribute) &&
       attributeTypes[_attribute].approvedValidators[_validator]
     );
   }
+
+
 
 }

@@ -1,11 +1,13 @@
 var assert = require('assert');
 
-var Web3 = require('web3')
+const JurisdictionContractData = require('../build/contracts/Jurisdiction.json')
+const TPLTokenContractData = require('../build/contracts/TPLToken.json')
+const applicationConfig = require('../config.js')
+const connectionConfig = require('../truffle.js')
 
-var JurisdictionContractData = require('../build/contracts/Jurisdiction.json')
-var TPLTokenContractData = require('../build/contracts/TPLToken.json')
+const connection = connectionConfig.networks[applicationConfig.network]
 
-var web3 = new Web3('ws://localhost:8545')
+let web3 = connection.provider
 
 async function signValidation(validatorSigningKeyAccount, jurisdiction, who, fundsRequired, validatorFee, attribute, value) {
   return web3.eth.sign(
@@ -86,7 +88,7 @@ async function test() {
   const TPLToken = await TPLTokenDeployer.deploy(
     {
       data: TPLTokenContractData.bytecode,
-      arguments: [Jurisdiction.options.address, 100]
+      arguments: [Jurisdiction.options.address, 11111, 100]
     }
   ).send({
     from: address,
@@ -283,6 +285,18 @@ async function test() {
     passed++
   })
 
+  await Jurisdiction.methods.getAvailableValidators(
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(validators => {
+    assert.strictEqual(validators.length, 1)
+    assert.strictEqual(validators[0], validatorAddress)
+    console.log(' ✓  - validator is added correctly to the list of validators')
+    passed++
+  })  
+
   await Jurisdiction.methods.addValidator(
     validatorTwo.address,
     validatorTwo.description
@@ -295,6 +309,21 @@ async function test() {
     console.log(' ✓  - multiple validators may be added')
     passed++
   })
+
+  await Jurisdiction.methods.getAvailableValidators(
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(validators => {
+    assert.strictEqual(validators.length, 2)
+    assert.strictEqual(validators[0], validatorAddress)
+    assert.strictEqual(validators[1], validatorTwo.address)
+    console.log(
+      ' ✓  - multiple validators are added correctly to the list of validators'
+    )
+    passed++
+  })  
 
   await Jurisdiction.methods.addValidator(
     nullAddress,
@@ -491,6 +520,36 @@ async function test() {
   }).then(receipt => {
     assert.ok(receipt.status)
     console.log(' ✓  - adding approvals on multiple validators is supported')
+    passed++
+  })
+
+  await Jurisdiction.methods.isApproved(
+    attribute.targetValidator,
+    attribute.attributeId
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(isApproved => {
+    assert.ok(isApproved)
+    console.log(
+      ' ✓  - external calls to check for validator approvals are supported'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.isApproved(
+    validatorTwo.address,
+    attribute.attributeId
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(isApproved => {
+    assert.strictEqual(isApproved, false)
+    console.log(
+      ' ✓  - calls return false for unapproved validators'
+    )
     passed++
   })
 
@@ -1191,6 +1250,20 @@ async function test() {
     passed++
   })
 
+  await Jurisdiction.methods.getAvailableValidators(
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(validators => {
+    assert.strictEqual(validators.length, 1)
+    assert.strictEqual(validators[0], validatorTwo.address)
+    console.log(
+      ' ✓  - validators are removed correctly from the list of validators'
+    )
+    passed++
+  })
+
   await Jurisdiction.methods.removeValidator(
     validator.address
   ).send({
@@ -1256,6 +1329,21 @@ async function test() {
   }).then(receipt => {
     assert.ok(receipt.status)
     console.log(' ✓  - revoked validators can be renewed')
+    passed++
+  })
+
+  await Jurisdiction.methods.getAvailableValidators(
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(validators => {
+    assert.strictEqual(validators.length, 2)
+    assert.strictEqual(validators[0], validatorTwo.address)
+    assert.strictEqual(validators[1], validatorAddress)
+    console.log(
+      ' ✓  - renewed validators are added correctly to the list of validators'
+    )
     passed++
   })
 
@@ -1565,6 +1653,42 @@ async function test() {
     passed++
   })
 
+  await Jurisdiction.methods.canAddAttribute(
+    attribute.attributeId,
+    attribute.targetValueTwo,
+    0,
+    attribute.validatorFee,
+    attribute.targetTwoSignature
+  ).call({
+    from: attributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(canAdd => {
+    assert.ok(canAdd)
+    console.log(
+      ' ✓ users can check if signed messages from approved validator are valid'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.canAddAttribute(
+    attribute.attributeId,
+    attribute.targetValueTwo + 1,
+    0,
+    attribute.validatorFee,
+    attribute.targetTwoSignature
+  ).call({
+    from: attributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(canAdd => {
+    assert.strictEqual(canAdd, false)
+    console.log(
+      ' ✓  - altered signed messages from approved validator are invalid'
+    )
+    passed++
+  })
+
   await Jurisdiction.methods.addAttribute(
     attribute.attributeId,
     attribute.targetValueTwo,
@@ -1596,6 +1720,24 @@ async function test() {
 
     console.log(' ✘  - AttributeAdded event is logged correctly')
     failed++
+  })
+
+  await Jurisdiction.methods.canAddAttribute(
+    attribute.attributeId,
+    attribute.targetValueTwo,
+    0,
+    attribute.validatorFee,
+    attribute.targetTwoSignature
+  ).call({
+    from: attributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(canAdd => {
+    assert.strictEqual(canAdd, false)
+    console.log(
+      ' ✓  - users cannot reuse signed messages from approved validator'
+    )
+    passed++
   })
 
   await Jurisdiction.methods.hasAttribute(

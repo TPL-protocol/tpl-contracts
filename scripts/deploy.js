@@ -1,18 +1,36 @@
-var Web3 = require('web3')
-
 var fs = require('fs');
 
-var JurisdictionContractData = require('../build/contracts/Jurisdiction.json')
-var TPLTokenContractData = require('../build/contracts/TPLToken.json')
+const JurisdictionContractData = require('../build/contracts/Jurisdiction.json')
+const TPLTokenContractData = require('../build/contracts/TPLToken.json')
+const applicationConfig = require('../config.js')
+const connectionConfig = require('../truffle.js')
 
-var web3 = new Web3('ws://localhost:8545')
+const connection = connectionConfig.networks[applicationConfig.network]
+
+let web3 = connection.provider
 
 const Jurisdiction = new web3.eth.Contract(JurisdictionContractData.abi)
 const TPLToken = new web3.eth.Contract(TPLTokenContractData.abi)
 
+const TPLTokenAttributeID = applicationConfig.TPLTokenAttributeID
+const TPLTokenTotalSupply = applicationConfig.TPLTokenTotalSupply
+const TPLTokenAttributeRestricted = applicationConfig[
+  'TPLTokenAttributeRestricted'
+]
+const TPLTokenAttributeMinimumRequiredStake = applicationConfig[
+  'TPLTokenAttributeMinimumRequiredStake'
+]
+const TPLTokenAttributeJurisdictionFee = applicationConfig[
+  'TPLTokenAttributeJurisdictionFee'
+]
+const TPLTokenAttributeDescription = applicationConfig[
+  'TPLTokenAttributeDescription'
+]
+
 async function main() {
-	console.log('deploying jurisdiction & an example token that references it...')
+	console.log('deploying jurisdiction & mock TPLToken...')
 	let deployAddresses = {}
+  const deployMetadataFilename = 'build/contractDeploymentAddresses.json'
 	const addresses = await Promise.resolve(web3.eth.getAccounts())
 	if (addresses.length === 0) {
 		console.log('cannot find any addresses...')
@@ -20,50 +38,50 @@ async function main() {
 	}
 	const address = addresses[0]
 	deployAddresses.owner = address
-	console.log(`       owner: ${address}`)
+	console.log(`         owner: ${address}`)
 
-	Jurisdiction.deploy({
+	const JurisdictionContractInstance = await Jurisdiction.deploy({
 	  data: JurisdictionContractData.bytecode
-	})
-	.send({
+	}).send({
     from: address,
     gas: 6000000,
     gasPrice: '1000000000'
 	})
-	.on('error', error => { console.error(error) })
-  .then(JurisdictionContractInstance => {
-  	const jurisdictionAddress = JurisdictionContractInstance.options.address
-  	deployAddresses.jurisdiction = jurisdictionAddress
-	  console.log(`jurisdiction: ${jurisdictionAddress}`)
-		TPLToken.deploy({
-		  data: TPLTokenContractData.bytecode,
-		  arguments: [JurisdictionContractInstance.options.address, 100]
-		})
-		.send({
-	    from: address,
-	    gas: 5000000,
-	    gasPrice: '1000000000'
-		})
-		.on('error', error => { console.error(error) })
-	  .then(TPLTokenContractInstance => {
-	  	const tokenAddress = TPLTokenContractInstance.options.address
-	  	const deployMetadataFilename = 'build/contractDeploymentAddresses.json'
-	  	deployAddresses.token = tokenAddress
-		  console.log(`       token: ${tokenAddress}`)
-		  fs.writeFile(
-		  	deployMetadataFilename,
-		  	JSON.stringify(deployAddresses),
-		  	{flag: 'w'},
-		  	err => {
-		      if (err) {
-		        return console.error(err)
-		      }
-		      console.log(`metadata written to ${deployMetadataFilename}`)
-		      process.exit()
-			  }
-			) 
-		})
+
+	const jurisdictionAddress = JurisdictionContractInstance.options.address
+	deployAddresses.jurisdiction = jurisdictionAddress
+  console.log(`  jurisdiction: ${jurisdictionAddress}`)
+
+  const TPLTokenContractInstance = await TPLToken.deploy({
+	  data: TPLTokenContractData.bytecode,
+	  arguments: [
+      JurisdictionContractInstance.options.address,
+      TPLTokenAttributeID,
+      TPLTokenTotalSupply
+    ]
+	}).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: '1000000000'
 	})
+
+	const tokenAddress = TPLTokenContractInstance.options.address
+	deployAddresses.token = tokenAddress
+  console.log(`mock TPL token: ${tokenAddress}`)
+
+  fs.writeFile(
+  	deployMetadataFilename,
+  	JSON.stringify(deployAddresses),
+  	{flag: 'w'},
+  	err => {
+      if (err) {
+        console.error(err)
+        process.exit()
+      }
+      console.log(`metadata written to ${deployMetadataFilename}`)
+      process.exit()
+	  }
+	)
 }
 
 main()

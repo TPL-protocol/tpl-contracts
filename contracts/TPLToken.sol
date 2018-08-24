@@ -8,12 +8,17 @@ contract TPLToken is StandardToken {
   // declare registry interface, used to request attributes from a jurisdiction
   Registry registry;
 
-  // declare attribute string required in order to transfer tokens
-  uint256 constant VALID_TOKEN_HOLDER_ATTRIBUTE_ID = 11111;
+  // declare attribute ID required in order to transfer tokens
+  uint256 valid_attribute_id;
 
   // initialize token with a jurisdiction address and an initial token balance
-  constructor(Registry _jurisdiction, uint256 _initialBalance) public {
+  constructor(
+    Registry _jurisdiction,
+    uint256 _valid_attribute_id,
+    uint256 _initialBalance
+  ) public {
     registry = _jurisdiction;
+    valid_attribute_id = _valid_attribute_id;
     balances[msg.sender] = _initialBalance;
     totalSupply_ = _initialBalance;
   }
@@ -26,8 +31,8 @@ contract TPLToken is StandardToken {
   // in order to transfer tokens, both the sender and the receiver must be valid
   function transferAllowed(address _from, address _to) public view returns (bool) {
     return (
-      registry.hasAttribute(_from, VALID_TOKEN_HOLDER_ATTRIBUTE_ID) &&
-      registry.hasAttribute(_to, VALID_TOKEN_HOLDER_ATTRIBUTE_ID)
+      registry.hasAttribute(_from, valid_attribute_id) &&
+      registry.hasAttribute(_to, valid_attribute_id)
     );
   }
 
