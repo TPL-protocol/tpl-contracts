@@ -68,6 +68,10 @@ interface JurisdictionInterface {
   // external interface for getting the description of an attribute by ID
   function getAttributeInformation(uint256 _attribute)
     external view returns (string description, bool isRestricted, uint256 minimumRequiredStake, uint256 jurisdictionFee);
+  
+  // external interface for getting the description of a validator by ID
+  function getValidatorInformation(address _validator)
+    external view returns (address signingKey, string description);
 
   // external interface for determining the validator of an issued attribute
   function getAttributeValidator(address _who, uint256 _attribute)
