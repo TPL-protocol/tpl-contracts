@@ -1,14 +1,11 @@
-var Web3 = require('web3')
+const ZEPValidatorContractData = require('../build/contracts/ZEPValidator.json')
+const deploymentAddresses = require('../build/contractDeploymentAddresses.json')
+const applicationConfig = require('../config.js')
+const connectionConfig = require('../truffle.js')
 
-var web3 = new Web3('ws://localhost:8545')
+const connection = connectionConfig.networks[applicationConfig.network]
 
-var ZEPValidatorContractData = require('../build/contracts/ZEPValidator.json')
-var deploymentAddresses = require('../build/contractDeploymentAddresses.json')
-
-const ZEPValidator = new web3.eth.Contract(
-	ZEPValidatorContractData.abi,
-  deploymentAddresses.ZEPValidator
-)
+let web3 = connection.provider
 
 if (process.argv.length !== 4) {
   console.error(
@@ -47,11 +44,18 @@ async function setMaximumAddresses(
   }
   const address = addresses[0]
 
-  const ownerAddress = await ZEPValidator.methods.owner().call({
-    from: address,
-    gas: 5000000,
-    gasPrice: 10 ** 9
-  })
+  const ZEPValidator = new web3.eth.Contract(
+    ZEPValidatorContractData.abi,
+    deploymentAddresses.ZEPValidator,
+    {
+      from: address,
+      gasPrice: connection.gasPrice,
+      gas: connection.gas,
+      data: ZEPValidatorContractData.bytecode
+    }
+  )
+
+  const ownerAddress = await ZEPValidator.methods.owner().call()
 
   let foundOwner = false
   for(i = 0; i < addresses.length; i++) {
@@ -68,11 +72,7 @@ async function setMaximumAddresses(
 
   await ZEPValidator.methods.getOrganization(
     organizationAddress
-  ).call({
-    from: address,
-    gas: 5000000,
-    gasPrice: 10 ** 9
-  }).then(organization => {
+  ).call().then(organization => {
     if (!organization.exists) {
       console.error(
         'Error: an organization does not exist at the provided address.'
@@ -90,9 +90,7 @@ async function setMaximumAddresses(
     organizationAddress,
     maximumAddresses
   ).send({
-    from: ownerAddress,
-    gas: 5000000,
-    gasPrice: '1000000000'
+    from: ownerAddress
   }).then(receipt => {
     if (receipt.status) {
       console.log('maximum addresses successfully set for the organization.')
@@ -112,11 +110,7 @@ async function setMaximumAddresses(
 
   await ZEPValidator.methods.getOrganization(
     organizationAddress
-  ).call({
-    from: address,
-    gas: 5000000,
-    gasPrice: 10 ** 9
-  }).then(organization => {
+  ).call().then(organization => {
     if (!(
       organization.exists &&
       organization.maximumAddresses === maximumAddresses.toString()

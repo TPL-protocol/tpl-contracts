@@ -1,14 +1,11 @@
-var Web3 = require('web3')
+const ZEPValidatorContractData = require('../build/contracts/ZEPValidator.json')
+const deploymentAddresses = require('../build/contractDeploymentAddresses.json')
+const applicationConfig = require('../config.js')
+const connectionConfig = require('../truffle.js')
 
-var web3 = new Web3('ws://localhost:8545')
+const connection = connectionConfig.networks[applicationConfig.network]
 
-var ZEPValidatorContractData = require('../build/contracts/ZEPValidator.json')
-var deploymentAddresses = require('../build/contractDeploymentAddresses.json')
-
-const ZEPValidator = new web3.eth.Contract(
-	ZEPValidatorContractData.abi,
-  deploymentAddresses.ZEPValidator
-)
+let web3 = connection.provider
 
 async function getZEPValidatorSummary() {
   const addresses = await Promise.resolve(web3.eth.getAccounts())
@@ -18,33 +15,28 @@ async function getZEPValidatorSummary() {
   }
   const address = addresses[0]
 
-  const ownerAddress = await ZEPValidator.methods.owner().call({
-    from: address,
-    gas: 5000000,
-    gasPrice: 10 ** 9
-  })
+  const ZEPValidator = new web3.eth.Contract(
+    ZEPValidatorContractData.abi,
+    deploymentAddresses.ZEPValidator,
+    {
+      from: address,
+      gasPrice: connection.gasPrice,
+      gas: connection.gas,
+      data: ZEPValidatorContractData.bytecode
+    }
+  )
 
-  const registry = await ZEPValidator.methods.getJurisdictionAddress().call({
-    from: address,
-    gas: 5000000,
-    gasPrice: 10 ** 9
-  })
+  const ownerAddress = await ZEPValidator.methods.owner().call()
 
-  const organizations = await ZEPValidator.methods.getOrganizations().call({
-    from: address,
-    gas: 5000000,
-    gasPrice: 10 ** 9
-  })
+  const registry = await ZEPValidator.methods.getJurisdictionAddress().call()
+
+  const organizations = await ZEPValidator.methods.getOrganizations().call()
 
   const organizationDetails = await Promise.all(
     organizations.map(async organizationAddress => {
       const organizationData = await ZEPValidator.methods.getOrganization(
         organizationAddress
-      ).call({
-        from: address,
-        gas: 5000000,
-        gasPrice: 10 ** 9
-      })
+      ).call()
 
       return {
         name: organizationData.name,
@@ -56,6 +48,7 @@ async function getZEPValidatorSummary() {
     })
   )
 
+  // dump retrieved summary information to the console
   console.log(`ZEP Validator address:   ${deploymentAddresses.ZEPValidator}`)
   console.log(`Validator owner address: ${ownerAddress}`)
   console.log(`Jurisdiction address:    ${registry}`)

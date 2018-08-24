@@ -1,11 +1,13 @@
 var assert = require('assert');
 
-var Web3 = require('web3')
+const JurisdictionContractData = require('../build/contracts/Jurisdiction.json')
+const MockZEPTokenContractData = require('../build/contracts/MockZEPToken.json')
+const applicationConfig = require('../config.js')
+const connectionConfig = require('../truffle.js')
 
-var JurisdictionContractData = require('../build/contracts/Jurisdiction.json')
-var TPLTokenContractData = require('../build/contracts/MockZEPToken.json')
+const connection = connectionConfig.networks[applicationConfig.network]
 
-var web3 = new Web3('ws://localhost:8545')
+let web3 = connection.provider
 
 async function signValidation(validatorSigningKeyAccount, jurisdiction, who, fundsRequired, validatorFee, attribute, value) {
   return web3.eth.sign(
@@ -46,7 +48,7 @@ async function test() {
   )
 
   const TPLTokenDeployer = new web3.eth.Contract(
-    TPLTokenContractData.abi
+    MockZEPTokenContractData.abi
   )
 
   // set up some variables that will be used for tracking account balances
@@ -85,7 +87,7 @@ async function test() {
 
   const TPLToken = await TPLTokenDeployer.deploy(
     {
-      data: TPLTokenContractData.bytecode,
+      data: MockZEPTokenContractData.bytecode,
       arguments: [Jurisdiction.options.address, 11111, 100]
     }
   ).send({

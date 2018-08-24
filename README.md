@@ -28,7 +28,7 @@ $ truffle compile
 ```
 
 
-Once contracts are compiled, run tests (there is an additional test suite specific to the ZEP validator):
+Once contracts are compiled, modify `truffle.js` (use of `provider` is required over `host` & `port`) and `config.js` if necessary and run tests (note the additional test suite, specific to the ZEP validator):
 
 ```sh
 $ ganache-cli

@@ -1,22 +1,14 @@
-var Web3 = require('web3')
+const JurisdictionContractData = require('../build/contracts/Jurisdiction.json')
+const ZEPValidatorContractData = require('../build/contracts/ZEPValidator.json')
+const deploymentAddresses = require('../build/contractDeploymentAddresses.json')
+const applicationConfig = require('../config.js')
+const connectionConfig = require('../truffle.js')
 
-var web3 = new Web3('ws://localhost:8545')
+const connection = connectionConfig.networks[applicationConfig.network]
 
-var ZEPValidatorContractData = require('../build/contracts/ZEPValidator.json')
-var JurisdictionContractData = require('../build/contracts/Jurisdiction.json')
-var deploymentAddresses = require('../build/contractDeploymentAddresses.json')
+let web3 = connection.provider
 
-const mockZEPTokenAttributeID = 1 // NOTE: retrieve from a configuration file?
-
-const ZEPValidator = new web3.eth.Contract(
-	ZEPValidatorContractData.abi,
-  deploymentAddresses.ZEPValidator
-)
-
-const Jurisdiction = new web3.eth.Contract(
-  JurisdictionContractData.abi,
-  deploymentAddresses.jurisdiction
-)
+const mockZEPTokenAttributeID = applicationConfig.ZEPValidatorAttributeID
 
 if (process.argv.length !== 3) {
   console.error(
@@ -50,15 +42,33 @@ async function issueAttribute(issuedAddress) {
   }
   const address = addresses[0]
   
+  const ZEPValidator = new web3.eth.Contract(
+    ZEPValidatorContractData.abi,
+    deploymentAddresses.ZEPValidator,
+    {
+      from: address,
+      gasPrice: connection.gasPrice,
+      gas: connection.gas,
+      data: ZEPValidatorContractData.bytecode
+    }
+  )
+
+  const Jurisdiction = new web3.eth.Contract(
+    JurisdictionContractData.abi,
+    deploymentAddresses.jurisdiction,
+    {
+      from: address,
+      gasPrice: connection.gasPrice,
+      gas: connection.gas,
+      data: JurisdictionContractData.bytecode
+    }
+  )
+
   let organizationAddress = null
   for (i = 0; i < addresses.length; i++) {
     const organization = await ZEPValidator.methods.getOrganization(
       addresses[i]
-    ).call({
-      from: address,
-      gas: 5000000,
-      gasPrice: 10 ** 9
-    })
+    ).call()
 
     if (organization.exists) {
       organizationAddress = addresses[i]
@@ -73,11 +83,7 @@ async function issueAttribute(issuedAddress) {
 
   await ZEPValidator.methods.getOrganization(
     organizationAddress
-  ).call({
-    from: address,
-    gas: 5000000,
-    gasPrice: 10 ** 9
-  }).then(organization => {
+  ).call().then(organization => {
     if (organization.issuedAddresses.length >= organization.maximumAddresses) {
       console.error(
         'Error: the organization is not approved to issue additional addresses.'
@@ -89,11 +95,7 @@ async function issueAttribute(issuedAddress) {
   await Jurisdiction.methods.hasAttribute(
     issuedAddress,
     mockZEPTokenAttributeID
-  ).call({
-    from: address,
-    gas: 5000000,
-    gasPrice: 10 ** 9
-  }).then(attributeExists => { 
+  ).call().then(attributeExists => { 
     if (attributeExists) {
       console.error(
         'Error: the provided address has already been assigned an attribute.'
@@ -109,9 +111,7 @@ async function issueAttribute(issuedAddress) {
   await ZEPValidator.methods.issueAttribute(
     issuedAddress
   ).send({
-    from: organizationAddress,
-    gas: 5000000,
-    gasPrice: '1000000000'
+    from: organizationAddress
   }).then(receipt => {
     const logs = receipt.events.AttributeIssued.returnValues
     if (
@@ -132,11 +132,7 @@ async function issueAttribute(issuedAddress) {
 
   await ZEPValidator.methods.getOrganization(
     organizationAddress
-  ).call({
-    from: address,
-    gas: 5000000,
-    gasPrice: 10 ** 9
-  }).then(organization => {
+  ).call().then(organization => {
     const issuedAddresses = organization.issuedAddresses.length
     const lastAddress = organization.issuedAddresses.pop()
     if (!(

@@ -1,26 +1,35 @@
-var Web3 = require('web3')
-
 var fs = require('fs');
 
-var web3 = new Web3('ws://localhost:8545')
+const JurisdictionContractData = require('../build/contracts/Jurisdiction.json')
+const ZEPValidatorContractData = require('../build/contracts/ZEPValidator.json')
+const MockZEPTokenContractData = require('../build/contracts/MockZEPToken.json')
+const applicationConfig = require('../config.js')
+const connectionConfig = require('../truffle.js')
 
-var JurisdictionContractData = require('../build/contracts/Jurisdiction.json')
-var ZEPValidatorContractData = require('../build/contracts/ZEPValidator.json')
-var MockZEPTokenContractData = require('../build/contracts/MockZEPToken.json')
+const connection = connectionConfig.networks[applicationConfig.network]
+
+let web3 = connection.provider
 
 const Jurisdiction = new web3.eth.Contract(JurisdictionContractData.abi)
 const ZEPValidator = new web3.eth.Contract(ZEPValidatorContractData.abi)
 const MockZEPToken = new web3.eth.Contract(MockZEPTokenContractData.abi)
 
-const mockZEPTokenAttributeID = 1
-const mockZEPTokenTotalSupply = 100
+const mockZEPTokenAttributeID = applicationConfig.ZEPValidatorAttributeID
+const ZEPValidatorDescription = applicationConfig.ZEPValidatorDescription
 
-const mockZEPTokenAttributeRestricted = false
-const mockZEPTokenAttributeMinimumRequiredStake = 0
-const mockZEPTokenAttributeJurisdictionFee = 0
-const mockZEPTokenAttributeDescription = 'Valid ZEP token holder'
-
-const mockZEPTokenValidatorDescription = 'ZEP validator contract'
+const mockZEPTokenTotalSupply = applicationConfig.mockZEPTokenTotalSupply
+const mockZEPTokenAttributeRestricted = applicationConfig[
+  'mockZEPTokenAttributeRestricted'
+]
+const mockZEPTokenAttributeMinimumRequiredStake = applicationConfig[
+  'mockZEPTokenAttributeMinimumRequiredStake'
+]
+const mockZEPTokenAttributeJurisdictionFee = applicationConfig[
+  'mockZEPTokenAttributeJurisdictionFee'
+]
+const mockZEPTokenAttributeDescription = applicationConfig[
+  'mockZEPTokenAttributeDescription'
+]
 
 async function main() {
 	console.log('deploying jurisdiction, ZEP validator, & mock ZEP token...')
@@ -97,7 +106,7 @@ async function main() {
 
   await JurisdictionContractInstance.methods.addValidator(
     ZEPValidatorAddress,
-    mockZEPTokenValidatorDescription
+    ZEPValidatorDescription
   ).send({
     from: address,
     gas: 5000000,
