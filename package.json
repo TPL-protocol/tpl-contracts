@@ -1,10 +1,31 @@
 {
-  "name": "TPL-1.0-rc1",
-  "version": "1.0-rc1",
-  "main": "index.js",
-  "license": "MIT",
+  "name": "TPL-ZEP-validator",
+  "version": "0.1.0-rc1",
+  "private": true,
+  "browserslist": [
+    "> 5%"
+  ],
   "dependencies": {
+    "@ledgerhq/hw-transport-u2f": "4.7.3",
+    "@ledgerhq/web3-subprovider": "4.11.0",
+    "moment": "^2.20.1",
     "openzeppelin-solidity": "1.11.0",
-    "web3": "^1.0.0-beta.35"
-  }
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "react-file-reader-input": "^1.1.4",
+    "react-scripts": "@2.0.0-next.b2fd8db8",
+    "react-simple-flex-grid": "^1.2.1",
+    "web3": "1.0.0-beta.35",
+    "web3-provider-engine": "^14.0.5"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  },
+  "main": "index.js",
+  "repository": "https://github.com/TPL-protocol/tpl-contracts/tree/ZEP-validator-rc1",
+  "author": "0age <0age@protonmail.com>",
+  "license": "MIT"
 }

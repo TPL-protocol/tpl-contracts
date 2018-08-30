@@ -1,5 +1,5 @@
 const ZEPValidatorContractData = require('../build/contracts/ZEPValidator.json')
-const deploymentAddresses = require('../build/contractDeploymentAddresses.json')
+const deploymentAddresses = require('../src/build/contractDeploymentMetadata.json')
 const applicationConfig = require('../config.js')
 const connectionConfig = require('../truffle.js')
 
@@ -66,7 +66,6 @@ async function getZEPValidatorSummary() {
   })
 
   process.exit()
-
 }
 
 getZEPValidatorSummary()

@@ -34,7 +34,10 @@ const mockZEPTokenAttributeDescription = applicationConfig[
 async function main() {
 	console.log('deploying jurisdiction, ZEP validator, & mock ZEP token...')
 	let deployAddresses = {}
-  const deployMetadataFilename = 'build/contractDeploymentAddresses.json'
+  const deployMetadataFilename = 'src/build/contractDeploymentMetadata.json'
+  if (!fs.existsSync('src/build')) {
+    fs.mkdirSync('src/build')
+  }
 	const addresses = await Promise.resolve(web3.eth.getAccounts())
 	if (addresses.length === 0) {
 		console.log('cannot find any addresses...')
@@ -54,6 +57,7 @@ async function main() {
 
 	const jurisdictionAddress = JurisdictionContractInstance.options.address
 	deployAddresses.jurisdiction = jurisdictionAddress
+  deployAddresses.jurisdictionABI = JurisdictionContractData.abi
   console.log(`  jurisdiction: ${jurisdictionAddress}`)
 
   const ZEPValidatorContractInstance = await ZEPValidator.deploy({
@@ -70,6 +74,7 @@ async function main() {
 
   const ZEPValidatorAddress = ZEPValidatorContractInstance.options.address
   deployAddresses.ZEPValidator = ZEPValidatorAddress
+  deployAddresses.ZEPValidatorABI = ZEPValidatorContractData.abi
   console.log(` ZEP Validator: ${ZEPValidatorAddress}`)
 
   const MockZEPTokenContractInstance = await MockZEPToken.deploy({
@@ -87,6 +92,7 @@ async function main() {
 
 	const tokenAddress = MockZEPTokenContractInstance.options.address
 	deployAddresses.token = tokenAddress
+  deployAddresses.tokenABI = MockZEPTokenContractData.abi
   console.log(`mock ZEP token: ${tokenAddress}`)
 
   console.log('setting up ZEP validator in jurisdiction...')

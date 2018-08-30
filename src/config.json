@@ -1,0 +1,7 @@
+{
+	"networkId": 8545,
+	"infuraHttp": "https://mainnet.infura.io/ARxDqGE5KZrNFGcH3Qnu",
+	"infuraWebsocket": "wss://mainnet.infura.io/_ws",
+	"ledgerAccountsLength": 5,
+	"ledgerAccountsOffset": 1
+}

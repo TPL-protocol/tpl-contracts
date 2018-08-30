@@ -46,3 +46,12 @@ $ node scripts/setMaximumAddresses.js 0x1234567890123456789012345678901234567890
 $ node scripts/issueAttribute.js 0x9876543210987654321098765432109876543210
 $ node scripts/getZEPValidatorSummary.js
 ```
+
+
+There is also a dapp that organizations can utilize to issue new attributes. To run in development mode, deploy the contracts and add organizations using the scripts above, then run:
+
+```
+$ REACT_APP_WEB3_PROVIDER='ws://localhost:8545' yarn start
+```
+
+To build a production version of the dapp that can be connected to via metamask, ledger nano s + infura node (U2F requires https), or a custom web3 endpoint, run `yarn build` and use the newly-created `build` directory.
