@@ -1093,7 +1093,6 @@ class Main extends Component {
                       >
                         {'No organization found.'}
                       </div>
-                    }
                       <div style={{...this.style, clear: 'both', padding: '8x'}} />
                     </div>
                     }
@@ -1203,7 +1202,7 @@ class Main extends Component {
               </Row>
             </div> :
             <div>
-              <header className='App-header' style={{...this.style, color: 'white'}}>
+              <header className='App-header' style={{...this.style, color: 'black'}}>
                 <h1 className='App-title'>
                   Cannot find a Web3 provider! (Try using&nbsp;
                   <a
