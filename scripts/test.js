@@ -64,7 +64,7 @@ async function test() {
   let difference = new web3.utils.BN()
   let expectedDifference = new web3.utils.BN()
   let stakeAmount = 2 * 10 ** 14
-  let expectedTransactionGas = 139000
+  let expectedTransactionGas = 37700
 
   // set up some flags so we can delay display of a few test results
   let getAvailableAttributesTestOnePassed;

@@ -15,8 +15,8 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
   event AttributeTypeRemoved(uint256 indexed attribute);
   event ValidatorAdded(address indexed validator, string description);
   event ValidatorRemoved(address indexed validator);
-  event ValidatorApprovalAdded(address validator, uint256 indexed attribute);
-  event ValidatorApprovalRemoved(address validator, uint256 indexed attribute);
+  event ValidatorApprovalAdded(address indexed validator, uint256 indexed attribute);
+  event ValidatorApprovalRemoved(address indexed validator, uint256 indexed attribute);
   event ValidatorSigningKeyModified(address indexed validator, address newSigningKey);
   event AttributeAdded(address validator, address indexed attributee, uint256 attribute);
   event AttributeRemoved(address validator, address indexed attributee, uint256 attribute);
@@ -38,6 +38,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
   struct Attribute {
     bool exists;
     bool setUsingSignature;
+    address validator;
     uint256 value;
     uint256 stake;
     // bytes extraData;  // consider including to provide additional flexibility
@@ -57,11 +58,8 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
   // top-level information about attribute types is held in a mapping of structs
   mapping(uint256 => AttributeMetadata) attributeTypes;
 
-  // each address in the jurisdiction has attributes originating from validators
-  mapping(address => mapping(uint256 => address)) attributeValidators;
-
-  // each validator in the jurisdiction has addresses with assigned attributes
-  mapping(address => mapping(address => mapping(uint256 => Attribute))) attributes;
+  // the jurisdiction retains a mapping of addresses with assigned attributes
+  mapping(address => mapping(uint256 => Attribute)) attributes;
 
   // there is also a mapping to identify all approved validators and their keys
   mapping(address => Validator) validators;
@@ -228,12 +226,6 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     // remove the validator record
     delete validators[_validator];
 
-    // NOTE: turns out that `delete attributes[_validator]` won't work unless an
-    // additional array of attributes on each validator is stored alongside, see 
-    // https://ethereum.stackexchange.com/questions/15553/how-to-delete-a-mapping
-    // Moreover, it's probably best to retain this data anyway, since it would
-    // still be used to locate and reclaim staked funds in invalid attributes.
-
     // log the removal of the validator
     emit ValidatorRemoved(_validator);
   }
@@ -331,7 +323,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     // a user adds an attribute, then it gets revoked, the user can get a new
     // signature from the validator and renew the attribute using that. The main
     // downside is that everyone will have to keep track of the extra parameter.
-    // Another solution is to just modifiy the required staked amount slightly!
+    // Another solution is to just modifiy the required stake or fee amount.
 
     // retrieve required minimum stake and jurisdiction fees on attribute type
     uint256 minimumStake = attributeTypes[_attribute].minimumStake;
@@ -372,19 +364,17 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     );
 
     require(
-      attributeValidators[msg.sender][_attribute] == address(0),
+      attributes[msg.sender][_attribute].validator == address(0),
       "duplicate attributes are not supported, remove existing attribute first"
     );
     // alternately, check attributes[validator][msg.sender][_attribute].exists
     // and update value / increment stake if the validator is the same?
 
-    // store the attribute's validator for identifying the validating scope
-    attributeValidators[msg.sender][_attribute] = validator;
-
     // store attribute value and amount of ether staked in correct scope
-    attributes[validator][msg.sender][_attribute] = Attribute({
+    attributes[msg.sender][_attribute] = Attribute({
       exists: true,
       setUsingSignature: true,
+      validator: validator,
       value: _value,
       stake: stake
       // NOTE: no extraData included
@@ -405,7 +395,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     if (jurisdictionFee > 0) {
       // NOTE: send is chosen over transfer to prevent cases where a improperly
       // configured fallback function could block addition of an attribute
-      if (owner.send(jurisdictionFee) == true) {
+      if (owner.send(jurisdictionFee)) {
         emit FeePaid(owner, msg.sender, _attribute, jurisdictionFee);
       }
     }
@@ -414,7 +404,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     if (_validatorFee > 0) {
       // NOTE: send is chosen over transfer to prevent cases where a improperly
       // configured fallback function could block addition of an attribute
-      if (validator.send(_validatorFee) == true) {
+      if (validator.send(_validatorFee)) {
         emit FeePaid(validator, msg.sender, _attribute, _validatorFee);
       }
     }
@@ -444,7 +434,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     );
 
     require(
-      attributeValidators[_who][_attribute] == address(0),
+      attributes[_who][_attribute].validator == address(0),
       "duplicate attributes are not supported, remove existing attribute first"
     );
     // alternately, check attributes[validator][msg.sender][_attribute].exists
@@ -461,13 +451,11 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
       "attribute requires a greater value than is currently provided"
     );
 
-    // store the attribute's validator for identifying the validating scope
-    attributeValidators[_who][_attribute] = msg.sender;
-
     // store attribute value and amount of ether staked in correct scope
-    attributes[msg.sender][_who][_attribute] = Attribute({
+    attributes[_who][_attribute] = Attribute({
       exists: true,
       setUsingSignature: false,
+      validator: msg.sender,
       value: _value,
       stake: stake
       // NOTE: no extraData included
@@ -485,7 +473,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     if (jurisdictionFee > 0) {
       // NOTE: send is chosen over transfer to prevent cases where a improperly
       // configured fallback function could block addition of an attribute
-      if (owner.send(jurisdictionFee) == true) {
+      if (owner.send(jurisdictionFee)) {
         emit FeePaid(owner, msg.sender, _attribute, jurisdictionFee);
       }
     }
@@ -500,29 +488,26 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     );
 
     // determine the assigned validator on the user attribute
-    address validator = attributeValidators[msg.sender][_attribute];
+    address validator = attributes[msg.sender][_attribute].validator;
 
     require(
-      attributes[validator][msg.sender][_attribute].exists == true,
+      attributes[msg.sender][_attribute].exists == true,
       "only existing attributes may be removed"
     );
 
     // determine if the attribute has a staked value
-    uint256 stake = attributes[validator][msg.sender][_attribute].stake;
+    uint256 stake = attributes[msg.sender][_attribute].stake;
 
     // determine the correct address to refund the staked amount to
     address refundAddress;
-    if (attributes[validator][msg.sender][_attribute].setUsingSignature) {
+    if (attributes[msg.sender][_attribute].setUsingSignature) {
       refundAddress = msg.sender;
     } else {
       refundAddress = validator;
     }
-    
-    // remove the registered validator for the user attribute
-    delete attributeValidators[msg.sender][_attribute];
 
     // remove the attribute from the user address
-    delete attributes[validator][msg.sender][_attribute];
+    delete attributes[msg.sender][_attribute];
 
     // log the removal of the attribute
     emit AttributeRemoved(validator, msg.sender, _attribute);
@@ -531,7 +516,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     if (stake > 0 && address(this).balance >= stake) {
       // NOTE: send is chosen over transfer to prevent cases where a malicious
       // fallback function could forcibly block an attribute's removal
-      if (refundAddress.send(stake) == true) {
+      if (refundAddress.send(stake)) {
         emit StakeRefunded(refundAddress, _attribute, stake);
       }
     }
@@ -540,7 +525,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
   // the jurisdiction owner and issuing validators may also remove attributes
   function removeAttributeFrom(address _who, uint256 _attribute) external {
     // determine the assigned validator on the user attribute
-    address validator = attributeValidators[_who][_attribute];
+    address validator = attributes[_who][_attribute].validator;
     
     // caller must be either the jurisdiction owner or the assigning validator
     require(
@@ -549,26 +534,23 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     );
 
     require(
-      attributes[validator][_who][_attribute].exists == true,
+      attributes[_who][_attribute].exists == true,
       "only existing attributes may be removed"
     );
 
     // determine if attribute has any stake in order to refund transaction fee
-    uint256 stake = attributes[validator][_who][_attribute].stake;
+    uint256 stake = attributes[_who][_attribute].stake;
 
     // determine the correct address to refund the staked amount to
     address refundAddress;
-    if (attributes[validator][msg.sender][_attribute].setUsingSignature) {
+    if (attributes[msg.sender][_attribute].setUsingSignature) {
       refundAddress = _who;
     } else {
       refundAddress = validator;
     }
 
-    // remove the registered validator for the user attribute
-    delete attributeValidators[_who][_attribute];
-
     // remove the attribute from the designated user address
-    delete attributes[validator][_who][_attribute];
+    delete attributes[_who][_attribute];
 
     // log the removal of the attribute
     emit AttributeRemoved(validator, _who, _attribute);
@@ -582,7 +564,7 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
       // high gives validators the incentive to revoke valid attributes. Simply
       // checking against gasLeft() & adding the final gas usage won't give the
       // correct transaction cost, as freeing space refunds gas upon completion.
-      uint256 transactionGas = 139000; // <--- WARNING: THIS IS APPROXIMATE
+      uint256 transactionGas = 37700; // <--- WARNING: THIS IS APPROXIMATE
       uint256 transactionCost = transactionGas.mul(tx.gasprice);
 
       // if stake exceeds allocated transaction cost, refund user the difference
@@ -611,12 +593,13 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     address _who, 
     uint256 _attribute
   ) external view returns (bool) {
-    address validator = attributeValidators[_who][_attribute];
-    if (canValidate(validator, _attribute) == false) {
-      return false;
-    }
-
-    return attributes[validator][_who][_attribute].exists;
+    // gas optimization: get validator & call canValidate function body directly
+    address validator = attributes[_who][_attribute].validator;
+    return (
+      validators[validator].exists &&   // isValidator(validator)
+      attributeTypes[_attribute].approvedValidators[validator] &&
+      attributeTypes[_attribute].exists  // isDesignatedAttribute(_attribute)
+    );
   }
 
   // external interface for getting the value of an attribute
@@ -624,12 +607,18 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     address _who,
     uint256 _attribute
   ) external view returns (uint256 value) {
-    // NOTE: attributes with no validator will register as having a value of 0
-    address validator = attributeValidators[_who][_attribute];
-    if (canValidate(validator, _attribute) == false) {
-      return 0;
+    // gas optimization: get validator & call canValidate function body directly
+    address validator = attributes[_who][_attribute].validator;
+    if (
+      validators[validator].exists &&   // isValidator(validator)
+      attributeTypes[_attribute].approvedValidators[validator] &&
+      attributeTypes[_attribute].exists  // isDesignatedAttribute(_attribute)
+    ) {
+      return attributes[_who][_attribute].value;
     }
-    return attributes[validator][_who][_attribute].value;
+
+    // NOTE: attributes with no validator will register as having a value of 0
+    return 0;
   }
 
   // external interface for getting the description of an attribute by ID
@@ -648,7 +637,6 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
       attributeTypes[_attribute].jurisdictionFee
     );
   }
-
 
   // external interface for getting the description of a validator by ID
   function getValidatorInformation(address _validator)
@@ -685,9 +673,10 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     address validator,
     bool isStillValid
   ) {
+    address validatorAddress = attributes[_who][_attribute].validator;
     return (
-      attributeValidators[_who][_attribute],
-      canValidate(attributeValidators[_who][_attribute], _attribute)
+      validatorAddress,
+      canValidate(validatorAddress, _attribute)
     );
   }
 
@@ -749,12 +738,9 @@ contract Jurisdiction is Ownable, Registry, JurisdictionInterface {
     uint256 _attribute
   ) internal view returns (bool) {
     return (
-      isValidator(_validator) &&
-      isDesignatedAttribute(_attribute) &&
-      attributeTypes[_attribute].approvedValidators[_validator]
+      validators[_validator].exists &&   // isValidator(_validator)
+      attributeTypes[_attribute].approvedValidators[_validator] &&
+      attributeTypes[_attribute].exists  // isDesignatedAttribute(_attribute)
     );
   }
-
-
-
 }

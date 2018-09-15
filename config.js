@@ -1,6 +1,6 @@
 module.exports = {
   network: 'development',
-  TPLTokenAttributeID: 1,
+  TPLTokenAttributeID: 0,
   TPLTokenTotalSupply: 100,
   TPLTokenAttributeRestricted: false,
   TPLTokenAttributeMinimumRequiredStake: 0,

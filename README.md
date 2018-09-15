@@ -4,6 +4,7 @@
 ### ***** *TPL-1.0 Release Candidate 2* *****
 Proof of concept for contracts implementing a TPL jurisdiction and an ERC20-enforced TPL.
 
+**This release candidate is outdated. See the [latest release candidate](https://github.com/TPL-protocol/tpl-contracts/tree/1.0-rc3) here.**
 
 **[PROJECT PAGE](https://tplprotocol.org/)**
 
@@ -25,11 +26,12 @@ $ truffle compile
 ```
 
 
-Once contracts are compiled, run tests:
+Once contracts are compiled, run tests and collect gas usage metrics:
 
 ```sh
 $ ganache-cli
 $ node scripts/test.js
+$ node scripts/gasAnalysis.js
 ```
 
 
@@ -71,7 +73,7 @@ Contracts may also be deployed to local testRPC using `$ node scripts/deploy.js`
     * remove attributes from participants as required.
 
 
-* The **TPLToken** is a standard [OpenZeppelin ERC20 token](https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/StandardToken.sol) that requires certain attributes to be present for the participants in each transaction. For this [implementation](https://github.com/TPL-protocol/tpl-contracts/blob/1.0-rc2/contracts/TPLToken.sol), the token checks the jurisdiction's registry for an attribute used to whitelist valid token senders and recipients. *(NOTE: the attributes defined in the jurisdiction and required by TPLToken have been arbitrarily defined for this PoC, and are not intended to serve as a proposal for the attributes that will be used for validating transactions.)*
+* The **TPLToken** is a standard [OpenZeppelin ERC20 token](https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/StandardToken.sol) that enforces attribute checks during every token transfer. For this [implementation](https://github.com/TPL-protocol/tpl-contracts/blob/1.0-rc2/contracts/TPLToken.sol), the token checks the jurisdiction's registry for an attribute used to whitelist valid token recipients. The additional overhead for each transaction in the minimum-case is **4207 gas**, with 1585 used to execute jurisdiction contract logic and 2622 for general "plumbing" (the overhead of checking against an external call to the registry that simply returns `true`). *(NOTE: the attributes defined in the jurisdiction and required by TPLToken have been arbitrarily defined for this PoC, and are not intended to serve as a proposal for the attributes that will be used for validating transactions.)*
 
 
 ### Attribute scope
@@ -128,7 +130,7 @@ Under this scheme, handling the management of signing keys in an effective manne
 When approving attributes for participants to relay off-chain, validators may specify a required stake to be included in `msg.value` of the transaction relaying the signed attribute approval. This required stake must be greater or equal to the `minimunRequiredStake` specified by the jurisdiction in the attribute type, and may easily be set to 0 as long as `minimumRequiredStake` is also set to 0. In that event, participants do not need to include any stake - they won't even need to provide an extra argument with a value of 0, as `msg.value` is included by default in every transaction. 
 
 
-Should a validator elect to require a staked amount, they or the jurisdiction will receive a transaction rebate, up to the staked value, for removing the attribute in question. This value is calculated by multiplying an estimate of the transaction's gas usage (currently set to `139000`) with `tx.gasPrice`. Any additional stake will be returned to the participant, or to the validator in the event they set the attribute directly - this enables the jurisdiction to receive transaction rebates for removing attributes set by the validator if required. Should the jurisdiction assign multiple validators to an attribute, market forces should cause the staked requirement to move towards equilibrium with expected gas requirements for removing the attribute in question. Validators may also perform risk analysis on participants as part of their attribute approval process and offer signed attribute approvals with a variable required stake that is catered to the reliability of the participant in question.
+Should a validator elect to require a staked amount, they or the jurisdiction will receive a transaction rebate, up to the staked value, for removing the attribute in question. This value is calculated by multiplying an estimate of the transaction's gas usage (currently set to `37700`) with `tx.gasPrice`. Any additional stake will be returned to the participant, or to the validator in the event they set the attribute directly - this enables the jurisdiction to receive transaction rebates for removing attributes set by the validator if required. Should the jurisdiction assign multiple validators to an attribute, market forces should cause the staked requirement to move towards equilibrium with expected gas requirements for removing the attribute in question. Validators may also perform risk analysis on participants as part of their attribute approval process and offer signed attribute approvals with a variable required stake that is catered to the reliability of the participant in question.
 
 
 Care should be taken when determining the estimated gas usage of the attribute revocation, as setting the value too high will incentivize spurious revokations. Additionally, if there is a profit to be made by the revoker, they may elect to set as high a `tx.gasPrice` as possible to improve their profit margin at the expense of wasting any additional staked ether that would otherwise be returned to the staker. The actual gas usage will also depend on the attribute in question, as attributes with more data in contract storage will provide a larger gas rebate at the end of the transaction, and using `gasLeft()` to calculate gas usage will fail to account for this rebate. It is recommended to set this estimate to a conservative value, so as to provide the maximum possible transaction rebate without creating any cases where the rebate will exceed the realized transaction cost.
