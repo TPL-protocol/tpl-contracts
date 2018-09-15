@@ -1,6 +1,6 @@
 {
-  "name": "TPL-1.0-rc1",
-  "version": "1.0-rc1",
+  "name": "TPL-1.0-rc3",
+  "version": "1.0-rc3",
   "main": "index.js",
   "license": "MIT",
   "dependencies": {

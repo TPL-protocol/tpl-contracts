@@ -9,17 +9,50 @@ const connection = connectionConfig.networks[applicationConfig.network]
 
 let web3 = connection.provider
 
-async function signValidation(validatorSigningKeyAccount, jurisdiction, who, fundsRequired, validatorFee, attribute, value) {
+function getAttributeApprovalHash(
+  jurisdictionAddress,
+  assigneeAddress,
+  operatorAddress, // set to 0 when assigned personally
+  fundsRequired, // stake + jurisdiction fee + validator fee
+  validatorFee,
+  attributeID,
+  attributeValue
+) {
+  if (operatorAddress === 0) {
+    operatorAddress = '0x0000000000000000000000000000000000000000'
+  }
+  return web3.utils.soliditySha3(
+    {t: 'address', v: jurisdictionAddress},
+    {t: 'address', v: assigneeAddress},
+    {t: 'address', v: operatorAddress},
+    {t: 'uint256', v: fundsRequired},
+    {t: 'uint256', v: validatorFee},
+    {t: 'uint256', v: attributeID},
+    {t: 'uint256', v: attributeValue}
+  )
+}
+
+async function signValidation(
+  validatorSigningKey,
+  jurisdictionAddress,
+  assigneeAddress,
+  operatorAddress,
+  fundsRequired, // stake + jurisdiction fee + validator fee
+  validatorFee,
+  attributeID,
+  attributeValue
+) {
   return web3.eth.sign(
-    web3.utils.soliditySha3(
-      {t: 'address', v: jurisdiction},
-      {t: 'address', v: who},
-      {t: 'uint256', v: fundsRequired}, // stake + jurisdiction & validator fees
-      {t: 'uint256', v: validatorFee},
-      {t: 'uint256', v: attribute},
-      {t: 'uint256', v: value}
+    getAttributeApprovalHash(
+      jurisdictionAddress,
+      assigneeAddress,
+      operatorAddress,
+      fundsRequired,
+      validatorFee,
+      attributeID,
+      attributeValue
     ),
-    validatorSigningKeyAccount
+    validatorSigningKey
   )
 }
 
@@ -41,6 +74,61 @@ async function test() {
   const attributedAddress = addresses[2]
   const inattributedAddress = addresses[3]
   const nullAddress = '0x0000000000000000000000000000000000000000'
+  const badAddress = '0xbAd00BAD00BAD00bAD00bAD00bAd00BaD00bAD00'
+  const unownedAddress = '0x1010101010101010101010101010101010101010'
+
+  // NaughtyRegistry contract just throws when calling hasAttribute / getAttribute
+  const NaughtyRegistryContractData = {
+    "abi": [
+      {
+        "constant": true,
+        "inputs": [
+          {
+            "name": "_who",
+            "type": "address"
+          },
+          {
+            "name": "_attribute",
+            "type": "uint256"
+          }
+        ],
+        "name": "hasAttribute",
+        "outputs": [
+          {
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "constant": true,
+        "inputs": [
+          {
+            "name": "_who",
+            "type": "address"
+          },
+          {
+            "name": "_attribute",
+            "type": "uint256"
+          }
+        ],
+        "name": "getAttribute",
+        "outputs": [
+          {
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ],
+    "bytecode": "0x608060405234801561001057600080fd5b50610151806100206000396000f30060806040526004361061004c576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680634b5f297a14610051578063c2ee4190146100b6575b600080fd5b34801561005d57600080fd5b5061009c600480360381019080803573ffffffffffffffffffffffffffffffffffffffff16906020019092919080359060200190929190505050610117565b604051808215151515815260200191505060405180910390f35b3480156100c257600080fd5b50610101600480360381019080803573ffffffffffffffffffffffffffffffffffffffff1690602001909291908035906020019092919050505061011e565b6040518082815260200191505060405180910390f35b6000806000fd5b6000806000fd00a165627a7a723058209e08fb8dd84f961b5f82aed443c53712d6e9682182a4f81dd8db090b3a287f6a0029",
+  }
 
   // create contract objects that will deploy the contracts for testing
   const JurisdictionDeployer = new web3.eth.Contract(
@@ -49,6 +137,10 @@ async function test() {
 
   const TPLTokenDeployer = new web3.eth.Contract(
     TPLTokenContractData.abi
+  )
+
+  const NaughtyRegistryDeployer = new web3.eth.Contract(
+    NaughtyRegistryContractData.abi
   )
 
   // set up some variables that will be used for tracking account balances
@@ -64,7 +156,7 @@ async function test() {
   let difference = new web3.utils.BN()
   let expectedDifference = new web3.utils.BN()
   let stakeAmount = 2 * 10 ** 14
-  let expectedTransactionGas = 139000
+  let expectedTransactionGas = 37700
 
   // set up some flags so we can delay display of a few test results
   let getAvailableAttributesTestOnePassed;
@@ -78,7 +170,20 @@ async function test() {
     }
   ).send({
     from: address,
-    gas: 6000000,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).catch(error => {
+    console.error(error)
+    process.exit()
+  })
+
+  const SecondaryJurisdiction = await JurisdictionDeployer.deploy(
+    {
+      data: JurisdictionContractData.bytecode
+    }
+  ).send({
+    from: address,
+    gas: 5000000,
     gasPrice: 10 ** 9
   }).catch(error => {
     console.error(error)
@@ -89,6 +194,19 @@ async function test() {
     {
       data: TPLTokenContractData.bytecode,
       arguments: [Jurisdiction.options.address, 11111, 100]
+    }
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).catch(error => {
+    console.error(error)
+    process.exit()
+  })
+
+  const NaughtyRegistry = await NaughtyRegistryDeployer.deploy(
+    {
+      data: NaughtyRegistryContractData.bytecode
     }
   ).send({
     from: address,
@@ -168,6 +286,9 @@ async function test() {
   const attribute = {
     attributeId: 11111,
     restricted: false,
+    onlyPersonal: false,
+    secondarySource: nullAddress,
+    secondaryId: 0,
     minimumStake: 0,
     jurisdictionFee: 0,
     description: 'VALID_ADDRESS_ATTRIBUTE',
@@ -175,20 +296,46 @@ async function test() {
     validatorFee: 0,
     targetValue: 0,
     targetValueTwo: 67890,
+    targetValueThree: 28282,
+    invalidatedTargetValue: 37373,
     targetTwoSignature: await signValidation(
       validator.address,
       Jurisdiction.options.address,
       attributedAddress,
       0,
       0,
+      0,
       11111,
       67890
-    )
+    ),
+    signatureToInvalidate: await signValidation(
+      validator.address,
+      Jurisdiction.options.address,
+      attributedAddress,
+      0,
+      0,
+      0,
+      11111,
+      37373
+    ),
+    targetThreeSignature: await signValidation(
+      validator.address,
+      Jurisdiction.options.address,
+      unownedAddress,
+      inattributedAddress,
+      0,
+      0,
+      11111,
+      28282
+    ),    
   }
 
   const restrictedAttribute = {
     attributeId: 22222,
     restricted: true,
+    onlyPersonal: false,
+    secondarySource: nullAddress,
+    secondaryId: 0,
     minimumStake: 0,
     jurisdictionFee: 0,
     description: 'VALID_ADDRESS_ATTRIBUTE_RESTRICTED',
@@ -201,6 +348,7 @@ async function test() {
       attributedAddress,
       0,
       0,
+      0,
       22222,
       55555
     )
@@ -209,6 +357,9 @@ async function test() {
   const stakedAttribute = {
     attributeId: 33333,
     restricted: false,
+    onlyPersonal: false,
+    secondarySource: nullAddress,
+    secondaryId: 0,
     minimumStake: 10 ** 5,
     jurisdictionFee: 0,
     description: 'VALID_ADDRESS_ATTRIBUTE_STAKED',
@@ -219,6 +370,7 @@ async function test() {
       validator.address,
       Jurisdiction.options.address,
       attributedAddress,
+      0,
       2 * 10 ** 14,
       0,
       33333,
@@ -228,6 +380,7 @@ async function test() {
       validator.address,
       Jurisdiction.options.address,
       attributedAddress,
+      0,
       10 ** 3,
       0,
       33333,
@@ -238,6 +391,9 @@ async function test() {
   const stakedFeeAttribute = {
     attributeId: 77777,
     restricted: false,
+    onlyPersonal: false,
+    secondarySource: nullAddress,
+    secondaryId: 0,
     minimumStake: 10 ** 5,
     jurisdictionFee: 10 ** 7,
     description: 'VALID_ADDRESS_ATTRIBUTE_STAKED',
@@ -248,6 +404,7 @@ async function test() {
       validator.address,
       Jurisdiction.options.address,
       attributedAddress,
+      0,
       2 * 10 ** 14 + 10 ** 7 + 10 ** 8, // fundsRequired: stake, j. fee, v. fee
       10 ** 8,
       77777,
@@ -257,6 +414,7 @@ async function test() {
       validator.address,
       Jurisdiction.options.address,
       attributedAddress,
+      0,
       10 ** 3,
       10 ** 8,
       77777,
@@ -266,8 +424,75 @@ async function test() {
 
   const undefinedAttributeId = 44444
 
+  const secondaryAttribute = {
+    attributeId: 99999,
+    restricted: false,
+    onlyPersonal: false,
+    secondarySource: SecondaryJurisdiction.options.address,
+    secondaryId: 10101,
+    minimumStake: 0,
+    jurisdictionFee: 0,
+    description: 'VALID_ADDRESS_ATTRIBUTE_SECONDARY',
+    targetValidator: validator.address,
+    validatorFee: 0,
+    targetValue: 20202,
+    newTargetValue: 30303
+  }
+
+  const onlyPersonalAttribute = {
+    attributeId: 63636,
+    restricted: false,
+    onlyPersonal: true,
+    secondarySource: nullAddress,
+    secondaryId: 0,
+    minimumStake: 0,
+    jurisdictionFee: 0,
+    description: 'VALID_ADDRESS_ATTRIBUTE_ONLY_PERSONAL',
+    targetValidator: validator.address,
+    validatorFee: 0,
+    targetValue: 36363,
+    badSignature: await signValidation(
+      validator.address,
+      Jurisdiction.options.address,
+      attributedAddress,
+      inattributedAddress,
+      0,
+      0,
+      63636,
+      36363
+    )
+  }
+
+  const badSecondaryAttribute = {
+    attributeId: 40404,
+    restricted: false,
+    onlyPersonal: false,
+    secondarySource: badAddress,
+    secondaryId: 70707,
+    minimumStake: 0,
+    jurisdictionFee: 0,
+    description: 'BAD_ADDRESS_ATTRIBUTE_SECONDARY',
+    targetValidator: 0,
+    validatorFee: 0,
+    targetValue: 0
+  }
+
+  const naughtySecondaryAttribute = {
+    attributeId: 40804,
+    restricted: false,
+    onlyPersonal: false,
+    secondarySource: NaughtyRegistry.options.address,
+    secondaryId: 70407,
+    minimumStake: 0,
+    jurisdictionFee: 0,
+    description: 'NAUGHTY_ADDRESS_ATTRIBUTE_SECONDARY',
+    targetValidator: 0,
+    validatorFee: 0,
+    targetValue: 0
+  }
+
   await Jurisdiction.methods.addValidator(
-    validatorAddress,
+    validator.address,
     validator.description
   ).send({
     from: address,
@@ -284,6 +509,19 @@ async function test() {
     console.log(' ✓  - ValidatorAdded event is logged correctly')
     passed++
   })
+
+  await Jurisdiction.methods.getValidatorInformation(
+    validator.address
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(validatorInformation => {
+    assert.strictEqual(validatorInformation.signingKey, validator.address)
+    assert.strictEqual(validatorInformation.description, validator.description)
+    console.log(' ✓  - validator information is correctly accessible')
+    passed++
+  }) 
 
   await Jurisdiction.methods.getAvailableValidators(
   ).call({
@@ -365,6 +603,9 @@ async function test() {
   await Jurisdiction.methods.addAttributeType(
     attribute.attributeId,
     attribute.restricted,
+    attribute.onlyPersonal,
+    attribute.secondarySource,
+    attribute.secondaryId,
     attribute.minimumStake,
     attribute.jurisdictionFee,
     attribute.description
@@ -387,6 +628,9 @@ async function test() {
   await Jurisdiction.methods.addAttributeType(
     attribute.attributeId,
     attribute.restricted,
+    attribute.onlyPersonal,
+    attribute.secondarySource,
+    attribute.secondaryId,
     attribute.minimumStake,
     attribute.jurisdictionFee,
     attribute.description
@@ -402,6 +646,9 @@ async function test() {
   await Jurisdiction.methods.addAttributeType(
     attribute.attributeId + 1, // not a duplicate
     attribute.restricted,
+    attribute.onlyPersonal,
+    attribute.secondarySource,
+    attribute.secondaryId,
     attribute.minimumStake,
     attribute.jurisdictionFee,
     attribute.description
@@ -417,6 +664,9 @@ async function test() {
   await Jurisdiction.methods.addAttributeType(
     restrictedAttribute.attributeId, // not a duplicate
     restrictedAttribute.restricted,
+    restrictedAttribute.onlyPersonal,
+    restrictedAttribute.secondarySource,
+    restrictedAttribute.secondaryId,
     restrictedAttribute.minimumStake,
     restrictedAttribute.jurisdictionFee,
     restrictedAttribute.description
@@ -1526,6 +1776,9 @@ async function test() {
   await Jurisdiction.methods.addAttributeType(
     attribute.attributeId,
     !attribute.restricted,  // modified to be restricted - how tricky of them...
+    attribute.onlyPersonal,   
+    attribute.secondarySource,
+    attribute.secondaryId,
     attribute.minimumStake,
     attribute.jurisdictionFee,
     attribute.description
@@ -1548,6 +1801,9 @@ async function test() {
   await Jurisdiction.methods.addAttributeType(
     attribute.attributeId,
     attribute.restricted,
+    attribute.onlyPersonal,
+    attribute.secondarySource,
+    attribute.secondaryId,
     attribute.minimumStake,
     attribute.jurisdictionFee,
     attribute.description
@@ -1716,6 +1972,87 @@ async function test() {
       ' ✓  - altered signed messages from approved validator are invalid'
     )
     passed++
+  })
+
+  await Jurisdiction.methods.getAttributeApprovalHash(
+    attributedAddress,
+    nullAddress,
+    attribute.attributeId,
+    attribute.invalidatedTargetValue,
+    0,
+    attribute.validatorFee
+  ).call({
+    from: attributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(hash => {
+    assert.strictEqual(hash, getAttributeApprovalHash(
+      Jurisdiction.options.address,
+      attributedAddress,
+      0,
+      0,
+      attribute.validatorFee,
+      attribute.attributeId,
+      attribute.invalidatedTargetValue
+    ))
+    console.log(
+      ' ✓  - attribute approval hashes are correctly constructed'
+    )
+    passed++
+  })
+
+  // make sure that the attribute is ok before invalidating
+  await Jurisdiction.methods.canAddAttribute(
+    attribute.attributeId,
+    attribute.invalidatedTargetValue,
+    0,
+    attribute.validatorFee,
+    attribute.signatureToInvalidate
+  ).call({
+    from: attributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(canAdd => {
+    assert.strictEqual(canAdd, true)
+  })
+
+  await Jurisdiction.methods.invalidateAttributeApproval(
+    getAttributeApprovalHash(
+      Jurisdiction.options.address,
+      attributedAddress,
+      nullAddress,
+      0,
+      attribute.validatorFee,
+      attribute.attributeId,
+      attribute.invalidatedTargetValue
+    ),
+    attribute.signatureToInvalidate
+  ).send({
+    from: validatorAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(receipt => {
+    assert.ok(receipt.status)
+    console.log(' ✓  - validators can invalidate signed attribute approvals')
+    passed++
+  })  
+
+  await Jurisdiction.methods.canAddAttribute(
+    attribute.attributeId,
+    attribute.invalidatedTargetValue,
+    0,
+    attribute.validatorFee,
+    attribute.signatureToInvalidate
+  ).call({
+    from: attributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(canAdd => {
+    assert.strictEqual(canAdd, false)
+    console.log(
+      ' ✓  - attribute approval validity checks return false after invalidation'
+    )
+    passed++    
   })
 
   await Jurisdiction.methods.addAttribute(
@@ -1933,6 +2270,9 @@ async function test() {
   await Jurisdiction.methods.addAttributeType(
     stakedAttribute.attributeId,
     stakedAttribute.restricted,
+    stakedAttribute.onlyPersonal,
+    stakedAttribute.secondarySource,
+    stakedAttribute.secondaryId,
     stakedAttribute.minimumStake,
     stakedAttribute.jurisdictionFee,
     stakedAttribute.description
@@ -2297,6 +2637,9 @@ async function test() {
 await Jurisdiction.methods.addAttributeType(
     stakedFeeAttribute.attributeId,
     stakedFeeAttribute.restricted,
+    stakedFeeAttribute.onlyPersonal,
+    stakedAttribute.secondarySource,
+    stakedAttribute.secondaryId,
     stakedFeeAttribute.minimumStake,
     stakedFeeAttribute.jurisdictionFee,
     stakedFeeAttribute.description
@@ -2658,23 +3001,609 @@ await Jurisdiction.methods.addAttributeType(
     failed++
   }
 
+
+  //// TODO: secondary source tests!!
+  //  - attribute types can have secondary sources set
+  await Jurisdiction.methods.addAttributeType(
+    secondaryAttribute.attributeId,
+    secondaryAttribute.restricted,
+    secondaryAttribute.onlyPersonal,
+    secondaryAttribute.secondarySource,
+    secondaryAttribute.secondaryId,
+    secondaryAttribute.minimumStake,
+    secondaryAttribute.jurisdictionFee,
+    secondaryAttribute.description
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(receipt => { 
+    assert.ok(receipt.status)
+    console.log(
+      " ✓ attribute types can designate secondary source registry address & ID"
+    )
+    passed++
+
+    const logs = receipt.events.AttributeTypeAdded.returnValues
+    assert.strictEqual(logs.attribute, secondaryAttribute.attributeId.toString())
+    assert.strictEqual(logs.description, secondaryAttribute.description)
+    console.log(
+      " ✓  - AttributeTypeAdded event is logged correctly"
+    )
+    passed++
+  })
+
+  //  - checks for the attribute before it is set return false
+  await Jurisdiction.methods.hasAttribute(
+    attributedAddress,
+    secondaryAttribute.attributeId
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeExists => {
+    assert.strictEqual(attributeExists, false)
+    console.log(
+      ' ✓  - checks for the attribute before it is set return false'
+    )
+    passed++
+  })
+
+  //  - checks for the attribute value before it is set return 0
+  await Jurisdiction.methods.getAttribute(
+    attributedAddress,
+    secondaryAttribute.attributeId
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeValue => {
+    assert.strictEqual(attributeValue, (0).toString())
+    console.log(
+      ' ✓  - checks for the attribute value before it is set return 0'
+    )
+    passed++
+  })
+
+  //  - approve the validator to add the attribute on the secondary jurisdiction
+  await Jurisdiction.methods.addValidatorApproval(
+    secondaryAttribute.targetValidator,
+    secondaryAttribute.attributeId
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(receipt => {
+    assert.ok(receipt.status)
+    const logs = receipt.events.ValidatorApprovalAdded.returnValues
+    assert.strictEqual(logs.validator, attribute.targetValidator)
+    assert.strictEqual(logs.attribute, secondaryAttribute.attributeId.toString())
+    console.log(
+      ' ✓  - validators can be approved to set attributes w/ secondary sources'
+    )
+    passed++
+  })
+
+  //  - add a validator to secondary jurisdiction
+  await SecondaryJurisdiction.methods.addValidator(
+    validatorAddress,
+    validator.description
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(receipt => {
+    assert.ok(receipt.status)
+    const logs = receipt.events.ValidatorAdded.returnValues
+    assert.strictEqual(logs.validator, validatorAddress)
+    assert.strictEqual(logs.description, validator.description)
+  })
+
+  //  - add an attribute type to secondary jurisdiction
+  await SecondaryJurisdiction.methods.addAttributeType(
+    secondaryAttribute.secondaryId,
+    attribute.restricted,
+    attribute.onlyPersonal,
+    attribute.secondarySource,
+    attribute.secondaryId,
+    attribute.minimumStake,
+    attribute.jurisdictionFee,
+    attribute.description
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(receipt => { 
+    assert.ok(receipt.status)
+    const logs = receipt.events.AttributeTypeAdded.returnValues
+    assert.strictEqual(logs.attribute, secondaryAttribute.secondaryId.toString())
+    assert.strictEqual(logs.description, attribute.description)
+  }) 
+
+  //  - approve the validator to add the attribute on the secondary jurisdiction
+  await SecondaryJurisdiction.methods.addValidatorApproval(
+    attribute.targetValidator,
+    secondaryAttribute.secondaryId
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(receipt => {
+    assert.ok(receipt.status)
+    const logs = receipt.events.ValidatorApprovalAdded.returnValues
+    assert.strictEqual(logs.validator, attribute.targetValidator)
+    assert.strictEqual(logs.attribute, secondaryAttribute.secondaryId.toString())
+  })
+
+  // - add an attribute to the secondary jurisdiction
+  await SecondaryJurisdiction.methods.addAttributeTo(
+    attributedAddress,
+    secondaryAttribute.secondaryId,
+    secondaryAttribute.targetValue
+  ).send({
+    from: validatorAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(receipt => {
+    assert.ok(receipt.status)
+    const logs = receipt.events.AttributeAdded.returnValues
+    assert.strictEqual(logs.validator, validatorAddress)
+    assert.strictEqual(logs.attributee, attributedAddress)
+    assert.strictEqual(logs.attribute, secondaryAttribute.secondaryId.toString())
+  })
+
+  //  - checks for the attribute once it is set return true
+  await Jurisdiction.methods.hasAttribute(
+    attributedAddress,
+    secondaryAttribute.attributeId
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeExists => {
+    assert.ok(attributeExists)
+    console.log(
+      ' ✓  - checks for the attribute once it is set return true'
+    )
+    passed++
+  })
+
+  //  - checks for the attribute value once it is set return correct value
+  await Jurisdiction.methods.getAttribute(
+    attributedAddress,
+    secondaryAttribute.attributeId
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeValue => {
+    assert.strictEqual(attributeValue, secondaryAttribute.targetValue.toString())
+    console.log(
+      ' ✓  - checks for the attribute value once it is set return correct value'
+    )
+    passed++
+  })
+
+
+  // - add an attribute locally to an attribute type with a secondary source
+  await Jurisdiction.methods.addAttributeTo(
+    attributedAddress,
+    secondaryAttribute.attributeId,
+    secondaryAttribute.newTargetValue
+  ).send({
+    from: secondaryAttribute.targetValidator,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(receipt => {
+    assert.ok(receipt.status)
+    const logs = receipt.events.AttributeAdded.returnValues
+    assert.strictEqual(logs.validator, secondaryAttribute.targetValidator)
+    assert.strictEqual(logs.attributee, attributedAddress)
+    assert.strictEqual(logs.attribute, secondaryAttribute.attributeId.toString())
+    console.log(
+      ' ✓  - attributes can be added locally on types with secondary sources'
+    )
+    passed++
+  })
+
+  //  - local attribute values supercede remote attribute values
+  await Jurisdiction.methods.getAttribute(
+    attributedAddress,
+    secondaryAttribute.attributeId
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeValue => {
+    assert.strictEqual(attributeValue, secondaryAttribute.newTargetValue.toString())
+    console.log(
+      ' ✓  - local attribute values take priority over remote attribute values'
+    )
+    passed++
+  })
+
+  //  - attribute types can be set to secondary addresses without registries
+  // NOTE: this should potentially be disallowed!!
+  await Jurisdiction.methods.addAttributeType(
+    badSecondaryAttribute.attributeId,
+    badSecondaryAttribute.restricted,
+    badSecondaryAttribute.onlyPersonal,
+    badSecondaryAttribute.secondarySource,
+    badSecondaryAttribute.secondaryId,
+    badSecondaryAttribute.minimumStake,
+    badSecondaryAttribute.jurisdictionFee,
+    badSecondaryAttribute.description
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(receipt => { 
+    assert.ok(receipt.status)
+  })
+
+  //// NOTE: These require the use inline assembly to retrive the result of the
+  // low-level call while defaulting to false / 0 when it fails. Solidity 0.5.0
+  // should make accessing the return data of staticcall more straight-forward.
+
+  //  - checks for unset attribute on bad secondary source return false
+  await Jurisdiction.methods.hasAttribute(
+    inattributedAddress,
+    badSecondaryAttribute.attributeId,
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeExists => {
+    assert.strictEqual(attributeExists, false)
+    console.log(
+      ' ✓  - checks for unset attribute on bad secondary source return false'
+    )
+    passed++
+  })
+
+  //  - checks for unset attribute value on bad secondary source return 0
+  await Jurisdiction.methods.getAttribute(
+    inattributedAddress,
+    badSecondaryAttribute.attributeId,
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeValue => {
+    assert.strictEqual(attributeValue, badSecondaryAttribute.targetValue.toString())
+    console.log(
+      ' ✓  - checks for unset attribute value on bad secondary source return 0'
+    )
+    passed++
+  })
+
+  //  - set the secondary source to the address of a naughty registry (throws)
+  await Jurisdiction.methods.addAttributeType(
+    naughtySecondaryAttribute.attributeId,
+    naughtySecondaryAttribute.restricted,
+    naughtySecondaryAttribute.onlyPersonal,
+    naughtySecondaryAttribute.secondarySource,
+    naughtySecondaryAttribute.secondaryId,
+    naughtySecondaryAttribute.minimumStake,
+    naughtySecondaryAttribute.jurisdictionFee,
+    naughtySecondaryAttribute.description
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(receipt => { 
+    assert.ok(receipt.status)
+  })
+
+  // calls directly into hasAttribute on the naughty registry should throw
+  await NaughtyRegistry.methods.hasAttribute(
+    inattributedAddress,
+    naughtySecondaryAttribute.secondaryId,
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeExists => {
+    assert.ok(false)
+  }).catch(error => {
+    assert.ok(true)
+  })
+
+  // calls directly into getAttribute on the naughty registry should throw
+  await NaughtyRegistry.methods.getAttribute(
+    inattributedAddress,
+    naughtySecondaryAttribute.secondaryId,
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeValue => {
+    assert.ok(false)
+  }).catch(error => {
+    assert.ok(true)
+  })
+
+  //  - checks for attributes on a naughty secondary source return false
+  await Jurisdiction.methods.hasAttribute(
+    inattributedAddress,
+    naughtySecondaryAttribute.attributeId,
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeExists => {
+    assert.strictEqual(attributeExists, false)
+    console.log(
+      ' ✓  - checks for attributes on a naughty secondary source return false'
+    )
+    passed++
+  })
+
+  //  - checks for attributes on a naughty secondary source return false
+  await Jurisdiction.methods.getAttribute(
+    inattributedAddress,
+    naughtySecondaryAttribute.attributeId,
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeValue => {
+    assert.strictEqual(attributeValue, naughtySecondaryAttribute.targetValue.toString())
+    console.log(
+      ' ✓  - checks for attribute values on a naughty secondary source return 0'
+    )
+    passed++
+  })
+
+  let cannotAdd = false
+  await Jurisdiction.methods.addAttributeFor(
+    unownedAddress,
+    attribute.attributeId,
+    attribute.targetValueThree,
+    attribute.validatorFee,
+    attribute.targetThreeSignature
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9,
+    value: 0
+  }).catch(error => {
+    cannotAdd = true
+  })
+
+  await Jurisdiction.methods.addAttributeFor(
+    unownedAddress,
+    attribute.attributeId,
+    attribute.targetValueThree,
+    attribute.validatorFee,
+    attribute.targetThreeSignature
+  ).send({
+    from: inattributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 9,
+    value: 0
+  }).then(receipt => {
+    assert.ok(receipt.status)
+    console.log(
+      ' ✓ operators can add an attribute via signed validator approval'
+    )
+    passed++
+
+    const logs = receipt.events.AttributeAdded.returnValues
+    assert.strictEqual(logs.validator, validatorAddress)
+    assert.strictEqual(logs.attributee, unownedAddress)
+    assert.strictEqual(logs.attribute, attribute.attributeId.toString())
+    console.log(' ✓  - AttributeAdded event is logged correctly')
+    passed++
+  }).catch(error => {
+    console.log(
+      ' ✘ users can add an attribute via signed message from approved validator'
+    )
+    failed++
+
+    console.log(' ✘  - AttributeAdded event is logged correctly')
+    failed++
+  })
+
+  if (cannotAdd) {
+    console.log(
+      ' ✓  - operators cannot submit attribute approvals not intended for them'
+    )
+    passed++
+  }
+
+  await Jurisdiction.methods.hasAttribute(
+    unownedAddress,
+    attribute.attributeId,
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeExists => {
+    assert.strictEqual(attributeExists, true)
+    console.log(
+      ' ✓  - checks for attributes added by an operator return true'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.getAttribute(
+    unownedAddress,
+    attribute.attributeId,
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeValue => {
+    assert.strictEqual(attributeValue, attribute.targetValueThree.toString())
+    console.log(
+      ' ✓  - checks for attributes added by an operator return correct value'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.removeAttributeFor(
+    unownedAddress,
+    attribute.attributeId,
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9,
+    value: 0
+  }).catch(error => {
+    console.log(
+      ' ✓  - operators cannot remove attribute approvals not intended for them'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.removeAttributeFor(
+    unownedAddress,
+    attribute.attributeId,
+  ).send({
+    from: inattributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 9,
+    value: 0
+  }).then(receipt => {
+    assert.ok(receipt.status)
+    console.log(' ✓  - operators can remove attributes they have assigned')
+    passed++
+
+    const logs = receipt.events.AttributeRemoved.returnValues
+    assert.strictEqual(logs.validator, validatorAddress)
+    assert.strictEqual(logs.attributee, unownedAddress)
+    assert.strictEqual(logs.attribute, attribute.attributeId.toString())
+    console.log(' ✓  - AttributeRemoved event is logged correctly')
+    passed++
+  })
+
+  await Jurisdiction.methods.hasAttribute(
+    unownedAddress,
+    attribute.attributeId,
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeExists => {
+    assert.strictEqual(attributeExists, false)
+    console.log(
+      ' ✓  - checks for attributes removed by an operator return false'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.getAttribute(
+    unownedAddress,
+    attribute.attributeId,
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeValue => {
+    assert.strictEqual(attributeValue, (0).toString())
+    console.log(
+      ' ✓  - checks for attributes removed by an operator return 0'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.addAttributeFor(
+    unownedAddress,
+    attribute.attributeId,
+    attribute.targetValueThree,
+    attribute.validatorFee,
+    attribute.targetThreeSignature
+  ).send({
+    from: inattributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 9,
+    value: 0
+  }).catch(error => {
+    console.log(
+      ' ✓  - operators cannot reuse attribute approvals'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.addAttributeType(
+    onlyPersonalAttribute.attributeId,
+    onlyPersonalAttribute.restricted,
+    onlyPersonalAttribute.onlyPersonal, // true
+    onlyPersonalAttribute.secondarySource,
+    onlyPersonalAttribute.secondaryId,
+    onlyPersonalAttribute.minimumStake,
+    onlyPersonalAttribute.jurisdictionFee,
+    onlyPersonalAttribute.description
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(receipt => { 
+    assert.ok(receipt.status)
+    const logs = receipt.events.AttributeTypeAdded.returnValues
+    assert.strictEqual(logs.attribute, onlyPersonalAttribute.attributeId.toString())
+    assert.strictEqual(logs.description, onlyPersonalAttribute.description)
+    console.log(
+      ' ✓  - attribute types can be specified as only for personal assignment'
+    )
+    passed++
+  }) 
+
+  //  - approve the validator to add the attribute on the secondary jurisdiction
+  await Jurisdiction.methods.addValidatorApproval(
+    attribute.targetValidator,
+    onlyPersonalAttribute.attributeId
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(receipt => {
+    assert.ok(receipt.status)
+    const logs = receipt.events.ValidatorApprovalAdded.returnValues
+    assert.strictEqual(logs.validator, attribute.targetValidator)
+    assert.strictEqual(logs.attribute, onlyPersonalAttribute.attributeId.toString())
+    console.log(
+      ' ✓  - validators can be approved to issue onlyPersonal attributes'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.addAttributeFor(
+    attributedAddress,
+    onlyPersonalAttribute.attributeId,
+    onlyPersonalAttribute.targetValue,
+    onlyPersonalAttribute.validatorFee,
+    onlyPersonalAttribute.badSignature
+  ).send({
+    from: inattributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 9,
+    value: 0
+  }).catch(error => {
+    console.log(
+      ' ✓  - operators cannot add attribute types specified as only personal'
+    )
+    passed++
+  })
+
+  //// TODO: additional tests around invalidating attribute approvals
+  //  - sign a third attribue approval and confirm that it is valid
+  //  - invalidating it as non-owner / non-issuer fails
+  //  - the approval that was unsuccessfully invalidated can be added
   // TODO: jurisdiction's submitter gets back back the total stake if s<=t
-
   // TODO: validator gets back remaining staked amount if paid when user calls
-
   // TODO: validator's submitter gets back transaction cost from stake if s>t
-  
   // TODO: validator's submitter gets back the total stake if s<=t
-
-  // TODO: *** users can renew staked attributes by using a new signature ***
-  // (this will require modifying the required staked amount slightly)
-
+  // TODO: users can renew staked attributes by using a new signature
+  //  - this will require modifying the required staked amount slightly
   // TODO: users can remove invalidated attributes and reclaim the stake
-  // (this requires testing removed attribute types, validators, and approvals)
-
+  //  - this requires testing removed attribute types, validators, and approvals
   // TODO: handle all failed test cases - a bunch will halt testing if they fail
-
   // TODO: still needs additional tests written to cover fees and related events
+  // TODO: test that secondary source calls only forward a limited amount of gas
+  // TODO: operator cannot remove attributes they didn't set
+  // TODO: tests around stake and fees for addAttributeFor & removeAttributeFor
 
   console.log(
     `completed ${passed + failed} tests with ${failed} ` +

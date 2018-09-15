@@ -44,7 +44,7 @@ async function main() {
 	  data: JurisdictionContractData.bytecode
 	}).send({
     from: address,
-    gas: 6000000,
+    gas: 5000000,
     gasPrice: '1000000000'
 	})
 
