@@ -1,6 +1,6 @@
 var assert = require('assert');
 
-const JurisdictionContractData = require('../build/contracts/Jurisdiction.json')
+const JurisdictionContractData = require('../build/contracts/StandardJurisdiction.json')
 const TPLTokenContractData = require('../build/contracts/TPLToken.json')
 const applicationConfig = require('../config.js')
 const connectionConfig = require('../truffle.js')

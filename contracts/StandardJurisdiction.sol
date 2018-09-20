@@ -4,9 +4,10 @@ import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'openzeppelin-solidity/contracts/ECRecovery.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import './AttributeRegistry.sol';
-import './JurisdictionInterface.sol';
+import './BasicJurisdictionInterface.sol';
+import './ExtendedJurisdictionInterface.sol';
 
-contract Jurisdiction is Ownable, AttributeRegistry, JurisdictionInterface {
+contract StandardJurisdiction is Ownable, AttributeRegistry, BasicJurisdictionInterface, ExtendedJurisdictionInterface {
   using ECRecovery for bytes32;
   using SafeMath for uint256;
 
