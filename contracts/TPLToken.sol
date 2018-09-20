@@ -29,7 +29,19 @@ contract TPLToken is StandardToken {
   }
 
   // in order to transfer tokens, the receiver must be valid
-  function transferAllowed(address _to) public view returns (bool) {
+  function canTransfer(address _to, uint256 _value) public view returns (bool) {
+    _value;
+    return registry.hasAttribute(_to, validRecipientAttributeId);
+  }
+
+  // in order to transfer tokens via transferFrom, the receiver must be valid
+  function canTransferFrom(
+    address _from,
+    address _to,
+    uint256 _value
+  ) public returns (bool) {
+    _from;
+    _value;
     return registry.hasAttribute(_to, validRecipientAttributeId);
   }
 

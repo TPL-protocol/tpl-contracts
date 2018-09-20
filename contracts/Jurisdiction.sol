@@ -1115,27 +1115,31 @@ contract Jurisdiction is Ownable, AttributeRegistry, JurisdictionInterface {
     uint256 _id
   ) internal view returns (bool result) {
     uint256 maxGas = gasleft() > 20000 ? 20000 : gasleft();
-    bytes4 hasAttributeSignature = this.hasAttribute.selector; // 0x4b5f297a
+    bytes memory encodedParams = abi.encodeWithSelector(
+      this.hasAttribute.selector,
+      _who,
+      _id
+    );
+
     assembly {
-      let pointer := mload(0x40) // get storage start from free memory pointer
-      mstore(pointer, hasAttributeSignature) // set signature at top of storage
-      mstore(add(pointer, 0x04), _who) // place first argument after signature
-      mstore(add(pointer, 0x24), _id) // pad 1 word and place second argument
+      let encodedParams_data := add(0x20, encodedParams)
+      let encodedParams_size := mload(encodedParams)
+      
+      let output := mload(0x40) // get storage start from free memory pointer
+      mstore(output, 0x0)       // set up the location for output of staticcall
 
       let success := staticcall(
-        maxGas,  // maximum of 20k gas can be forwarded
-        _source, // address of registry to call
-        pointer, // inputs are stored at pointer location
-        0x44,    // inputs are 68 bytes (4 + 32 * 2)
-        add(pointer, 0x44), // store output over free space
-        0x20     // output is 32 bytes
+        maxGas,                 // maximum of 20k gas can be forwarded
+        _source,                // address of registry to call
+        encodedParams_data,     // inputs are stored at pointer location
+        encodedParams_size,     // inputs are 68 bytes (4 + 32 * 2)
+        output,                 // return to designated free space
+        0x20                    // output is one word, or 32 bytes
       )
 
-      if success {
-        result := mload(add(pointer, 0x44))
+      if success {              // only recognize successful staticcall output
+        result := mload(output) // set the output to the return value
       }
-      
-      mstore(0x40, add(pointer, 0x64)) // set storage pointer to empty space
     }
   }
 
@@ -1146,27 +1150,31 @@ contract Jurisdiction is Ownable, AttributeRegistry, JurisdictionInterface {
     uint256 _id
   ) internal view returns (uint256 result) {
     uint256 maxGas = gasleft() > 20000 ? 20000 : gasleft();
-    bytes4 getAttributeSignature = this.getAttribute.selector; // 0xc2ee4190
+    bytes memory encodedParams = abi.encodeWithSelector(
+      this.getAttribute.selector,
+      _who,
+      _id
+    );
+
     assembly {
-      let pointer := mload(0x40) // get storage start from free memory pointer
-      mstore(pointer, getAttributeSignature) // set signature at top of storage
-      mstore(add(pointer, 0x04), _who) // place first argument after signature
-      mstore(add(pointer, 0x24), _id) // pad 1 word and place second argument
+      let encodedParams_data := add(0x20, encodedParams)
+      let encodedParams_size := mload(encodedParams)
+      
+      let output := mload(0x40) // get storage start from free memory pointer
+      mstore(output, 0x0)       // set up the location for output of staticcall
 
       let success := staticcall(
-        maxGas,  // 20k gas max. forwarded
-        _source, // address of registry to call
-        pointer, // inputs are stored at pointer location
-        0x44,    // inputs are 68 bytes (4 + 32 * 2)
-        add(pointer, 0x44), // store output over free space
-        0x20     // output is 32 bytes
+        maxGas,                 // maximum of 20k gas can be forwarded
+        _source,                // address of registry to call
+        encodedParams_data,     // inputs are stored at pointer location
+        encodedParams_size,     // inputs are 68 bytes (4 + 32 * 2)
+        output,                 // return to designated free space
+        0x20                    // output is one word, or 32 bytes
       )
 
-      if success {
-        result := mload(add(pointer, 0x44))
+      if success {              // only recognize successful staticcall output
+        result := mload(output) // set the output to the return value
       }
-
-      mstore(0x40, add(pointer, 0x64)) // set storage pointer to empty space
     }
   }
 }
