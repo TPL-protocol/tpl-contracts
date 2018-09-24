@@ -60,8 +60,7 @@ async function test() {
 
   const TPLToken = await TPLTokenDeployer.deploy(
     {
-      data: TPLTokenContractData.bytecode,
-      arguments: [Jurisdiction.options.address, 11111, 100]
+      data: TPLTokenContractData.bytecode
     }
   ).send({
     from: address,
@@ -92,6 +91,25 @@ async function test() {
     ' ✓  - token contract referencing jurisdiction deploys successfully'
   )
   passed++
+
+  await TPLToken.methods.initialize(
+    address,
+    'TPLToken',
+    'TPL',
+    18,
+    100,
+    Jurisdiction.options.address,
+    11111
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).catch(error => {
+    console.log(
+      " ✓  - token contract can be initialized"
+    )
+    passed++
+  })
 
   await TPLToken.methods.getRegistryAddress().call({
     from: address,

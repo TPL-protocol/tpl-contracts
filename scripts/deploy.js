@@ -1,6 +1,6 @@
 var fs = require('fs');
 
-const JurisdictionContractData = require('../build/contracts/StandardJurisdiction.json')
+const JurisdictionContractData = require('../build/contracts/BasicJurisdiction.json')
 const TPLTokenContractData = require('../build/contracts/TPLToken.json')
 const applicationConfig = require('../config.js')
 const connectionConfig = require('../truffle.js')
@@ -53,21 +53,30 @@ async function main() {
   console.log(`  jurisdiction: ${jurisdictionAddress}`)
 
   const TPLTokenContractInstance = await TPLToken.deploy({
-	  data: TPLTokenContractData.bytecode,
-	  arguments: [
-      JurisdictionContractInstance.options.address,
-      TPLTokenAttributeID,
-      TPLTokenTotalSupply
-    ]
+	  data: TPLTokenContractData.bytecode
 	}).send({
     from: address,
     gas: 5000000,
     gasPrice: '1000000000'
 	})
 
-	const tokenAddress = TPLTokenContractInstance.options.address
-	deployAddresses.token = tokenAddress
-  console.log(`mock TPL token: ${tokenAddress}`)
+  await TPLTokenContractInstance.methods.initialize(
+    address,
+    'TPLToken',
+    'TPL',
+    18,
+    TPLTokenTotalSupply,
+    JurisdictionContractInstance.options.address,
+    TPLTokenAttributeID
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(receipt => {
+  const tokenAddress = TPLTokenContractInstance.options.address
+  deployAddresses.token = tokenAddress
+  console.log(`mock TPL token: ${tokenAddress} (initialized)`)
+  })
 
   fs.writeFile(
   	deployMetadataFilename,

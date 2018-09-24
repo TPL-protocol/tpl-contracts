@@ -76,12 +76,7 @@ async function test() {
   const ZEPValidatorAddress = ZEPValidatorContractInstance.options.address
 
   const MockZEPTokenContractInstance = await MockZEPToken.deploy({
-    data: MockZEPTokenContractData.bytecode,
-    arguments: [
-      JurisdictionContractInstance.options.address,
-      mockZEPTokenAttributeID,
-      mockZEPTokenTotalSupply
-    ]
+    data: MockZEPTokenContractData.bytecode
   }).send({
     from: address,
     gas: 5000000,
@@ -92,6 +87,25 @@ async function test() {
 
   console.log(' ✓ contracts deploy successfully')
   passed++
+
+  await MockZEPTokenContractInstance.methods.initialize(
+    address,
+    'TPLToken',
+    'TPL',
+    18,
+    mockZEPTokenTotalSupply,
+    JurisdictionContractInstance.options.address,
+    mockZEPTokenAttributeID
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).catch(error => {
+    console.log(
+      " ✓  - token contract can be initialized"
+    )
+    passed++
+  })
 
   await JurisdictionContractInstance.methods.owner().call({
     from: address,
