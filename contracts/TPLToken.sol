@@ -39,7 +39,7 @@ contract TPLToken is StandardToken {
     address _from,
     address _to,
     uint256 _value
-  ) public returns (bool) {
+  ) public view returns (bool) {
     _from;
     _value;
     return registry.hasAttribute(_to, validRecipientAttributeId);
