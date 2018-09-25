@@ -1,6 +1,9 @@
 # Transaction Permission Layer
 
 
+![TPL v1.0](images/TPL_01@3x.png?raw=true "TPL v1.0")
+
+
 ### ***** *TPL-1.0 Release Candidate 3* *****
 Contracts implementing a TPL jurisdiction and an ERC20-enforced TPL.
 
