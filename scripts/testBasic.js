@@ -194,6 +194,36 @@ async function test() {
 
   const undefinedAttributeId = 44444
 
+  await Jurisdiction.methods.pause(
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  })
+  console.log(` ✓  - Jurisdiction contract can be paused`)
+  passed++
+
+  await Jurisdiction.methods.addValidator(
+    validator.address,
+    validator.description
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).catch(error => {
+    console.log(' ✓  - jurisdiction owner cannot add new validators when paused')
+    passed++
+  })
+
+  await Jurisdiction.methods.unpause(
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  })
+  console.log(` ✓  - Jurisdiction contract can be unpaused`)
+  passed++
+
   await Jurisdiction.methods.addValidator(
     validator.address,
     validator.description

@@ -93,7 +93,25 @@ async function test() {
       " ✓  - jurisdiction contract can be initialized"
     )
     passed++
-  }) 
+  })
+
+  await JurisdictionContractInstance.methods.pause(
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  })
+  console.log(` ✓  - Jurisdiction contract can be paused`)
+  passed++
+
+  await JurisdictionContractInstance.methods.unpause(
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  })
+  console.log(` ✓  - Jurisdiction contract can be unpaused`)
+  passed++
 
   await ZEPValidatorContractInstance.methods.initialize(
     JurisdictionContractInstance.options.address,
@@ -412,6 +430,37 @@ async function test() {
     )
     passed++
   })
+
+  await ZEPValidatorContractInstance.methods.pause(
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  })
+  console.log(` ✓  - ZEP validator contract can be paused`)
+  passed++
+
+  await ZEPValidatorContractInstance.methods.issueAttribute(
+    attributedAddress
+  ).send({
+    from: organizationAddress,
+    gas: 5000000,
+    gasPrice: '1000000000'
+  }).catch(error => {
+    console.log(
+      ` ✓  - organization cannot issue attributes to an address when paused`
+    )
+    passed++
+  })
+
+  await ZEPValidatorContractInstance.methods.unpause(
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  })
+  console.log(` ✓  - ZEP validator contract can be unpaused`)
+  passed++
 
   await ZEPValidatorContractInstance.methods.issueAttribute(
     attributedAddress
