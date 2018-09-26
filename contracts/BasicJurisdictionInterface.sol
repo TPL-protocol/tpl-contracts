@@ -64,8 +64,11 @@ interface BasicJurisdictionInterface {
   // the jurisdiction owner and issuing validators may remove attributes
   function removeAttributeFrom(address _who, uint256 _attribute) external;
 
-  // external interface for getting the list of all validators by address
-  function getAvailableValidators() external view returns (address[]);
+  // external interface for getting the number of designated validators
+  function countAvailableValidators() external view returns (uint256);
+
+  // external interface for getting a validator's address by index
+  function getAvailableValidator(uint256 _index) external view returns (address);
 
   // external interface to check if validator is approved to issue an attribute
   function isApproved(

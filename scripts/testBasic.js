@@ -1,7 +1,7 @@
 var assert = require('assert');
 
 const JurisdictionContractData = require('../build/contracts/BasicJurisdiction.json')
-const TPLTokenContractData = require('../build/contracts/TPLToken.json')
+const TPLTokenContractData = require('../build/contracts/TPLTokenInstance.json')
 const applicationConfig = require('../config.js')
 const connectionConfig = require('../truffle.js')
 
@@ -71,7 +71,6 @@ async function test() {
     process.exit()
   })
 
-
   // **************************** begin testing ***************************** //
 
   console.log(' ✓ jurisdiction contract deploys successfully')
@@ -93,10 +92,6 @@ async function test() {
   passed++
 
   await TPLToken.methods.initialize(
-    address,
-    'TPLToken',
-    'TPL',
-    18,
     100,
     Jurisdiction.options.address,
     11111
@@ -220,6 +215,29 @@ async function test() {
     passed++
   }) 
 
+  await Jurisdiction.methods.countAvailableValidators(
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(validators => {
+    assert.strictEqual(validators, '1')
+    console.log(' ✓  - validator is added to the count of avaiable validators')
+    passed++
+  })  
+
+  await Jurisdiction.methods.getAvailableValidator(
+    0
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(validators => {
+    assert.strictEqual(validators, validatorAddress)
+    console.log(' ✓  - validator is added correctly to the list of validators')
+    passed++
+  })  
+
   await Jurisdiction.methods.getAvailableValidators(
   ).call({
     from: address,
@@ -228,7 +246,7 @@ async function test() {
   }).then(validators => {
     assert.strictEqual(validators.length, 1)
     assert.strictEqual(validators[0], validatorAddress)
-    console.log(' ✓  - validator is added correctly to the list of validators')
+    console.log(' ✓  - validator can be accessed in batch as well')
     passed++
   })  
 
@@ -612,7 +630,7 @@ async function test() {
     passed++
   })
 
-  await Jurisdiction.methods.supportsInterface('0x13a51fda').call({
+  await Jurisdiction.methods.supportsInterface('0x8af1887e').call({
     from: address,
     gas: 30000,
     gasPrice: 10 ** 9
@@ -764,7 +782,35 @@ async function test() {
     passed++
   })
 
-  await Jurisdiction.methods.getAvailableAttributes().call({
+  await Jurisdiction.methods.countAvailableAttributeIDs().call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeIds => {
+    assert.strictEqual(attributeIds, '2')
+    getAvailableAttributesTestOnePassed = true
+    passed++
+  }).catch(error => {
+    getAvailableAttributesTestOnePassed = false
+    failed++    
+  })
+
+  await Jurisdiction.methods.getAvailableAttributeID(
+    0
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeId => {
+    assert.strictEqual(attributeId, attribute.attributeId.toString())
+    getAvailableAttributesTestOnePassed = true
+    passed++
+  }).catch(error => {
+    getAvailableAttributesTestOnePassed = false
+    failed++    
+  })
+
+  await Jurisdiction.methods.getAvailableAttributeIDs().call({
     from: address,
     gas: 5000000,
     gasPrice: 10 ** 9
@@ -1324,7 +1370,7 @@ async function test() {
     passed++
   })
 
-  await Jurisdiction.methods.getAvailableAttributes().call({
+  await Jurisdiction.methods.getAvailableAttributeIDs().call({
     from: address,
     gas: 5000000,
     gasPrice: 10 ** 9
@@ -1434,7 +1480,7 @@ async function test() {
     failed++
   })
 
-  await Jurisdiction.methods.getAvailableAttributes().call({
+  await Jurisdiction.methods.getAvailableAttributeIDs().call({
     from: address,
     gas: 5000000,
     gasPrice: 10 ** 9

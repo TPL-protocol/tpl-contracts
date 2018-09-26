@@ -1,7 +1,7 @@
 var fs = require('fs');
 
 const JurisdictionContractData = require('../build/contracts/BasicJurisdiction.json')
-const TPLTokenContractData = require('../build/contracts/TPLToken.json')
+const TPLTokenContractData = require('../build/contracts/TPLTokenInstance.json')
 const applicationConfig = require('../config.js')
 const connectionConfig = require('../truffle.js')
 
@@ -61,10 +61,6 @@ async function main() {
 	})
 
   await TPLTokenContractInstance.methods.initialize(
-    address,
-    'TPLToken',
-    'TPL',
-    18,
     TPLTokenTotalSupply,
     JurisdictionContractInstance.options.address,
     TPLTokenAttributeID

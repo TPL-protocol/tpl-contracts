@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
 /**
- * @title Attribute Registry interface
+ * @title Attribute Registry interface. EIP-165 ID: 0x8af1887e
  */
 interface AttributeRegistry {
   /**
@@ -27,9 +27,16 @@ interface AttributeRegistry {
   ) external view returns (uint256);
 
   /**
-   * @notice Retrieve all attributes defined on the registry, designated by ID.
-   * @return A dynamic array of attribute IDs.
+   * @notice Count all attribute IDs defined on the registry.
+   * @return The total number of available attributes.
    */
-  function getAvailableAttributes() external view returns (uint256[]);
+  function countAvailableAttributeIDs() external view returns (uint256);
 
+  /**
+   * @notice Retrieve an attribute ID defined on the registry by index.
+   * @return An attribute ID.
+   */
+  function getAvailableAttributeID(
+    uint256 _index
+  ) external view returns (uint256);
 }

@@ -2,7 +2,7 @@ var assert = require('assert');
 
 const JurisdictionContractData = require('../build/contracts/BasicJurisdiction.json')
 const ZEPValidatorContractData = require('../build/contracts/ZEPValidator.json')
-const MockZEPTokenContractData = require('../build/contracts/TPLToken.json')
+const MockZEPTokenContractData = require('../build/contracts/TPLTokenInstance.json')
 const applicationConfig = require('../config.js')
 const connectionConfig = require('../truffle.js')
 
@@ -89,10 +89,6 @@ async function test() {
   passed++
 
   await MockZEPTokenContractInstance.methods.initialize(
-    address,
-    'TPLToken',
-    'TPL',
-    18,
     mockZEPTokenTotalSupply,
     JurisdictionContractInstance.options.address,
     mockZEPTokenAttributeID
