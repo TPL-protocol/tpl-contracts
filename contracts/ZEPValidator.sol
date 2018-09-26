@@ -1,11 +1,12 @@
 pragma solidity ^0.4.24;
 
-import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
-import 'openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
+import "openzeppelin-zos/contracts/Initializable.sol";
+import 'openzeppelin-zos/contracts/ownership/Ownable.sol';
+import 'openzeppelin-zos/contracts/lifecycle/Pausable.sol';
 import './AttributeRegistry.sol';
 import './BasicJurisdictionInterface.sol';
 
-contract ZEPValidator is Ownable, Pausable {
+contract ZEPValidator is Initializable, Ownable, Pausable {
 
   event OrganizationAdded(address organization, string name);
   event AttributeIssued(address indexed organization, address attributedAddress);
@@ -33,8 +34,16 @@ contract ZEPValidator is Ownable, Pausable {
   // organization data & issued attribute addresses are held in a struct mapping
   mapping(address => Organization) private organizations;
 
-  // the constructor will attach the validator to a jurisdiction & set attribute
-  constructor(address _jurisdiction, uint256 _validAttributeID) public {
+  // the initializer will attach the validator to a jurisdiction & set attribute
+  function initialize(
+    address _jurisdiction,
+    uint256 _validAttributeID
+  )
+    initializer
+    public
+  {
+    Ownable.initialize();
+    Pausable.initialize();
     registry = AttributeRegistry(_jurisdiction);
     jurisdiction = BasicJurisdictionInterface(_jurisdiction);
     validAttributeID = _validAttributeID;

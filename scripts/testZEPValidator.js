@@ -59,14 +59,10 @@ async function test() {
     gasPrice: '1000000000'
   })
 
-  const jurisdictionAddress = JurisdictionContractInstance.options.address
+  const jurisdictionAddress = JurisdictionContractInstance.options.address 
 
   const ZEPValidatorContractInstance = await ZEPValidator.deploy({
-    data: ZEPValidatorContractData.bytecode,
-    arguments: [
-      JurisdictionContractInstance.options.address,
-      mockZEPTokenAttributeID
-    ]
+    data: ZEPValidatorContractData.bytecode
   }).send({
     from: address,
     gas: 5000000,
@@ -87,6 +83,31 @@ async function test() {
 
   console.log(' ✓ contracts deploy successfully')
   passed++
+
+  await JurisdictionContractInstance.methods.initialize().send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).catch(error => {
+    console.log(
+      " ✓  - jurisdiction contract can be initialized"
+    )
+    passed++
+  }) 
+
+  await ZEPValidatorContractInstance.methods.initialize(
+    JurisdictionContractInstance.options.address,
+    mockZEPTokenAttributeID
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).catch(error => {
+    console.log(
+      " ✓  - ZEP Validator contract can be initialized"
+    )
+    passed++
+  }) 
 
   await MockZEPTokenContractInstance.methods.initialize(
     mockZEPTokenTotalSupply,

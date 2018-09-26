@@ -1,13 +1,13 @@
 pragma solidity ^0.4.24;
 
-import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
-import 'openzeppelin-solidity/contracts/ECRecovery.sol';
-import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
+import "openzeppelin-zos/contracts/Initializable.sol";
+import 'openzeppelin-zos/contracts/math/SafeMath.sol';
+import 'openzeppelin-zos/contracts/ownership/Ownable.sol';
+import 'openzeppelin-zos/contracts/lifecycle/Pausable.sol';
 import './AttributeRegistry.sol';
 import './BasicJurisdictionInterface.sol';
 
-contract BasicJurisdiction is Ownable, AttributeRegistry, BasicJurisdictionInterface {
-  using ECRecovery for bytes32;
+contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistry, BasicJurisdictionInterface {
   using SafeMath for uint256;
 
   // declare events (NOTE: consider which fields should be indexed)
@@ -68,6 +68,12 @@ contract BasicJurisdiction is Ownable, AttributeRegistry, BasicJurisdictionInter
   // addresses for all designated validators are also held in an array
   address[] validatorAddresses;
 
+  // the initializer function
+  function initialize() initializer public {
+    Ownable.initialize();
+    Pausable.initialize();
+  }
+
   // the contract owner may declare attributes recognized by the jurisdiction
   function addAttributeType(
     uint256 _id,
@@ -78,7 +84,7 @@ contract BasicJurisdiction is Ownable, AttributeRegistry, BasicJurisdictionInter
     uint256 _minimumStake,
     uint256 _jurisdictionFee,
     string _description
-  ) external onlyOwner {
+  ) external onlyOwner whenNotPaused {
     // prevent extra parameters from being used or msg.value from being included
     require(
       !_restrictedAccess &&
@@ -130,7 +136,7 @@ contract BasicJurisdiction is Ownable, AttributeRegistry, BasicJurisdictionInter
   }
 
   // the owner may also remove attributes - necessary first step before updating
-  function removeAttributeType(uint256 _id) external onlyOwner {
+  function removeAttributeType(uint256 _id) external onlyOwner whenNotPaused {
     // if the attribute id does not exist, there is nothing to remove
     require(
       isDesignatedAttribute(_id),
@@ -161,7 +167,7 @@ contract BasicJurisdiction is Ownable, AttributeRegistry, BasicJurisdictionInter
   function addValidator(
     address _validator,
     string _description
-  ) external onlyOwner {
+  ) external onlyOwner whenNotPaused {
     // NOTE: a jurisdiction can add itself as a validator if desired
     // check that an empty address was not provided by mistake
     require(_validator != address(0), "must supply a valid address");
@@ -187,7 +193,7 @@ contract BasicJurisdiction is Ownable, AttributeRegistry, BasicJurisdictionInter
   }
 
   // the jurisdiction can remove validators, invalidating submitted attributes
-  function removeValidator(address _validator) external onlyOwner {
+  function removeValidator(address _validator) external onlyOwner whenNotPaused {
     // check that a validator exists at the provided address
     require(
       isValidator(_validator),
@@ -218,7 +224,7 @@ contract BasicJurisdiction is Ownable, AttributeRegistry, BasicJurisdictionInter
   function addValidatorApproval(
     address _validator,
     uint256 _attribute
-  ) external onlyOwner {
+  ) external onlyOwner whenNotPaused {
     // check that the attribute is predefined and that the validator exists
     require(
       isValidator(_validator) && isDesignatedAttribute(_attribute),
@@ -242,7 +248,7 @@ contract BasicJurisdiction is Ownable, AttributeRegistry, BasicJurisdictionInter
   function removeValidatorApproval(
     address _validator,
     uint256 _attribute
-  ) external onlyOwner {
+  ) external onlyOwner whenNotPaused {
     // check that the attribute is predefined and that the validator exists
     require(
       canValidate(_validator, _attribute),
@@ -262,7 +268,7 @@ contract BasicJurisdiction is Ownable, AttributeRegistry, BasicJurisdictionInter
     address _who,
     uint256 _attribute,
     uint256 _value
-  ) external payable {
+  ) external payable whenNotPaused {
     // NOTE: determine best course of action when the attribute already exists
     // NOTE: consider utilizing bytes32 type for attributes and values
     // NOTE: the jurisdiction may set itself as a validator to add attributes
@@ -298,13 +304,16 @@ contract BasicJurisdiction is Ownable, AttributeRegistry, BasicJurisdictionInter
   }
 
   // the jurisdiction owner and issuing validators may remove attributes
-  function removeAttributeFrom(address _who, uint256 _attribute) external {
+  function removeAttributeFrom(
+    address _who,
+    uint256 _attribute
+  ) external whenNotPaused {
     // determine the assigned validator on the user attribute
     address validator = attributes[_who][_attribute].validator;
     
     // caller must be either the jurisdiction owner or the assigning validator
     require(
-      msg.sender == validator || msg.sender == owner,
+      msg.sender == validator || msg.sender == owner(),
       "only jurisdiction or issuing validators may revoke arbitrary attributes"
     );
 

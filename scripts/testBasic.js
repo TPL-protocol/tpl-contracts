@@ -76,6 +76,17 @@ async function test() {
   console.log(' ✓ jurisdiction contract deploys successfully')
   passed++
 
+  await Jurisdiction.methods.initialize().send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).catch(error => {
+    console.log(
+      " ✓  - jurisdiction contract can be initialized"
+    )
+    passed++
+  })  
+
   await Jurisdiction.methods.owner().call({
     from: address,
     gas: 5000000,

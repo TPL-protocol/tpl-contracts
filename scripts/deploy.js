@@ -48,9 +48,17 @@ async function main() {
     gasPrice: '1000000000'
 	})
 
-	const jurisdictionAddress = JurisdictionContractInstance.options.address
-	deployAddresses.jurisdiction = jurisdictionAddress
-  console.log(`  jurisdiction: ${jurisdictionAddress}`)
+  await JurisdictionContractInstance.methods.initialize().send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(receipt => {
+    const jurisdictionAddress = JurisdictionContractInstance.options.address
+    deployAddresses.jurisdiction = jurisdictionAddress
+    console.log(`  jurisdiction: ${jurisdictionAddress} (initialized)`)
+  })
+
+
 
   const TPLTokenContractInstance = await TPLToken.deploy({
 	  data: TPLTokenContractData.bytecode
@@ -69,9 +77,9 @@ async function main() {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).then(receipt => {
-  const tokenAddress = TPLTokenContractInstance.options.address
-  deployAddresses.token = tokenAddress
-  console.log(`mock TPL token: ${tokenAddress} (initialized)`)
+    const tokenAddress = TPLTokenContractInstance.options.address
+    deployAddresses.token = tokenAddress
+    console.log(`mock TPL token: ${tokenAddress} (initialized)`)
   })
 
   fs.writeFile(
