@@ -1,10 +1,9 @@
-# Transaction Permission Layer
+# Transaction Permission Layer v1.0
 
 
 ![TPL v1.0](images/TPL_01@3x.png?raw=true "TPL v1.0")
 
 
-### ***** *TPL-1.0 Release Candidate 3* *****
 Contracts implementing a TPL jurisdiction and an ERC20-enforced TPL.
 
 
@@ -21,7 +20,7 @@ First, ensure that [truffle](https://truffleframework.com/docs/truffle/getting-s
 Next, install dependencies and compile contracts:
 
 ```sh
-$ git clone -b 1.0-rc3 https://github.com/TPL-protocol/tpl-contracts
+$ git clone https://github.com/TPL-protocol/tpl-contracts
 $ cd tpl-contracts
 $ yarn install
 $ truffle compile
@@ -42,10 +41,10 @@ Contracts may also be deployed locally using `$ node scripts/deploy.js`.
 
 
 ### Summary & Key Terms
-* An **attribute registry** is any smart contract that implements an [interface](https://github.com/TPL-protocol/tpl-contracts/blob/1.0-rc3/contracts/AttributeRegistry.sol) containing a small set of external methods related to determining the existence of attributes. It enables implementing tokens and other contracts to avoid much of the complexity inherent in attribute validation and assignment by instead retrieving information from a trusted source. Attributes can be considered a lightweight alternative to claims as laid out in [EIP-735](https://github.com/ethereum/EIPs/issues/735).
+* An **attribute registry** is any smart contract that implements an [interface](https://github.com/TPL-protocol/tpl-contracts/blob/master/contracts/AttributeRegistry.sol) containing a small set of external methods related to determining the existence of attributes. It enables implementing tokens and other contracts to avoid much of the complexity inherent in attribute validation and assignment by instead retrieving information from a trusted source. Attributes can be considered a lightweight alternative to claims as laid out in [EIP-735](https://github.com/ethereum/EIPs/issues/735).
 
 
-* The **jurisdiction** is [implemented](https://github.com/TPL-protocol/tpl-contracts/blob/1.0-rc3/contracts/Jurisdiction.sol) as a single contract that stores validated attributes for each participant, where each attribute is a `uint256 => uint256` key-value pair. It implements an `AttributeRegistry` interface along with associated [EIP-165](https://eips.ethereum.org/EIPS/eip-165) support, allowing other contracts to identify and confirm attributes recognized by the jurisdiction. It also implements additional [Basic](https://github.com/TPL-protocol/tpl-contracts/blob/1.0-rc3/contracts/BasicJurisdictionInterface.sol) and [Extended](https://github.com/TPL-protocol/tpl-contracts/blob/1.0-rc3/contracts/ExtendedJurisdictionInterface.sol) Jurisdiction interfaces with methods and events to provide further context regarding actions within the jurisdiction. *(NOTE: a [Basic Jurisdiction](https://github.com/TPL-protocol/tpl-contracts/blob/1.0-rc3/contracts/BasicJurisdiction.sol) that only implements the former interface is also available, but it lacks many of the features provided in the standard Jurisdiction interface and described herein.)*
+* The **jurisdiction** is [implemented](https://github.com/TPL-protocol/tpl-contracts/blob/master/contracts/Jurisdiction.sol) as a single contract that stores validated attributes for each participant, where each attribute is a `uint256 => uint256` key-value pair. It implements an `AttributeRegistry` interface along with associated [EIP-165](https://eips.ethereum.org/EIPS/eip-165) support, allowing other contracts to identify and confirm attributes recognized by the jurisdiction. It also implements additional [Basic](https://github.com/TPL-protocol/tpl-contracts/blob/master/contracts/BasicJurisdictionInterface.sol) and [Extended](https://github.com/TPL-protocol/tpl-contracts/blob/master/contracts/ExtendedJurisdictionInterface.sol) Jurisdiction interfaces with methods and events to provide further context regarding actions within the jurisdiction. *(NOTE: a [Basic Jurisdiction](https://github.com/TPL-protocol/tpl-contracts/blob/master/contracts/BasicJurisdiction.sol) that only implements the former interface is also available, but it lacks many of the features provided in the standard Jurisdiction interface and described herein.)*
 
 
 * A jurisdiction defines **attribute types**, or permitted attribute groups, with the following fields *(with optional fields set to* `0 | false | 0x | ""`  *depending on the field's type)*:
@@ -79,7 +78,7 @@ Contracts may also be deployed locally using `$ node scripts/deploy.js`.
     * remove attributes from participants as required.
 
 
-* The **TPLToken** is a standard [OpenZeppelin ERC20 token](https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/StandardToken.sol) that enforces attribute checks during every token transfer and provides view functions for determining if a given token transfer will succeed. The example [implementation](https://github.com/TPL-protocol/tpl-contracts/blob/1.0-rc3/contracts/TPLToken.sol) checks the jurisdiction's registry for an attribute used to whitelist valid token recipients. The additional overhead for each transaction in the minimum-case is **4156 gas**, with 1512 used to execute jurisdiction contract logic and 2644 for general "plumbing" (the overhead of checking against an external call to the registry that simply returns `true`). *(NOTE: the attributes required by TPLToken have been arbitrarily defined, and are not intended to serve as a proposal for the attributes that will be used for validating transactions.)*
+* The **TPLToken** is a standard [OpenZeppelin ERC20 token](https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/contracts/token/ERC20/StandardToken.sol) that enforces attribute checks during every token transfer and provides view functions for determining if a given token transfer will succeed. The example [implementation](https://github.com/TPL-protocol/tpl-contracts/blob/master/contracts/TPLToken.sol) checks the jurisdiction's registry for an attribute used to whitelist valid token recipients. The additional overhead for each transaction in the minimum-case is **4156 gas**, with 1512 used to execute jurisdiction contract logic and 2644 for general "plumbing" (the overhead of checking against an external call to the registry that simply returns `true`). *(NOTE: the attributes required by TPLToken have been arbitrarily defined, and are not intended to serve as a proposal for the attributes that will be used for validating transactions.)*
 
 
 ### Attribute scope
