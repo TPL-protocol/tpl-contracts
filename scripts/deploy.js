@@ -1,7 +1,7 @@
 var fs = require('fs');
 
 const JurisdictionContractData = require('../build/contracts/BasicJurisdiction.json')
-const TPLTokenContractData = require('../build/contracts/TPLTokenInstance.json')
+const TPLTokenContractData = require('../build/contracts/mock/TPLTokenInstance.json')
 const applicationConfig = require('../config.js')
 const connectionConfig = require('../truffle.js')
 
@@ -28,25 +28,25 @@ const TPLTokenAttributeDescription = applicationConfig[
 ]
 
 async function main() {
-	console.log('deploying jurisdiction & mock TPLToken...')
-	let deployAddresses = {}
+  console.log('deploying jurisdiction & mock TPLToken...')
+  let deployAddresses = {}
   const deployMetadataFilename = 'build/contractDeploymentAddresses.json'
-	const addresses = await Promise.resolve(web3.eth.getAccounts())
-	if (addresses.length === 0) {
-		console.log('cannot find any addresses...')
-		return false
-	}
-	const address = addresses[0]
-	deployAddresses.owner = address
-	console.log(`         owner: ${address}`)
+  const addresses = await Promise.resolve(web3.eth.getAccounts())
+  if (addresses.length === 0) {
+    console.log('cannot find any addresses...')
+    return false
+  }
+  const address = addresses[0]
+  deployAddresses.owner = address
+  console.log(`         owner: ${address}`)
 
-	const JurisdictionContractInstance = await Jurisdiction.deploy({
-	  data: JurisdictionContractData.bytecode
-	}).send({
+  const JurisdictionContractInstance = await Jurisdiction.deploy({
+    data: JurisdictionContractData.bytecode
+  }).send({
     from: address,
     gas: 5000000,
     gasPrice: '1000000000'
-	})
+  })
 
   await JurisdictionContractInstance.methods.initialize().send({
     from: address,
@@ -61,12 +61,12 @@ async function main() {
 
 
   const TPLTokenContractInstance = await TPLToken.deploy({
-	  data: TPLTokenContractData.bytecode
-	}).send({
+    data: TPLTokenContractData.bytecode
+  }).send({
     from: address,
     gas: 5000000,
     gasPrice: '1000000000'
-	})
+  })
 
   await TPLTokenContractInstance.methods.initialize(
     TPLTokenTotalSupply,
@@ -83,18 +83,18 @@ async function main() {
   })
 
   fs.writeFile(
-  	deployMetadataFilename,
-  	JSON.stringify(deployAddresses),
-  	{flag: 'w'},
-  	err => {
+    deployMetadataFilename,
+    JSON.stringify(deployAddresses),
+    {flag: 'w'},
+    err => {
       if (err) {
         console.error(err)
         process.exit()
       }
       console.log(`metadata written to ${deployMetadataFilename}`)
       process.exit()
-	  }
-	)
+    }
+  )
 }
 
 main()

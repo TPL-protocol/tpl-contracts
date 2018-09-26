@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
-import "./TPLToken.sol";
-import "./AttributeRegistry.sol";
+import "../TPLToken.sol";
+import "../AttributeRegistry.sol";
 
 contract TPLTokenInstance is Initializable, TPLToken {
   // initialize token with a jurisdiction address and an initial token balance
