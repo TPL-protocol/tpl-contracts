@@ -28,60 +28,61 @@ const TPLTokenAttributeDescription = applicationConfig[
 ]
 
 async function main() {
-	console.log('deploying jurisdiction & mock TPLToken...')
-	let deployAddresses = {}
+  console.log('deploying jurisdiction & mock TPLToken...')
+  let deployAddresses = {}
   const deployMetadataFilename = 'build/contractDeploymentAddresses.json'
-	const addresses = await Promise.resolve(web3.eth.getAccounts())
-	if (addresses.length === 0) {
-		console.log('cannot find any addresses...')
-		return false
-	}
-	const address = addresses[0]
-	deployAddresses.owner = address
-	console.log(`         owner: ${address}`)
+  const addresses = await Promise.resolve(web3.eth.getAccounts())
+  if (addresses.length === 0) {
+    console.log('cannot find any addresses...')
+    return false
+  }
+  
+  const address = addresses[0]
+  deployAddresses.owner = address
+  console.log(`         owner: ${address}`)
 
-	const JurisdictionContractInstance = await Jurisdiction.deploy({
-	  data: JurisdictionContractData.bytecode
-	}).send({
+  const JurisdictionContractInstance = await Jurisdiction.deploy({
+    data: JurisdictionContractData.bytecode
+  }).send({
     from: address,
     gas: 5000000,
     gasPrice: '1000000000'
-	})
+  })
 
-	const jurisdictionAddress = JurisdictionContractInstance.options.address
-	deployAddresses.jurisdiction = jurisdictionAddress
+  const jurisdictionAddress = JurisdictionContractInstance.options.address
+  deployAddresses.jurisdiction = jurisdictionAddress
   console.log(`  jurisdiction: ${jurisdictionAddress}`)
 
   const TPLTokenContractInstance = await TPLToken.deploy({
-	  data: TPLTokenContractData.bytecode,
-	  arguments: [
+    data: TPLTokenContractData.bytecode,
+    arguments: [
       JurisdictionContractInstance.options.address,
       TPLTokenAttributeID,
       TPLTokenTotalSupply
     ]
-	}).send({
+  }).send({
     from: address,
     gas: 5000000,
     gasPrice: '1000000000'
-	})
+  })
 
-	const tokenAddress = TPLTokenContractInstance.options.address
-	deployAddresses.token = tokenAddress
+  const tokenAddress = TPLTokenContractInstance.options.address
+  deployAddresses.token = tokenAddress
   console.log(`mock TPL token: ${tokenAddress}`)
 
   fs.writeFile(
-  	deployMetadataFilename,
-  	JSON.stringify(deployAddresses),
-  	{flag: 'w'},
-  	err => {
+    deployMetadataFilename,
+    JSON.stringify(deployAddresses),
+    {flag: 'w'},
+    err => {
       if (err) {
         console.error(err)
         process.exit()
       }
       console.log(`metadata written to ${deployMetadataFilename}`)
       process.exit()
-	  }
-	)
+    }
+  )
 }
 
 main()
