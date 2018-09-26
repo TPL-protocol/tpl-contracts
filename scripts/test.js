@@ -174,7 +174,7 @@ async function test() {
     gasPrice: 10 ** 9
   }).catch(error => {
     console.error(error)
-    process.exit()
+    process.exit(1)
   })
 
   const SecondaryJurisdiction = await JurisdictionDeployer.deploy(
@@ -187,7 +187,7 @@ async function test() {
     gasPrice: 10 ** 9
   }).catch(error => {
     console.error(error)
-    process.exit()
+    process.exit(1)
   })
 
   const TPLToken = await TPLTokenDeployer.deploy(
@@ -201,7 +201,7 @@ async function test() {
     gasPrice: 10 ** 9
   }).catch(error => {
     console.error(error)
-    process.exit()
+    process.exit(1)
   })
 
   const NaughtyRegistry = await NaughtyRegistryDeployer.deploy(
@@ -214,7 +214,7 @@ async function test() {
     gasPrice: 10 ** 9
   }).catch(error => {
     console.error(error)
-    process.exit()
+    process.exit(1)
   })
 
   // **************************** begin testing ***************************** //
@@ -3652,6 +3652,11 @@ await Jurisdiction.methods.addAttributeType(
     `completed ${passed + failed} tests with ${failed} ` +
     `failure${failed === 1 ? '' : 's'}.`
   )
+
+  if (failed > 0) {
+    process.exit(1)
+  }
+
   process.exit()
 
 }
