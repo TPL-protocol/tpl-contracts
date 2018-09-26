@@ -808,7 +808,7 @@ async function testGas() {
     passed++
   })
 
-  await Jurisdiction.methods.supportsInterface('0x13a51fda').call({
+  await Jurisdiction.methods.supportsInterface('0x8af1887e').call({
     from: address,
     gas: 24999,
     gasPrice: 10 ** 9
@@ -972,7 +972,7 @@ async function testGas() {
     passed++
   })
 
-  await Jurisdiction.methods.getAvailableAttributes().send({
+  await Jurisdiction.methods.getAvailableAttributeIDs().send({
     from: address,
     gas: 5000000,
     gasPrice: 10 ** 9

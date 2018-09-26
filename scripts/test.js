@@ -915,7 +915,7 @@ async function test() {
     passed++
   })
 
-  await Jurisdiction.methods.supportsInterface('0x13a51fda').call({
+  await Jurisdiction.methods.supportsInterface('0x8af1887e').call({
     from: address,
     gas: 30000,
     gasPrice: 10 ** 9
@@ -1067,7 +1067,50 @@ async function test() {
     passed++
   })
 
-  await Jurisdiction.methods.getAvailableAttributes().call({
+  await Jurisdiction.methods.countAvailableAttributeIDs().call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeIds => {
+    assert.strictEqual(attributeIds, '2')
+    passed++
+  }).catch(error => {
+    getAvailableAttributesTestOnePassed = false
+    failed++
+  })
+
+  await Jurisdiction.methods.getAvailableAttributeID(
+    0
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeId => {
+    assert.strictEqual(attributeId, attribute.attributeId.toString())
+    passed++
+  }).catch(error => {
+    getAvailableAttributesTestOnePassed = false
+    failed++
+  })
+
+  await Jurisdiction.methods.getAvailableAttributeIDs().call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeIds => {
+    assert.strictEqual(attributeIds.length, 2)
+    assert.strictEqual(attributeIds[0], attribute.attributeId.toString())
+    assert.strictEqual(
+      attributeIds[1], restrictedAttribute.attributeId.toString()
+    )
+    getAvailableAttributesTestOnePassed = true
+    passed++
+  }).catch(error => {
+    getAvailableAttributesTestOnePassed = false
+    failed++    
+  })
+
+  await Jurisdiction.methods.getAvailableAttributeIDs().call({
     from: address,
     gas: 5000000,
     gasPrice: 10 ** 9
@@ -1759,7 +1802,7 @@ async function test() {
     passed++
   })
 
-  await Jurisdiction.methods.getAvailableAttributes().call({
+  await Jurisdiction.methods.getAvailableAttributeIDs().call({
     from: address,
     gas: 5000000,
     gasPrice: 10 ** 9
@@ -1869,7 +1912,7 @@ async function test() {
     failed++
   })
 
-  await Jurisdiction.methods.getAvailableAttributes().call({
+  await Jurisdiction.methods.getAvailableAttributeIDs().call({
     from: address,
     gas: 5000000,
     gasPrice: 10 ** 9

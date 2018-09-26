@@ -930,9 +930,31 @@ contract Jurisdiction is Ownable, AttributeRegistry, BasicJurisdictionInterface,
       );
     }
 
-  // external interface for getting the list of all available attributes by ID
-  function getAvailableAttributes() external view returns (uint256[]) {
+  // external interface for getting the number of available attribute types
+  function countAvailableAttributeIDs() external view returns (uint256) {
+    return attributeIds.length;
+  }
+
+  // external interface for getting an available attribute type by ID
+  function getAvailableAttributeID(uint256 _index) external view returns (uint256) {
+    return attributeIds[_index];
+  }
+
+  // external interface for getting all available attribute types by ID
+  function getAvailableAttributeIDs() external view returns (uint256[]) {
     return attributeIds;
+  }
+
+  // external interface for getting the number of designated validators
+  function countAvailableValidators() external view returns (uint256) {
+    return validatorAddresses.length;
+  }
+
+  // external interface for getting a validator's address by index
+  function getAvailableValidator(
+    uint256 _index
+  ) external view returns (address) {
+    return validatorAddresses[_index];
   }
 
   // external interface for getting the list of all validators by address
@@ -1059,10 +1081,11 @@ contract Jurisdiction is Ownable, AttributeRegistry, BasicJurisdictionInterface,
   function supportsInterface(bytes4 _interfaceID) external view returns (bool) {
     return (
       _interfaceID == this.supportsInterface.selector || // ERC165
-      _interfaceID == this.hasAttribute.selector
+      _interfaceID == this.hasAttribute.selector // AttributeRegistry
                       ^ this.getAttribute.selector
-                      ^ this.getAvailableAttributes.selector //AttributeRegistry
-    ); // 0x01ffc9a7 || 0x13a51fda
+                      ^ this.countAvailableAttributeIDs.selector
+                      ^ this.getAvailableAttributeID.selector
+    ); // 0x01ffc9a7 || 0x8af1887e
   }
 
   // helper function, determine if a given ID corresponds to an attribute type
