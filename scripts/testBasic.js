@@ -55,7 +55,7 @@ async function test() {
     gasPrice: 10 ** 9
   }).catch(error => {
     console.error(error)
-    process.exit()
+    process.exit(1)
   })
 
   const TPLToken = await TPLTokenDeployer.deploy(
@@ -69,7 +69,7 @@ async function test() {
     gasPrice: 10 ** 9
   }).catch(error => {
     console.error(error)
-    process.exit()
+    process.exit(1)
   })
 
 
@@ -1519,6 +1519,11 @@ async function test() {
     `completed ${passed + failed} tests with ${failed} ` +
     `failure${failed === 1 ? '' : 's'}.`
   )
+
+  if (failed > 0) {
+    process.exit(1)
+  }
+
   process.exit()
 
 }
