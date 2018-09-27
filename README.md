@@ -167,31 +167,8 @@ Should a validator elect to require a staked amount, they or the jurisdiction wi
 Care should be taken when determining the estimated gas usage of the attribute revocation, as setting the value too high will incentivize spurious revokations. Additionally, if there is a profit to be made by the revoker, they may elect to set as high a `tx.gasPrice` as possible to improve their profit margin at the expense of wasting any additional staked ether that would otherwise be returned to the staker. The actual gas usage will also depend on the attribute in question, as attributes with more data in contract storage will provide a larger gas rebate at the end of the transaction, and using `gasLeft()` to calculate gas usage will fail to account for this rebate. It is recommended to set this estimate to a conservative value, so as to provide the maximum possible transaction rebate without creating any cases where the rebate will exceed the realized transaction cost.
 
 
-### Release Candidate 3
-Release candidate 3 provides a mechanism for allowing jurisdictions to designate attribute types that reference other jurisdictions (or arbitrary registries). When the jurisdiction adds an attribute type, it may specify an optional external address that will serve as a secondary source for resolving attributes of that type. This addition provides greater flexibility and composablilty, but will sometimes increase the gas cost of failed attribute checks. As a consequence, a maximum of 20,000 gas is forwarded when checking remote attributes. This should allow for up to 4 layers of nested registries.
-
-
-Attributes may also be assigned by third-party 'operators' by calling `addAttributeFor` and including a target assignment address. The assigning operator pays any required stake and fees, and receives any excess stake back after transaction rebates. Operators may also revoke a (non-restricted) attribute that they assigned.
-
-
-Attribute types may restrict assignment by operators by setting a new `onlyPersonal` boolean when designating the attribute type, and signed attribute approvals now include an `operator` address as a parameter, which should be set to the `0x0` address when no operator is desired. This prevents griefing attacks where a signature may be used by someone other than the intended submitter.
-
-
-There is also a new method on the jurisdiction interface for invalidating attribute approvals that have not yet been submitted. An alternative approach is for the validator to rotate their signing key, but the new method is preferable in cases where a targeted approach is required.
-
-
-### Release Candidate 2
-Release candidate 2 enables an optional fee mechanism for both jurisdictions and validators. When the jurisdiction adds an attribute type, it may specify a fee that must be paid (in addition to any staked funds, if appliciable) whenever an attribute of that type is set, whether manually by validators or directly by participants. Additionally, when a validator signs an attribute approval, they may include a fee that must be paid (in addition to any staked funds and the attribute type's jurisdiction fee, if applicable) in order for the participant to successfully add the attribute.
-
-
-A few methods on the jurisdiction interface have been extended: `addAttributeType` takes an additional `_jurisdictionFee` argument, `addAttribute` takes an additional `_validatorFee` argument, and `canAddAttribute` takes `_fundsRequired` (a placeholder for `msg.value`) and `_validatorFee` arguments. Additionally, `getAttributeInformation` will now include `jurisdictionFee` as a return value. Finally, the interface has four new related event types: `StakeAllocated`, `StakeRefunded`, `FeePaid`, and `TransactionRebatePaid`.
-
-
-In the event that fees are not currently deemed necessary, the entire mechanism can be avoided by leaving them set to 0 - this also applies to the mechanism of staking funds to pay for transaction rebates. These features can also be phased in gradually by either party without invalidating any existing attributes or disrupting any ongoing permissioned transfers of TPL-compliant tokens.
-
-
 ### Additional features
 Some features of this implementation, and others that are not included as part of this implementation, are still under consideration for inclusion in TPL. Some of the most pressing open questions include:
 * the degree of support for various Ethereum Improvement Proposals (with a tradeoff cross-compatibility vs over-generalization & complexity),
-* enabling batched attribute assignment and removal to facilitate both cost savings by validators and simultaneous assignment of multiple related attributes by participants, and
+* enabling batched attribute retrieval, assignment, and removal to facilitate cost savings by implementors and validators, as well as simultaneous assignment of multiple related attributes by participants, and
 * the possibility of integrating a native token for consistent internal accounting irregardless of external inputs (though this option is likely unneccessary and needlessly complex).
