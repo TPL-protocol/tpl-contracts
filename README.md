@@ -9,6 +9,7 @@ Contracts implementing a TPL jurisdiction and an ERC20-enforced TPL.
 
 **[PROJECT PAGE](https://tplprotocol.org/)**
 
+**[INTRODUCTION (medium post)](https://blog.zeppelin.solutions/tpl-architecture-private-draft-1-a64f168a2f88)**
 
 **[WHITEPAPER (working draft)](https://tplprotocol.org/pdf/TPL%20-%20Transaction%20Permission%20Layer.pdf)**
 
