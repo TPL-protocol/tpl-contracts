@@ -1,14 +1,18 @@
 {
-  "name": "TPL-1.0-audit",
-  "version": "1.0.0-rc3",
+  "name": "TPL-1.0-audit-fix",
+  "version": "1.0.1",
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "openzeppelin-zos": "git+https://github.com/openzeppelin/openzeppelin-zos#release-v2.0.0",
+    "openzeppelin-zos": "git+https://github.com/openzeppelin/openzeppelin-zos#6956b93",
     "web3": "^1.0.0-beta.35"
   },
+  "devDependencies": {
+    "coveralls": "^3.0.2",
+    "solidity-coverage": "^0.5.11"
+  },
   "scripts": {
-  	"build": "truffle compile",
-  	"test": "node scripts/testBasic.js; node scripts/testZEPValidator.js"
+    "build": "truffle compile",
+    "test": "node scripts/testBasic.js; node scripts/testZEPValidator.js"
   }
 }
