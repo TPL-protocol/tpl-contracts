@@ -13,7 +13,7 @@
   },
   "scripts": {
   	"build": "truffle compile",
-  	"test": "node scripts/testBasic.js; node scripts/test.js",
+  	"test": "truffle compile; node scripts/testBasic.js; node scripts/test.js",
   	"coverage": "./node_modules/.bin/solidity-coverage"
   }
 }
