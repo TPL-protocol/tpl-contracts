@@ -250,8 +250,7 @@ async function test() {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).then(validatorInformation => {
-    assert.strictEqual(validatorInformation.signingKey, validator.address)
-    assert.strictEqual(validatorInformation.description, validator.description)
+    assert.strictEqual(validatorInformation, validator.description)
     console.log(' ✓  - validator information is correctly accessible')
     passed++
   }) 
@@ -358,12 +357,6 @@ async function test() {
 
   await Jurisdiction.methods.addAttributeType(
     attribute.attributeId,
-    attribute.restricted,
-    attribute.onlyPersonal,
-    attribute.secondarySource,
-    attribute.secondaryId,
-    attribute.minimumStake,
-    attribute.jurisdictionFee,
     attribute.description
   ).send({
     from: address,
@@ -383,12 +376,6 @@ async function test() {
 
   await Jurisdiction.methods.addAttributeType(
     attribute.attributeId,
-    attribute.restricted,
-    attribute.onlyPersonal,
-    attribute.secondarySource,
-    attribute.secondaryId,
-    attribute.minimumStake,
-    attribute.jurisdictionFee,
     attribute.description
   ).send({
     from: address,
@@ -401,12 +388,6 @@ async function test() {
 
   await Jurisdiction.methods.addAttributeType(
     attribute.attributeId + 1, // not a duplicate
-    attribute.restricted,
-    attribute.onlyPersonal,
-    attribute.secondarySource,
-    attribute.secondaryId,
-    attribute.minimumStake,
-    attribute.jurisdictionFee,
     attribute.description
   ).send({
     from: inattributedAddress,
@@ -419,12 +400,6 @@ async function test() {
 
   await Jurisdiction.methods.addAttributeType(
     additionalAttribute.attributeId, // not a duplicate
-    additionalAttribute.restricted,
-    additionalAttribute.onlyPersonal,
-    additionalAttribute.secondarySource,
-    additionalAttribute.secondaryId,
-    additionalAttribute.minimumStake,
-    additionalAttribute.jurisdictionFee,
     additionalAttribute.description
   ).send({
     from: address,
@@ -803,12 +778,7 @@ async function test() {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).then(attributeInformation => {
-    assert.strictEqual(attribute.description, attributeInformation.description)
-    assert.strictEqual(attribute.restricted, attributeInformation.isRestricted)
-    assert.strictEqual(
-      attribute.minimumStake.toString(),
-      attributeInformation.minimumRequiredStake
-    )
+    assert.strictEqual(attribute.description, attributeInformation)
     console.log(' ✓ external calls can retrieve information on an attribute type')
     passed++
   })
@@ -820,9 +790,7 @@ async function test() {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).then(attributeInformation => {
-    assert.strictEqual(attributeInformation.description, '')
-    assert.strictEqual(attributeInformation.isRestricted, false)
-    assert.strictEqual(attributeInformation.minimumRequiredStake, (0).toString())
+    assert.strictEqual('', attributeInformation)
     console.log(' ✓  - undefined attribute types return empty values')
     passed++
   })
@@ -879,7 +847,7 @@ async function test() {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).then(validatorInformation => {
-    assert.strictEqual(validatorInformation.description, validator.description)
+    assert.strictEqual(validatorInformation, validator.description)
     console.log(' ✓  - external calls retrieve new information on validator')
     passed++
   })
@@ -1331,8 +1299,7 @@ async function test() {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).then(validatorInformation => {
-    assert.strictEqual(validatorInformation.signingKey, validator.address)
-    assert.strictEqual(validatorInformation.description, validator.description)
+    assert.strictEqual(validatorInformation, validator.description)
     console.log(' ✓  - external calls can retrieve information on a validator')
     passed++
   })
@@ -1561,13 +1528,7 @@ async function test() {
 
   await Jurisdiction.methods.addAttributeType(
     attribute.attributeId,
-    !attribute.restricted,  // modified to be restricted - how tricky of them...
-    attribute.onlyPersonal,   
-    attribute.secondarySource,
-    attribute.secondaryId,
-    attribute.minimumStake,
-    attribute.jurisdictionFee,
-    attribute.description
+    attribute.description + 'x' // modified - how tricky of them...
   ).send({
     from: address,
     gas: 5000000,
@@ -1586,12 +1547,6 @@ async function test() {
 
   await Jurisdiction.methods.addAttributeType(
     attribute.attributeId,
-    attribute.restricted,
-    attribute.onlyPersonal,
-    attribute.secondarySource,
-    attribute.secondaryId,
-    attribute.minimumStake,
-    attribute.jurisdictionFee,
     attribute.description
   ).send({
     from: address,

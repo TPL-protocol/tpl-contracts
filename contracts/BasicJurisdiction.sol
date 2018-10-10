@@ -80,25 +80,8 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
   // the contract owner may declare attributes recognized by the jurisdiction
   function addAttributeType(
     uint256 _id,
-    bool _restrictedAccess,
-    bool _onlyPersonal,
-    address _secondarySource,
-    uint256 _secondaryId,
-    uint256 _minimumStake,
-    uint256 _jurisdictionFee,
     string _description
   ) external onlyOwner whenNotPaused {
-    // prevent extra parameters from being used or msg.value from being included
-    require(
-      !_restrictedAccess &&
-      !_onlyPersonal &&
-      _secondarySource == address(0) &&
-      _secondaryId == 0 &&
-      _minimumStake == 0 &&
-      _jurisdictionFee == 0,
-      "Basic Jurisdictions do not support advanced attribute type parameters"
-    );
-
     // prevent existing attributes with the same id from being overwritten
     require(
       isDesignatedAttribute(_id) == false,
@@ -388,37 +371,19 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
   function getAttributeInformation(
     uint256 _attribute
   ) external view returns (
-    string description,
-    bool isRestricted,
-    bool isOnlyPersonal,
-    address secondarySource,
-    uint256 secondaryId,
-    uint256 minimumRequiredStake,
-    uint256 jurisdictionFee
+    string description
   ) {
-    return (
-      attributeTypes[_attribute].description,
-      false,
-      false,
-      address(0),
-      0,
-      0,
-      0
-    );
+    return attributeTypes[_attribute].description;
   }
 
   // external interface for getting the description of a validator by ID
   function getValidatorInformation(
     address _validator
   ) external view returns (
-    address signingKey,
     string description
   ) {
-      return (
-        _validator, // no signing key; just return the validator address
-        validators[_validator].description
-      );
-    }
+    return validators[_validator].description;
+  }
 
   // external interface for getting the number of available attribute types
   function countAvailableAttributeIDs() external view returns (uint256) {

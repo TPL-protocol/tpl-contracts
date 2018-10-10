@@ -24,12 +24,6 @@ interface BasicJurisdictionInterface {
   // the contract owner may declare attributes recognized by the jurisdiction
   function addAttributeType(
     uint256 _id,
-    bool _restrictedAccess,
-    bool _onlyPersonal,
-    address _secondarySource,
-    uint256 _secondaryId,
-    uint256 _minimumStake,
-    uint256 _jurisdictionFee,
     string _description
   ) external;
 
@@ -68,7 +62,9 @@ interface BasicJurisdictionInterface {
   function countAvailableValidators() external view returns (uint256);
 
   // external interface for getting a validator's address by index
-  function getAvailableValidator(uint256 _index) external view returns (address);
+  function getAvailableValidator(
+    uint256 _index
+  ) external view returns (address);
 
   // external interface to check if validator is approved to issue an attribute
   function isApproved(
@@ -80,20 +76,13 @@ interface BasicJurisdictionInterface {
   function getAttributeInformation(
     uint256 _attribute
   ) external view returns (
-    string description,
-    bool isRestricted,
-    bool isOnlyPersonal,
-    address secondarySource,
-    uint256 secondaryId,
-    uint256 minimumRequiredStake,
-    uint256 jurisdictionFee
+    string description
   );
   
   // external interface for getting the description of a validator by ID
   function getValidatorInformation(
     address _validator
   ) external view returns (
-    address signingKey,
     string description
   );
 

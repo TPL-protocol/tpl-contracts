@@ -236,12 +236,6 @@ async function test() {
 
   await JurisdictionContractInstance.methods.addAttributeType(
     mockZEPTokenAttributeID,
-    false,
-    false,
-    nullAddress,
-    0,
-    0,
-    0,
     mockZEPTokenAttributeDescription
   ).send({
     from: address,
