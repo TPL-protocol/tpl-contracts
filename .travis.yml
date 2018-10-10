@@ -1,0 +1,15 @@
+sudo: required
+language: node_js
+node_js:
+  - "9"
+services:
+  - docker
+before_install:
+  - docker pull trufflesuite/ganache-cli
+  - docker run -d -p 8545:8545 trufflesuite/ganache-cli:latest -h 0.0.0.0
+install:
+  - npm install -g truffle
+  - npm install -g coveralls
+  - npm install
+script:
+  - npm run coverage && cat coverage/lcov.info | coveralls

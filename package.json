@@ -7,6 +7,10 @@
     "openzeppelin-solidity": "1.11.0",
     "web3": "^1.0.0-beta.35"
   },
+  "devDependencies": {
+    "coveralls": "^3.0.2",
+    "solidity-coverage": "^0.5.11"
+  },
   "scripts": {
   	"build": "truffle compile",
   	"test": "node scripts/testBasic.js; node scripts/test.js"
