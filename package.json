@@ -13,6 +13,6 @@
   },
   "scripts": {
     "build": "truffle compile",
-    "test": "node scripts/testBasic.js; node scripts/testZEPValidator.js"
+    "test": "truffle compile; node scripts/testBasic.js; node scripts/testZEPValidator.js"
   }
 }
