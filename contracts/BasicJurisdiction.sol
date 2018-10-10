@@ -70,8 +70,8 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
 
   // the initializer function
   function initialize() initializer public {
-    Ownable.initialize();
-    Pausable.initialize();
+    Ownable.initialize(msg.sender);
+    Pausable.initialize(msg.sender);
   }
 
   // the contract owner may declare attributes recognized by the jurisdiction

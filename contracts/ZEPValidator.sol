@@ -42,8 +42,8 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
     initializer
     public
   {
-    Ownable.initialize();
-    Pausable.initialize();
+    Ownable.initialize(msg.sender);
+    Pausable.initialize(msg.sender);
     registry = AttributeRegistry(_jurisdiction);
     jurisdiction = BasicJurisdictionInterface(_jurisdiction);
     validAttributeID = _validAttributeID;
