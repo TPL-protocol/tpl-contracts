@@ -62,6 +62,9 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
   // once attribute types are assigned to an ID, they cannot be modified
   mapping(uint256 => bytes32) attributeTypeHashes;
 
+  // attribute approvals by validator are held in a mapping
+  mapping(address => uint256[]) validatorApprovals;
+
   // IDs for all supplied attributes are held in an array (enables enumeration)
   uint256[] attributeIds;
 
@@ -200,24 +203,40 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
       "unable to remove, no validator located at the provided address"
     );
 
-    // get the validator address at the last index of the array
-    address lastAddress = validatorAddresses[validatorAddresses.length.sub(1)];
+    // first, start removing validator approvals until gas is exhausted
+    while (validatorApprovals[_validator].length > 0 && gasleft() > 25000) {
+      // locate the last attribute ID in the validator approval group
+      uint256 lastAttributeId = validatorApprovals[_validator].length.sub(1);
 
-    // set the address at validator-to-delete.index to last validator address
-    validatorAddresses[validators[_validator].index] = lastAddress;
+      // remove the record of the approval from the associated attribute type
+      delete attributeTypes[validatorApprovals[_validator][lastAttributeId]].approvedValidators[_validator];
 
-    // update the index of the attribute type that was moved
-    validators[lastAddress].index = validators[_validator].index;
-    
-    // remove the (now duplicate) validator address at the end & trim the array
-    delete validatorAddresses[validatorAddresses.length.sub(1)];
-    validatorAddresses.length--;
+      // drop the last attribute ID from the validator approval group
+      delete validatorApprovals[_validator][lastAttributeId];  
+      validatorApprovals[_validator].length--;
+    }
 
-    // remove the validator record
-    delete validators[_validator];
+    // proceed if all approvals have been successfully removed
+    if (validatorApprovals[_validator].length == 0) {
+      // get the validator address at the last index of the array
+      address lastAddress = validatorAddresses[validatorAddresses.length.sub(1)];
 
-    // log the removal of the validator
-    emit ValidatorRemoved(_validator);
+      // set the address at validator-to-delete.index to last validator address
+      validatorAddresses[validators[_validator].index] = lastAddress;
+
+      // update the index of the attribute type that was moved
+      validators[lastAddress].index = validators[_validator].index;
+      
+      // remove the (now duplicate) validator address at the end & trim the array
+      delete validatorAddresses[validatorAddresses.length.sub(1)];
+      validatorAddresses.length--;
+
+      // remove the validator record
+      delete validators[_validator];
+
+      // log the removal of the validator
+      emit ValidatorRemoved(_validator);
+    }
   }
 
   // the jurisdiction approves validators to assign predefined attributes
@@ -239,6 +258,9 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
 
     // set the validator approval status on the attribute
     attributeTypes[_attribute].approvedValidators[_validator] = true;
+
+    // include the attribute type in the validator approval mapping
+    validatorApprovals[_validator].push(_attribute);
 
     // log the addition of the validator's attribute type approval
     emit ValidatorApprovalAdded(_validator, _attribute);

@@ -1101,6 +1101,26 @@ async function test() {
     failed++    
   })
 
+  await Jurisdiction.methods.isApproved(
+    validator.address,
+    attribute.attributeId
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(isStillValid => {
+    assert.ok(isStillValid)
+    console.log(
+      ' ✓  - checks for validator approval are correct'
+    )
+    passed++
+  }).catch(error => {
+    console.log(
+      ' ✘  - checks for validator approval are correct'
+    )
+    failed++    
+  })
+
   await Jurisdiction.methods.hasAttribute(
     attributedAddress,
     attribute.attributeId
@@ -1182,6 +1202,26 @@ async function test() {
     passed++
   })
 
+  await Jurisdiction.methods.isApproved(
+    validator.address,
+    attribute.attributeId
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(isStillValid => {
+    assert.strictEqual(isStillValid, false)
+    console.log(
+      ' ✓  - checks for validator approval show that the approval is removed'
+    )
+    passed++
+  }).catch(error => {
+    console.log(
+      ' ✘  - checks for validator approval show that the approval is removed'
+    )
+    failed++    
+  })
+
   await Jurisdiction.methods.removeValidator(
     validator.address
   ).send({
@@ -1250,6 +1290,26 @@ async function test() {
     passed++
   })
 
+  await Jurisdiction.methods.isApproved(
+    validator.address,
+    attribute.attributeId
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(isStillValid => {
+    assert.strictEqual(isStillValid, false)
+    console.log(
+      ' ✓  - checks for renewed validator approval show they are NOT renewed'
+    )
+    passed++
+  }).catch(error => {
+    console.log(
+      ' ✘  - checks for renewed validator approval show they are NOT renewed'
+    )
+    failed++    
+  })
+
   await Jurisdiction.methods.getValidatorInformation(
     validator.address
   ).call({
@@ -1286,9 +1346,62 @@ async function test() {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).then(attributeExists => {
+    assert.strictEqual(attributeExists, false)
+    console.log(
+      ' ✓  - attribute checks from renewed validators return false (reset approval!)'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.getAttribute(
+    attributedAddress,
+    attribute.attributeId
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeValue => {
+    assert.strictEqual(
+      attributeValue,
+      '0'
+    )
+    console.log(
+      ' ✓  - attribute values from renewed validators return 0 (reset approval!)'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.addValidatorApproval(
+    validator.address,
+    attribute.attributeId
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(receipt => {
+    assert.ok(receipt.status)
+    console.log(
+      ' ✓  - renewing pre-existing renewed validator approvals is supported'
+    )
+    passed++
+  }).catch(error => {
+    console.log(
+      ' ✘  - renewing pre-existing renewed validator approvals is supported'
+    )
+    failed++    
+  })
+
+  await Jurisdiction.methods.hasAttribute(
+    attributedAddress,
+    attribute.attributeId
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeExists => {
     assert.strictEqual(attributeExists, true)
     console.log(
-      ' ✓  - attribute checks from renewed validators return true'
+      ' ✓  - reset attribute checks from renewed validators return true'
     )
     passed++
   })
@@ -1306,7 +1419,7 @@ async function test() {
       attribute.targetValue.toString()
     )
     console.log(
-      ' ✓  - attribute values from renewed validators return correct value'
+      ' ✓  - reset attribute values from renewed validators return correct value'
     )
     passed++
   })
