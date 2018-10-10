@@ -774,9 +774,11 @@ async function test() {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).then(attributeValue => {
-    assert.strictEqual(attributeValue, (0).toString())
-    console.log(' ✓  - undefined attribute types return 0')
-    passed++
+    console.log(' ✘  - undefined attribute types revert on getAttribute')
+    failed++
+  }).catch(error => {
+    console.log(' ✓  - undefined attribute types revert on getAttribute')
+    passed++ 
   })
  
   await Jurisdiction.methods.getAttribute(
@@ -787,9 +789,11 @@ async function test() {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).then(attributeValue => {
-    assert.strictEqual(attributeValue, (0).toString())
-    console.log(' ✓  - unassigned attributes return 0')
-    passed++
+    console.log(' ✘  - unassigned attributes revert on getAttribute')
+    failed++
+  }).catch(error => {
+    console.log(' ✓  - unassigned attributes revert on getAttribute')
+    passed++ 
   })
 
   await Jurisdiction.methods.getAttributeInformation(
@@ -1058,11 +1062,15 @@ async function test() {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).then(attributeValue => {
-    assert.strictEqual(attributeValue, (0).toString())
     console.log(
-      ' ✓  - attributes invalidated from revoked validator approvals return 0'
+      ' ✘  - attributes invalidated on revoked approvals revert on getAttribute'
     )
-    passed++
+    failed++
+  }).catch(error => {
+    console.log(
+      ' ✓  - attributes invalidated on revoked approvals revert on getAttribute'
+    )
+    passed++ 
   })
 
   await TPLToken.methods.transfer(attributedAddress, 10).send({
@@ -1256,9 +1264,15 @@ async function test() {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).then(attributeValue => {
-    assert.strictEqual(attributeValue, (0).toString())
-    console.log(' ✓  - attribute values from removed validators return 0')
-    passed++
+    console.log(
+      ' ✘  - attribute values from removed validators revert on getAttribute'
+    )
+    failed++
+  }).catch(error => {
+    console.log(
+      ' ✓  - attribute values from removed validators revert on getAttribute'
+    )
+    passed++ 
   })
 
   await TPLToken.methods.transfer(attributedAddress, 10).send({
@@ -1361,14 +1375,15 @@ async function test() {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).then(attributeValue => {
-    assert.strictEqual(
-      attributeValue,
-      '0'
-    )
     console.log(
-      ' ✓  - attribute values from renewed validators return 0 (reset approval!)'
+      ' ✘  - attribute values from renewed validators revert on getAttribute'
     )
-    passed++
+    failed++
+  }).catch(error => {
+    console.log(
+      ' ✓  - attribute values from renewed validators revert on getAttribute'
+    )
+    passed++ 
   })
 
   await Jurisdiction.methods.addValidatorApproval(
@@ -1503,9 +1518,15 @@ async function test() {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).then(attributeValue => {
-    assert.strictEqual(attributeValue, (0).toString())
-    console.log(' ✓  - attribute values from removed attribute types return 0')
-    passed++
+    console.log(
+      ' ✘  - attribute values on removed attribute types revert on getAttribute'
+    )
+    failed++
+  }).catch(error => {
+    console.log(
+      ' ✓  - attribute values on removed attribute types revert on getAttribute'
+    )
+    passed++ 
   })
 
   await TPLToken.methods.transfer(attributedAddress, 10).send({

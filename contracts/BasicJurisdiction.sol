@@ -372,16 +372,16 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
   ) external view returns (uint256 value) {
     // gas optimization: get validator & call canValidate function body directly
     address validator = attributes[_who][_attribute].validator;
-    if (
-      validators[validator].exists &&   // isValidator(validator)
-      attributeTypes[_attribute].approvedValidators[validator] &&
-      attributeTypes[_attribute].exists  // isDesignatedAttribute(_attribute)
-    ) {
-      return attributes[_who][_attribute].value;
-    }
+    require (
+      (
+        validators[validator].exists &&   // isValidator(validator)
+        attributeTypes[_attribute].approvedValidators[validator] &&
+        attributeTypes[_attribute].exists  // isDesignatedAttribute(_attribute)
+      ),
+      "could not find an attribute value at the provided address and ID"
+    );
 
-    // NOTE: attributes with no validator will register as having a value of 0
-    return 0;
+    return attributes[_who][_attribute].value;
   }
 
   // external interface for getting the description of an attribute by ID
