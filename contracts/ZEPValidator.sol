@@ -10,6 +10,7 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
 
   event OrganizationAdded(address organization, string name);
   event AttributeIssued(address indexed organization, address attributedAddress);
+  event AttributeRevoked(address indexed organization, address attributedAddress);
 
   // declare registry interface, used to request attributes from a jurisdiction
   AttributeRegistry registry;
@@ -26,6 +27,8 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
     uint248 maximumAddresses;
     string name;
     address[] addresses;
+    mapping(address => bool) issuedAddresses;
+    mapping(address => uint256) issuedAddressesIndex;
   }
 
   // addresses of all organizations are held in an array (enables enumeration)
@@ -97,7 +100,6 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
   // an organization can add an attibute to an address if maximum isn't exceeded
   // (NOTE: this function would need to be payable if a jurisdiction fee is set)
   function issueAttribute(address _who) external whenNotPaused {
-
     // check that an empty address was not provided by mistake
     require(_who != address(0), "must supply a valid address");
 
@@ -123,11 +125,66 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
       "attribute addition was not accepted by the jurisdiction"
     );
 
+    // add the address to the mapping of issued addresses
+    organizations[msg.sender].issuedAddresses[_who] = true;
+
+    // add the index of the address to the mapping of issued addresses
+    uint256 index = organizations[msg.sender].addresses.length;
+    organizations[msg.sender].issuedAddressesIndex[_who] = index;
+
     // add the address to the end of the organization's `addresses` array
     organizations[msg.sender].addresses.push(_who);
     
     // log the addition of the new attributed address
     emit AttributeIssued(msg.sender, _who);
+  }
+
+  // an organization can revoke an attibute from an address
+  function revokeAttribute(address _who) external whenNotPaused {
+    // check that an empty address was not provided by mistake
+    require(_who != address(0), "must supply a valid address");
+
+    // make sure the request is coming from a valid organization
+    require(
+      organizations[msg.sender].exists == true,
+      "only organizations may revoke attributes"
+    );
+
+    // ensure that the address has been issued an attribute
+    require(
+      organizations[msg.sender].issuedAddresses[_who] &&
+      organizations[msg.sender].addresses.length > 0,
+      "the organization is not permitted to revoke an unissued attribute"
+    );
+ 
+    // remove the attribute to the jurisdiction
+    jurisdiction.removeAttributeFrom(_who, validAttributeID);
+
+    // ensure that the attribute was correctly removed
+    require(
+      registry.hasAttribute(_who, validAttributeID) == false,
+      "attribute revocation was not accepted by the jurisdiction"
+    );
+
+    // get the address at the last index of the array
+    uint256 lastIndex = organizations[msg.sender].addresses.length - 1;
+    address lastAddress = organizations[msg.sender].addresses[lastIndex];
+
+    // get the index to delete
+    uint256 indexToDelete = organizations[msg.sender].issuedAddressesIndex[_who];
+
+    // set the address at indexToDelete to last address
+    organizations[msg.sender].addresses[indexToDelete] = lastAddress;
+
+    // update the index of the address that was moved
+    organizations[msg.sender].issuedAddressesIndex[lastAddress] = indexToDelete;
+    
+    // remove the (now duplicate) address at the end & trim the array
+    delete organizations[msg.sender].addresses[lastIndex];
+    organizations[msg.sender].addresses.length--;
+    
+    // log the addition of the new attributed address
+    emit AttributeRevoked(msg.sender, _who);
   }
 
   // external interface for checking address of the jurisdiction validator uses

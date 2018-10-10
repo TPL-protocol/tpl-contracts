@@ -583,6 +583,25 @@ async function test() {
     passed++
   })  
 
+  await ZEPValidatorContractInstance.methods.revokeAttribute(
+    attributedAddress
+  ).send({
+    from: organizationAddress,
+    gas: 5000000,
+    gasPrice: '1000000000'
+  }).then(receipt => {
+    console.log(
+      ` ✓ organization can revoke attributes from an address`
+    )
+    passed++
+
+    const logs = receipt.events.AttributeRevoked.returnValues
+    assert.strictEqual(logs.organization, organizationAddress)
+    assert.strictEqual(logs.attributedAddress, attributedAddress)
+    console.log(' ✓  - AttributeRevoked event is logged correctly')
+    passed++
+  })
+
   console.log(
     `completed ${passed + failed} tests with ${failed} ` +
     `failure${failed === 1 ? '' : 's'}.`
