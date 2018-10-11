@@ -24,7 +24,7 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
   // organizations are entities who can add attibutes to a number of addresses
   struct Organization {
     bool exists;
-    uint248 maximumAddresses;
+    uint256 maximumAddresses; // NOTE: consider using uint248 to pack w/ exists
     string name;
     address[] addresses;
     mapping(address => bool) issuedAddresses;
@@ -58,7 +58,7 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
   // the contract owner may add new organizations
   function addOrganization(
     address _organization,
-    uint248 _maximumAddresses,
+    uint256 _maximumAddresses,
     string _name
   ) external onlyOwner {
     // check that an empty address was not provided by mistake
@@ -85,7 +85,7 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
   // the owner may modify the max number addresses a organization can issue
   function setMaximumAddresses(
     address _organization,
-    uint248 _maximum
+    uint256 _maximum
   ) external onlyOwner {
     // make sure the organization exists
     require(
@@ -212,7 +212,7 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
   // external interface for getting all the details of a particular organization
   function getOrganization(address _organization) external view returns (
     bool exists,
-    uint248 maximumAddresses,
+    uint256 maximumAddresses,
     string name,
     address[] issuedAddresses
   ) {

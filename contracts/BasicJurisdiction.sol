@@ -31,7 +31,7 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
   // validators are entities who can add or authorize addition of new attributes
   struct Validator {
     bool exists;
-    uint248 index;
+    uint256 index; // NOTE: consider use of uint248 to pack index with exists
     string description;
   }
 
@@ -45,7 +45,7 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
   // attributes also have associated metadata - data common to an attribute type
   struct AttributeMetadata {
     bool exists;
-    uint248 index;
+    uint256 index;  // NOTE: consider use of uint248 to pack index with exists
     string description;
     mapping(address => bool) approvedValidators;
   }
@@ -109,7 +109,7 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
     // set the attribute mapping, assigning the index as the end of attributeId
     attributeTypes[_id] = AttributeMetadata({
       exists: true,
-      index: uint248(attributeIds.length),
+      index: attributeIds.length,
       description: _description
       // NOTE: no approvedValidators variable declaration - must be added later
     });
@@ -167,7 +167,7 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
     // create a record for the validator
     validators[_validator] = Validator({
       exists: true,
-      index: uint248(validatorAddresses.length),
+      index: validatorAddresses.length,
       description: _description
     });
 
