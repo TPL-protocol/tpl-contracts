@@ -138,8 +138,7 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
     // update the index of the attribute type that was moved
     attributeTypes[lastAttributeId].index = attributeTypes[_id].index;
     
-    // remove the (now duplicate) attribute ID at the end and trim the array
-    delete attributeIds[attributeIds.length.sub(1)];
+    // remove the (now duplicate) attribute ID at the end by trimming the array
     attributeIds.length--;
 
     // delete the attribute type's record from the mapping
@@ -195,7 +194,6 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
       delete attributeTypes[validatorApprovals[_validator][lastAttributeId]].approvedValidators[_validator];
 
       // drop the last attribute ID from the validator approval group
-      delete validatorApprovals[_validator][lastAttributeId];  
       validatorApprovals[_validator].length--;
     }
 
@@ -210,8 +208,7 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
       // update the index of the attribute type that was moved
       validators[lastAddress].index = validators[_validator].index;
       
-      // remove the (now duplicate) validator address at the end & trim the array
-      delete validatorAddresses[validatorAddresses.length.sub(1)];
+      // remove (duplicate) validator address at the end by trimming the array
       validatorAddresses.length--;
 
       // remove the validator record

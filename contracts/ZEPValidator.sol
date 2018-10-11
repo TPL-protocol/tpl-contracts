@@ -200,8 +200,7 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
     // update the index of the address that was moved
     organizations[msg.sender].issuedAddressesIndex[lastAddress] = indexToDelete;
     
-    // remove the (now duplicate) address at the end & trim the array
-    delete organizations[msg.sender].addresses[lastIndex];
+    // remove the (now duplicate) address at the end by trimming the array
     organizations[msg.sender].addresses.length--;
     
     // log the addition of the new attributed address
