@@ -475,6 +475,20 @@ async function test() {
     passed++
   })
 
+  await ZEPValidatorContractInstance.methods.setMaximumAddresses(
+    organizationAddress,
+    0
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: '1000000000'
+  }).catch(error => {
+    console.log(
+      ` ✓  - ZEP validator cannot change max addresses to amount below current`
+    )
+    passed++
+  })
+
   await ZEPValidatorContractInstance.methods.getOrganization(
     organizationAddress
   ).call({

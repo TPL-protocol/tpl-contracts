@@ -93,7 +93,19 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
       "an organization does not exist at the provided address"
     );
 
-    // set the organization's maximum addresses; a value <= current freezes them
+    // make sure that maximum is not set below the current number of addresses
+    // NOTE: this feature, coupled with the ability to revoke attributes, will
+    // prevent an organization from being 'frozen' since the organization can
+    // remove an address and then add an arbitrary address in its place. Options
+    // to address this include a dedicated method to freeze organizations, or a
+    // special exception to the requirement below that allows the maximum to be
+    // set to 0 which will achieve the intended effect.
+    require(
+      organizations[_organization].addresses.length <= _maximum,
+      "maximum cannot be set to amounts less than the current address total"
+    );
+
+    // set the organization's maximum addresses; a value == current freezes them
     organizations[_organization].maximumAddresses = _maximum;
   }
 
