@@ -11,6 +11,8 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
   event OrganizationAdded(address organization, string name);
   event AttributeIssued(address indexed organization, address attributedAddress);
   event AttributeRevoked(address indexed organization, address attributedAddress);
+  event IssuancePaused();
+  event IssuanceUnpaused();
 
   // declare registry interface, used to request attributes from a jurisdiction
   AttributeRegistry registry;
@@ -20,6 +22,9 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
 
   // declare the attribute ID required by ZEP in order to transfer tokens
   uint256 validAttributeID;
+
+  // issuance of new attributes may be paused and unpaused by the ZEP validator.
+  bool private _issuancePaused;
 
   // organizations are entities who can add attibutes to a number of addresses
   struct Organization {
@@ -47,6 +52,7 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
   {
     Ownable.initialize(msg.sender);
     Pausable.initialize(msg.sender);
+    _issuancePaused = false;
     registry = AttributeRegistry(_jurisdiction);
     jurisdiction = BasicJurisdictionInterface(_jurisdiction);
     validAttributeID = _validAttributeID;
@@ -60,7 +66,7 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
     address _organization,
     uint256 _maximumAddresses,
     string _name
-  ) external onlyOwner {
+  ) external onlyOwner whenNotPaused {
     // check that an empty address was not provided by mistake
     require(_organization != address(0), "must supply a valid address");
 
@@ -86,7 +92,7 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
   function setMaximumAddresses(
     address _organization,
     uint256 _maximum
-  ) external onlyOwner {
+  ) external onlyOwner whenNotPaused {
     // make sure the organization exists
     require(
       organizations[_organization].exists == true,
@@ -111,7 +117,7 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
 
   // an organization can add an attibute to an address if maximum isn't exceeded
   // (NOTE: this function would need to be payable if a jurisdiction fee is set)
-  function issueAttribute(address _who) external whenNotPaused {
+  function issueAttribute(address _who) external whenNotPaused whenIssuanceNotPaused {
     // check that an empty address was not provided by mistake
     require(_who != address(0), "must supply a valid address");
 
@@ -152,6 +158,9 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
   }
 
   // an organization can revoke an attibute from an address
+  // NOTE: organizations may still revoke attributes even after new issuance has
+  // been paused. This is the intended behavior, as it allows them to correct
+  // attributes they have issued that become compromised or otherwise erroneous.
   function revokeAttribute(address _who) external whenNotPaused {
     // check that an empty address was not provided by mistake
     require(_who != address(0), "must supply a valid address");
@@ -197,6 +206,30 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
     
     // log the addition of the new attributed address
     emit AttributeRevoked(msg.sender, _who);
+  }
+
+  // called by the owner to pause new attribute issuance, triggers stopped state
+  function pauseIssuance() public onlyOwner whenNotPaused whenIssuanceNotPaused {
+    _issuancePaused = true;
+    emit IssuancePaused();
+  }
+
+  // called by the owner to unpause new attrute issuance, return to normal state
+  function unpauseIssuance() public onlyOwner whenNotPaused {
+    require(_issuancePaused); // only allow unpausing when issuance is paused
+    _issuancePaused = false;
+    emit IssuanceUnpaused();
+  }
+
+  // Modifier to allow issuing attributes only when the function is not paused
+  modifier whenIssuanceNotPaused() {
+    require(!_issuancePaused);
+    _;
+  }
+
+  // true if issuance is paused, false otherwise.
+  function issuancePaused() public view returns(bool) {
+    return _issuancePaused;
   }
 
   // external interface for checking address of the jurisdiction validator uses
