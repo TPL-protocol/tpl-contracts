@@ -1,17 +1,9 @@
 var assert = require('assert');
-
 const JurisdictionContractData = require('../build/contracts/BasicJurisdiction.json')
 const TPLTokenContractData = require('../build/contracts/TPLTokenInstance.json')
-const applicationConfig = require('../config.js')
-const connectionConfig = require('../truffle.js')
 
-const connection = connectionConfig.networks[applicationConfig.network]
-
-let web3 = connection.provider
-
-async function test() {
-  // NOTE: still needs additional tests written to cover fees and related events
-
+module.exports = {test: async function (provider, testingContext) {
+  var web3 = provider
   let passed = 0
   let failed = 0
   console.log('running tests...')
@@ -45,18 +37,35 @@ async function test() {
   let getAvailableAttributesTestThreePassed;
 
   // *************************** deploy contracts *************************** //
+  let deployGas;
+
+  const latestBlock = await web3.eth.getBlock('latest')
+  const gasLimit = latestBlock.gasLimit
+
   const Jurisdiction = await JurisdictionDeployer.deploy(
     {
       data: JurisdictionContractData.bytecode
     }
   ).send({
     from: address,
-    gas: 5000000,
-    gasPrice: 10 ** 9
+    gas: gasLimit - 1,
+    gasPrice: 10 ** 1
   }).catch(error => {
     console.error(error)
     process.exit()
   })
+
+  deployGas = await web3.eth.estimateGas({
+      from: address,
+      data: TPLTokenDeployer.deploy({
+        data: TPLTokenContractData.bytecode
+      }).encodeABI()
+  })
+
+  if (deployGas > gasLimit) {
+    console.error('deployment costs exceed block gas limit')
+    process.exit(1)
+  }
 
   const TPLToken = await TPLTokenDeployer.deploy(
     {
@@ -64,14 +73,21 @@ async function test() {
     }
   ).send({
     from: address,
-    gas: 5000000,
-    gasPrice: 10 ** 9
+    gas: gasLimit - 1,
+    gasPrice: 10 ** 1
   }).catch(error => {
     console.error(error)
-    process.exit()
+    process.exit(1)
   })
+  console.log(
+    ' ✓  - TPL token contract deploys successfully'
+  )
+  passed++
+
+
 
   // **************************** begin testing ***************************** //
+
 
   console.log(' ✓ jurisdiction contract deploys successfully')
   passed++
@@ -128,7 +144,7 @@ async function test() {
     )
     passed++
   })
-  
+
   await TPLToken.methods.balanceOf(address).call({
     from: address,
     gas: 5000000,
@@ -139,6 +155,23 @@ async function test() {
     passed++
   })
 
+  await TPLToken.methods.approve(address, 10).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(receipt => {
+    assert.ok(receipt.status) 
+    console.log(
+      " ✓  - operator can be approved for transferFrom"
+    )
+    passed++
+  }).catch(error => {
+    console.log(
+      " ✘  - operator can be approved for transferFrom"
+    )
+    failed++
+  })
+
   await TPLToken.methods.transfer(inattributedAddress, 10).send({
     from: address,
     gas: 5000000,
@@ -146,6 +179,17 @@ async function test() {
   }).catch(error => {
     console.log(
       " ✓  - tokens can't be transferred before valid attributes are assigned"
+    )
+    passed++
+  })
+
+  await TPLToken.methods.transferFrom(address, inattributedAddress, 10).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).catch(error => {
+    console.log(
+      " ✓  - tokens can't transferFrom before valid attributes are assigned"
     )
     passed++
   })
@@ -541,6 +585,20 @@ async function test() {
   ).send({
     from: validatorAddress,
     gas: 5000000,
+    gasPrice: 10 ** 9,
+    value: 10 ** 1
+  }).catch(error => {
+    console.log(' ✓  - attempt to add attribute with an attached value fails')
+    passed++
+  })
+
+  await Jurisdiction.methods.addAttributeTo(
+    attributedAddress,
+    attribute.attributeId,
+    attribute.targetValue
+  ).send({
+    from: validatorAddress,
+    gas: 5000000,
     gasPrice: 10 ** 9
   }).then(receipt => {
     assert.ok(receipt.status)
@@ -554,6 +612,20 @@ async function test() {
     console.log(' ✓  - AttributeAdded event is logged correctly')
     passed++
   })
+
+  await Jurisdiction.methods.getAttributeValidator(
+    attributedAddress,
+    attribute.attributeId
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(attributeValidator => { 
+    assert.strictEqual(attributeValidator[0], validatorAddress)
+    assert.ok(attributeValidator[1])
+    console.log(' ✓ external calls can check for the validator of an attribute')
+    passed++
+  }) 
 
   await Jurisdiction.methods.addAttributeTo(
     attributedAddress,
@@ -583,6 +655,23 @@ async function test() {
     passed++
   })
 
+  await TPLToken.methods.canTransfer(attributedAddress, 10).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(canTransfer => {
+    assert.ok(canTransfer) 
+    console.log(
+      " ✓  - tokens can be checked for transfer between valid addresses"
+    )
+    passed++
+  }).catch(error => {
+    console.log(
+      " ✘  - tokens can be checked for transfer between valid addresses"
+    )
+    failed++
+  })
+
   await TPLToken.methods.transfer(attributedAddress, 10).send({
     from: address,
     gas: 5000000,
@@ -596,6 +685,40 @@ async function test() {
   }).catch(error => {
     console.log(
       " ✘  - tokens can be transferred between addresses with valid attributes"
+    )
+    failed++
+  })
+
+  await TPLToken.methods.canTransferFrom(address, attributedAddress, 10).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(canTransfer => {
+    assert.ok(canTransfer) 
+    console.log(
+      " ✓  - tokens can be checked for transferFrom between valid addresses"
+    )
+    passed++
+  }).catch(error => {
+    console.log(
+      " ✘  - tokens can be checked for transferFrom between valid addresses"
+    )
+    failed++
+  })
+
+  await TPLToken.methods.transferFrom(address, attributedAddress, 10).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(receipt => {
+    assert.ok(receipt.status)    
+    console.log(
+      " ✓  - tokens can transferFrom between addresses with valid attributes"
+    )
+    passed++
+  }).catch(error => {
+    console.log(
+      " ✘  - tokens can transferFrom between addresses with valid attributes"
     )
     failed++
   })
@@ -1147,6 +1270,29 @@ async function test() {
     failed++
   })
 
+  // NOTE: during coverage tests, gas is doubled to account for instrumentation
+  let gasToUse = 25000
+  if (testingContext === 'coverage') {
+    gasToUse = gasToUse * 2
+  }
+  await Jurisdiction.methods.removeValidator(
+    validator.address
+  ).send({
+    from: address,
+    gas: gasToUse, 
+    gasPrice: 10 ** 9
+  }).then(receipt => {
+    assert.ok(receipt.status)
+    console.log(
+      ' ✓ jurisdiction owner cannot be deleted until all approvals are deleted'
+    )
+    passed++
+
+    assert.strictEqual(receipt.events.ValidatorRemoved, undefined)
+    console.log(' ✓  - ValidatorRemoved event is not logged')
+    passed++
+  })
+
   await Jurisdiction.methods.removeValidator(
     validator.address
   ).send({
@@ -1684,11 +1830,14 @@ async function test() {
   // TODO: handle all failed test cases - a bunch will halt testing if they fail
 
   console.log(
-    `completed ${passed + failed} tests with ${failed} ` +
-    `failure${failed === 1 ? '' : 's'}.`
+    `completed ${passed + failed} test${passed + failed === 1 ? '' : 's'} ` + 
+    `with ${failed} failure${failed === 1 ? '' : 's'}.`
   )
-  process.exit()
 
-}
+  if (failed > 0) {
+    process.exit(1)
+  }
 
-test()
+  process.exit(0)
+
+}}

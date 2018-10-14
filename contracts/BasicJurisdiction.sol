@@ -310,6 +310,12 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
     address _who,
     uint256 _attribute
   ) external whenNotPaused {
+    // ensure that an attribute with the given address and attribute exists
+    require(
+      attributes[_who][_attribute].exists,
+      "only existing attributes may be removed"
+    );
+
     // determine the assigned validator on the user attribute
     address validator = attributes[_who][_attribute].validator;
     
@@ -317,11 +323,6 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
     require(
       msg.sender == validator || msg.sender == owner(),
       "only jurisdiction or issuing validators may revoke arbitrary attributes"
-    );
-
-    require(
-      attributes[_who][_attribute].exists,
-      "only existing attributes may be removed"
     );
 
     // remove the attribute from the designated user address

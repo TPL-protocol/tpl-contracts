@@ -9,10 +9,12 @@
   },
   "devDependencies": {
     "coveralls": "^3.0.2",
-    "solidity-coverage": "^0.5.11"
+    "solidity-coverage": "^0.5.11",
+    "truffle": "^4.1.13"
   },
   "scripts": {
     "build": "truffle compile",
-    "test": "truffle compile; node scripts/testBasic.js; node scripts/testZEPValidator.js; node scripts/testOptimizationDisabled.js"
+    "test": "truffle compile; node scripts/testBasicDirect.js; node scripts/testZEPValidatorDirect.js; node scripts/testOptimizationDisabled.js",
+    "coverage": "./node_modules/.bin/solidity-coverage"
   }
 }

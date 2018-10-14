@@ -30,7 +30,7 @@ contract TPLToken is Initializable, ERC20 {
 
   // in order to transfer tokens, the receiver must be valid
   function canTransfer(address _to, uint256 _value) public view returns (bool) {
-    _value;
+    _value; // NOTE: this could also check for sufficient balance - error code?
     return registry.hasAttribute(_to, validRecipientAttributeId);
   }
 
@@ -41,7 +41,7 @@ contract TPLToken is Initializable, ERC20 {
     uint256 _value
   ) public view returns (bool) {
     _from;
-    _value;
+    _value; // NOTE: this could also check for sufficient balance - error code?
     return registry.hasAttribute(_to, validRecipientAttributeId);
   }
 

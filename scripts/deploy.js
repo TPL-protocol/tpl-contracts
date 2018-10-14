@@ -1,7 +1,7 @@
 var fs = require('fs');
 
 const JurisdictionContractData = require('../build/contracts/BasicJurisdiction.json')
-const TPLTokenContractData = require('../build/contracts/mock/TPLTokenInstance.json')
+const TPLTokenContractData = require('../build/contracts/TPLTokenInstance.json')
 const applicationConfig = require('../config.js')
 const connectionConfig = require('../truffle.js')
 
@@ -14,18 +14,6 @@ const TPLToken = new web3.eth.Contract(TPLTokenContractData.abi)
 
 const TPLTokenAttributeID = applicationConfig.TPLTokenAttributeID
 const TPLTokenTotalSupply = applicationConfig.TPLTokenTotalSupply
-const TPLTokenAttributeRestricted = applicationConfig[
-  'TPLTokenAttributeRestricted'
-]
-const TPLTokenAttributeMinimumRequiredStake = applicationConfig[
-  'TPLTokenAttributeMinimumRequiredStake'
-]
-const TPLTokenAttributeJurisdictionFee = applicationConfig[
-  'TPLTokenAttributeJurisdictionFee'
-]
-const TPLTokenAttributeDescription = applicationConfig[
-  'TPLTokenAttributeDescription'
-]
 
 async function main() {
   console.log('deploying jurisdiction & mock TPLToken...')

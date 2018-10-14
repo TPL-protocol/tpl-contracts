@@ -14,11 +14,10 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -y -qq yarn
 install:
-  - yarn global add truffle
   - yarn global add coveralls
   - yarn install
 script:
+  - yarn run coverage && cat coverage/lcov.info | coveralls
   - yarn test
-  ##- yarn run coverage && cat coverage/lcov.info | coveralls
 cache:
   yarn: true

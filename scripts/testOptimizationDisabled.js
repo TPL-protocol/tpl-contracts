@@ -51,13 +51,13 @@ let status = command[0]
 let message = command[1]
 
 if (status === 0) {
-	command = runCommand('node scripts/testBasic.js')
+	command = runCommand('node scripts/testBasicDirect.js')
 	status = command[0]
 	message = command[1]
 }
 
 if (status === 0) {
-	command = runCommand('node scripts/testZEPValidator.js')
+	command = runCommand('node scripts/testZEPValidatorDirect.js')
 	status = command[0]
 	message = command[1]
 }
