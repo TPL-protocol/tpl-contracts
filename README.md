@@ -4,6 +4,8 @@
 ### ***** *TPL-1.0 (CONTRACTS POST-AUDIT)* *****
 Contracts implementing a TPL jurisdiction and an ERC20-enforced TPL.
 
+
+![GitHub](https://img.shields.io/github/license/tpl-protocol/tpl-contracts.svg)
 [![Build Status](https://travis-ci.com/TPL-protocol/tpl-contracts.svg?branch=audit-fix)](https://travis-ci.com/TPL-protocol/tpl-contracts)
 [![Coverage Status](https://coveralls.io/repos/github/TPL-protocol/tpl-contracts/badge.svg?branch=audit-fix)](https://coveralls.io/github/TPL-protocol/tpl-contracts?branch=audit-fix)
 
