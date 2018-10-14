@@ -6,6 +6,8 @@
 
 Contracts implementing a TPL jurisdiction and an ERC20-enforced TPL.
 
+
+![GitHub](https://img.shields.io/github/license/tpl-protocol/tpl-contracts.svg)
 [![Build Status](https://travis-ci.com/TPL-protocol/tpl-contracts.svg?branch=master)](https://travis-ci.com/TPL-protocol/tpl-contracts)
 
 **[PROJECT PAGE](https://tplprotocol.org/)**
