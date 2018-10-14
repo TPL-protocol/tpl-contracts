@@ -47,7 +47,10 @@ contract TPLToken is Initializable, ERC20 {
 
   // check that target is allowed to receive tokens before enabling the transfer
   function transfer(address _to, uint256 _value) public returns (bool) {
-    require(registry.hasAttribute(_to, validRecipientAttributeId));
+    require(
+      registry.hasAttribute(_to, validRecipientAttributeId),
+      "Transfer failed - recipient is not approved."
+    );
     return(super.transfer(_to, _value));
   }
 
@@ -57,7 +60,10 @@ contract TPLToken is Initializable, ERC20 {
     address _to,
     uint256 _value
   ) public returns (bool) {
-    require(registry.hasAttribute(_to, validRecipientAttributeId));
+    require(
+      registry.hasAttribute(_to, validRecipientAttributeId),
+      "Transfer failed - recipient is not approved."
+    );
     return(super.transferFrom(_from, _to, _value));
   }
 
