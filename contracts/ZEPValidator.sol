@@ -169,7 +169,7 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
     );
  
     // assign the attribute to the jurisdiction (NOTE: a value is not required)
-    _jurisdiction.addAttributeTo(account, _validAttributeTypeID, 0);
+    _jurisdiction.issueAttribute(account, _validAttributeTypeID, 0);
 
     // ensure that the attribute was correctly assigned
     require(
@@ -215,8 +215,8 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
       "the organization is not permitted to revoke an unissued attribute"
     );
  
-    // remove the attribute to the jurisdiction
-    _jurisdiction.removeAttributeFrom(account, _validAttributeTypeID);
+    // remove the attribute from the jurisdiction
+    _jurisdiction.revokeAttribute(account, _validAttributeTypeID);
 
     // ensure that the attribute was correctly removed
     require(

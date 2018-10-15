@@ -305,7 +305,7 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
   * which the attribute is assigned may still be transferable - restricting
   * assignment to externally-owned accounts may partially alleviate this issue.
   */
-  function addAttributeTo(
+  function issueAttribute(
     address account,
     uint256 attributeTypeID,
     uint256 value
@@ -345,7 +345,7 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
   * removed or had their approval to issue the attribute type removed - this
   * enables them to address any objectionable issuances before being reinstated.
   */
-  function removeAttributeFrom(
+  function revokeAttribute(
     address account,
     uint256 attributeTypeID
   ) external whenNotPaused {

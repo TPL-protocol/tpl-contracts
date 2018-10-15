@@ -590,7 +590,7 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   })
 
-  await Jurisdiction.methods.addAttributeTo(
+  await Jurisdiction.methods.issueAttribute(
     attributedAddress,
     attribute.attributeId,
     attribute.targetValue
@@ -604,7 +604,7 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   })
 
-  await Jurisdiction.methods.addAttributeTo(
+  await Jurisdiction.methods.issueAttribute(
     attributedAddress,
     attribute.attributeId,
     attribute.targetValue
@@ -640,7 +640,7 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   }) 
 
-  await Jurisdiction.methods.addAttributeTo(
+  await Jurisdiction.methods.issueAttribute(
     attributedAddress,
     additionalAttribute.attributeId,
     additionalAttribute.targetValue
@@ -654,7 +654,7 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   })
 
-  await Jurisdiction.methods.addAttributeTo(
+  await Jurisdiction.methods.issueAttribute(
     address,
     attribute.attributeId,
     attribute.targetValue
@@ -736,7 +736,7 @@ module.exports = {test: async function (provider, testingContext) {
     failed++
   })
 
-  await Jurisdiction.methods.addAttributeTo(
+  await Jurisdiction.methods.issueAttribute(
     attributedAddress,
     attribute.attributeId,
     attribute.targetValue
@@ -749,7 +749,7 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   })
 
-  await Jurisdiction.methods.addAttributeTo(
+  await Jurisdiction.methods.issueAttribute(
     attributedAddress,
     undefinedAttributeId,
     attribute.targetValue
@@ -988,7 +988,7 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   })
 
-  await Jurisdiction.methods.removeAttributeFrom(
+  await Jurisdiction.methods.revokeAttribute(
     attributedAddress,
     attribute.attributeId
   ).send({
@@ -1008,7 +1008,7 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   })
 
-  await Jurisdiction.methods.removeAttributeFrom(
+  await Jurisdiction.methods.revokeAttribute(
     attributedAddress,
     attribute.attributeId
   ).send({
@@ -1020,7 +1020,7 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   })
 
-  await Jurisdiction.methods.removeAttributeFrom(
+  await Jurisdiction.methods.revokeAttribute(
     attributedAddress,
     additionalAttribute.attributeId
   ).send({
@@ -1067,7 +1067,7 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   })
 
-  await Jurisdiction.methods.addAttributeTo(
+  await Jurisdiction.methods.issueAttribute(
     attributedAddress,
     attribute.attributeId,
     attribute.targetValue
@@ -1818,7 +1818,7 @@ module.exports = {test: async function (provider, testingContext) {
   )
 
 
-  await Jurisdiction.methods.removeAttributeFrom(
+  await Jurisdiction.methods.revokeAttribute(
     attributedAddress,
     attribute.attributeId
   ).send({
