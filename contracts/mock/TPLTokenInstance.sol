@@ -6,19 +6,19 @@ import "../AttributeRegistryInterface.sol";
 contract TPLTokenInstance is Initializable, ERC20Permissioned {
   // initialize token with a jurisdiction address and an initial token balance
   function initialize(
-    uint256 _initialBalance,
-    AttributeRegistryInterface _jurisdictionAddress,
-    uint256 _validRecipientAttributeId
+    uint256 initialBalance,
+    AttributeRegistryInterface jurisdictionAddress,
+    uint256 validRecipientAttributeId
   )
     initializer
     public
   {
     ERC20Permissioned.initialize(
-      _jurisdictionAddress,
-      _validRecipientAttributeId
+      jurisdictionAddress,
+      validRecipientAttributeId
     );
 
-    _mint(msg.sender, _initialBalance);
+    _mint(msg.sender, initialBalance);
   }
 
 }

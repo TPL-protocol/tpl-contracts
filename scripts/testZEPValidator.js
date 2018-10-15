@@ -264,6 +264,16 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   })
 
+  await ZEPValidatorContractInstance.methods.getValidAttributeID().call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(ID => {
+    assert.strictEqual(ID, mockZEPTokenAttributeID.toString())
+    console.log(' ✓ ZEP validator has the correct attribute ID')
+    passed++
+  })
+
   await ZEPValidatorContractInstance.methods.getOrganizations().call({
     from: address,
     gas: 5000000,
@@ -289,7 +299,7 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   })
 
-  await ZEPValidatorContractInstance.methods.getJurisdictionAddress().call({
+  await ZEPValidatorContractInstance.methods.getJurisdiction().call({
     from: address,
     gas: 5000000,
     gasPrice: 10 ** 9
@@ -301,7 +311,7 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   })
 
-  await MockZEPTokenContractInstance.methods.getRegistryAddress().call({
+  await MockZEPTokenContractInstance.methods.getRegistry().call({
     from: address,
     gas: 5000000,
     gasPrice: 10 ** 9
@@ -385,6 +395,16 @@ module.exports = {test: async function (provider, testingContext) {
     assert.strictEqual(logs.organization, organizationAddress)
     assert.strictEqual(logs.name, ZEPOrganizationName)
     console.log(' ✓ OrganizationAdded event is logged correctly')
+    passed++
+  })
+
+  await ZEPValidatorContractInstance.methods.countOrganizations().call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(organizations => {
+    assert.strictEqual(organizations, '1')
+    console.log(' ✓ the organizations can be counted')
     passed++
   })
 

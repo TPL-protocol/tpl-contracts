@@ -8,8 +8,14 @@ interface BasicJurisdictionInterface {
   event AttributeTypeRemoved(uint256 indexed attributeTypeID);
   event ValidatorAdded(address indexed validator, string description);
   event ValidatorRemoved(address indexed validator);
-  event ValidatorApprovalAdded(address validator, uint256 indexed attributeTypeID);
-  event ValidatorApprovalRemoved(address validator, uint256 indexed attributeTypeID);
+  event ValidatorApprovalAdded(
+    address validator,
+    uint256 indexed attributeTypeID
+  );
+  event ValidatorApprovalRemoved(
+    address validator,
+    uint256 indexed attributeTypeID
+  );
   event AttributeAdded(
     address validator,
     address indexed attributee,
@@ -24,65 +30,68 @@ interface BasicJurisdictionInterface {
 
   // the jurisdiction may declare attribute types, or categories of attributes
   function addAttributeType(
-    uint256 _ID,
-    string _description
+    uint256 ID,
+    string description
   ) external;
 
   // the jurisdiction may also remove attributes - necessary before updating
-  function removeAttributeType(uint256 _ID) external;
+  function removeAttributeType(uint256 ID) external;
 
   // the jurisdiction can add new validators who can verify and sign attributes
-  function addValidator(address _validator, string _description) external;
+  function addValidator(address validator, string description) external;
 
   // the jurisdiction can remove validators, invalidating submitted attributes
-  function removeValidator(address _validator) external;
+  function removeValidator(address validator) external;
 
   // the jurisdiction approves validators to assign predefined attributes
   function addValidatorApproval(
-    address _validator,
-    uint256 _attributeTypeID
+    address validator,
+    uint256 attributeTypeID
   ) external;
 
   // the jurisdiction may remove a validator's ability to approve an attribute
   function removeValidatorApproval(
-    address _validator,
-    uint256 _attributeTypeID
+    address validator,
+    uint256 attributeTypeID
   ) external;
 
   // approved validators may add attributes directly to a specified address
   function addAttributeTo(
-    address _account,
-    uint256 _attributeTypeID,
-    uint256 _value
+    address account,
+    uint256 attributeTypeID,
+    uint256 value
   ) external payable;
 
   // the jurisdiction and issuing validators may remove attributes
-  function removeAttributeFrom(address _account, uint256 _attributeTypeID) external;
+  function removeAttributeFrom(
+    address account,
+    uint256 attributeTypeID
+  ) external;
 
   // external interface to check if validator is approved to issue an attribute
   function canIssueAttributeType(
-    address _validator,
-    uint256 _attributeTypeID
+    address validator,
+    uint256 attributeTypeID
   ) external view returns (bool);
 
   // external interface for getting the description of an attribute type by ID
   function getAttributeTypeInformation(
-    uint256 _attributeTypeID
+    uint256 attributeTypeID
   ) external view returns (
     string description
   );
   
   // external interface for getting the description of a validator by ID
   function getValidatorInformation(
-    address _validator
+    address validator
   ) external view returns (
     string description
   );
 
   // external interface for determining the validator of an issued attribute
   function getAttributeValidator(
-    address _account,
-    uint256 _attributeTypeID
+    address account,
+    uint256 attributeTypeID
   ) external view returns (address validator, bool isStillValid);
 
   // external interface for getting the number of available attribute types
@@ -98,9 +107,7 @@ interface BasicJurisdictionInterface {
   function countValidators() external view returns (uint256);
 
   // external interface for getting a validator's address by index
-  function getValidator(
-    uint256 _index
-  ) external view returns (address);
+  function getValidator(uint256 index) external view returns (address);
 
   // external interface for getting the list of all validators by address
   function getValidators() external view returns (address[]);

@@ -133,7 +133,7 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   })
 
-  await TPLToken.methods.getRegistryAddress().call({
+  await TPLToken.methods.getRegistry().call({
     from: address,
     gas: 5000000,
     gasPrice: 10 ** 9
@@ -141,6 +141,18 @@ module.exports = {test: async function (provider, testingContext) {
     assert.strictEqual(registryAddress, Jurisdiction.options.address)
     console.log(
       ' ✓ registry utilized by token is set to the jurisdiction address'
+    )
+    passed++
+  })
+
+  await TPLToken.methods.getValidAttributeID().call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 9
+  }).then(ID => {
+    assert.strictEqual(ID, '11111')
+    console.log(
+      ' ✓ attribute ID required by token is set to the correct value'
     )
     passed++
   })

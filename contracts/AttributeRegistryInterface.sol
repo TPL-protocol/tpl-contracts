@@ -6,24 +6,24 @@ pragma solidity ^0.4.25;
 interface AttributeRegistryInterface {
   /**
    * @notice Check if an attribute has been assigned to a given address.
-   * @param _account The address to check.
-   * @param _attributeTypeID The ID of the attribute type to check for.
+   * @param account The address to check.
+   * @param attributeTypeID The ID of the attribute type to check for.
    * @return True if the attribute has been assigned, false otherwise.
    */
   function hasAttribute(
-  	address _account,
-  	uint256 _attributeTypeID
+  	address account,
+  	uint256 attributeTypeID
   ) external view returns (bool);
 
   /**
    * @notice Retrieve the value of an attribute at a given address.
-   * @param _account The address to check.
-   * @param _attributeTypeID The ID of the attribute type to check for.
+   * @param account The address to check.
+   * @param attributeTypeID The ID of the attribute type to check for.
    * @return The attribute value if an attribute is assigned, reverts otherwise.
    */
   function getAttributeValue(
-  	address _account,
-  	uint256 _attributeTypeID
+  	address account,
+  	uint256 attributeTypeID
   ) external view returns (uint256);
 
   /**
@@ -34,9 +34,10 @@ interface AttributeRegistryInterface {
 
   /**
    * @notice Retrieve an attribute type ID defined on the registry by index.
+   * @param index The attribute type's index in the registry.   
    * @return The ID of the attribute type.
    */
   function getAttributeTypeID(
-    uint256 _index
+    uint256 index
   ) external view returns (uint256);
 }
