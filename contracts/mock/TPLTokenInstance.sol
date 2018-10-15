@@ -1,19 +1,19 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.25;
 
-import "../TPLToken.sol";
-import "../AttributeRegistry.sol";
+import "../examples/ERC20Permissioned.sol";
+import "../AttributeRegistryInterface.sol";
 
-contract TPLTokenInstance is Initializable, TPLToken {
+contract TPLTokenInstance is Initializable, ERC20Permissioned {
   // initialize token with a jurisdiction address and an initial token balance
   function initialize(
     uint256 _initialBalance,
-    AttributeRegistry _jurisdictionAddress,
+    AttributeRegistryInterface _jurisdictionAddress,
     uint256 _validRecipientAttributeId
   )
     initializer
     public
   {
-    TPLToken.initialize(
+    ERC20Permissioned.initialize(
       _jurisdictionAddress,
       _validRecipientAttributeId
     );

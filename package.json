@@ -10,11 +10,11 @@
   "devDependencies": {
     "coveralls": "^3.0.2",
     "solidity-coverage": "^0.5.11",
-    "truffle": "^4.1.13"
+    "truffle": "5.0.0-beta.1"
   },
   "scripts": {
-    "build": "truffle compile",
-    "test": "truffle compile; node scripts/testBasicDirect.js; node scripts/testZEPValidatorDirect.js; node scripts/testOptimizationDisabled.js",
+    "build": "./node_modules/.bin/truffle compile",
+    "test": "./node_modules/.bin/truffle compile; node scripts/testBasicDirect.js; node scripts/testZEPValidatorDirect.js; node scripts/testOptimizationDisabled.js",
     "coverage": "./node_modules/.bin/solidity-coverage"
   }
 }

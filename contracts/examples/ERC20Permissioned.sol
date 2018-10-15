@@ -1,19 +1,20 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.25;
 
 import "openzeppelin-zos/contracts/token/ERC20/ERC20.sol";
-import "./AttributeRegistry.sol";
+import "../AttributeRegistryInterface.sol";
+import "../TPLTokenInterface.sol";
 
-contract TPLToken is Initializable, ERC20 {
+contract ERC20Permissioned is Initializable, ERC20, TPLTokenInterface {
 
   // declare registry interface, used to request attributes from a jurisdiction
-  AttributeRegistry registry;
+  AttributeRegistryInterface registry;
 
   // declare attribute ID required in order to receive transferred tokens
   uint256 validRecipientAttributeId;
 
   // initialize token with a jurisdiction address and a valid attribute ID
   function initialize(
-    AttributeRegistry _jurisdictionAddress,
+    AttributeRegistryInterface _jurisdictionAddress,
     uint256 _validRecipientAttributeId
   )
     initializer
@@ -29,20 +30,27 @@ contract TPLToken is Initializable, ERC20 {
   }
 
   // in order to transfer tokens, the receiver must be valid
-  function canTransfer(address _to, uint256 _value) public view returns (bool) {
-    _value; // NOTE: this could also check for sufficient balance - error code?
-    return registry.hasAttribute(_to, validRecipientAttributeId);
+  // NOTE: consider returning an additional status code, e.g. EIP 1066
+  function canTransfer(address _to, uint256 _value) external view returns (bool) {
+    return (
+      super.balanceOf(msg.sender) >= _value && 
+      registry.hasAttribute(_to, validRecipientAttributeId)
+    );
   }
 
   // in order to transfer tokens via transferFrom, the receiver must be valid
+  // NOTE: consider returning an additional status code, e.g. EIP 1066
   function canTransferFrom(
     address _from,
     address _to,
     uint256 _value
-  ) public view returns (bool) {
+  ) external view returns (bool) {
     _from;
-    _value; // NOTE: this could also check for sufficient balance - error code?
-    return registry.hasAttribute(_to, validRecipientAttributeId);
+    return (
+      super.balanceOf(_from) >= _value &&
+      super.allowance(_from, msg.sender) >= _value &&
+      registry.hasAttribute(_to, validRecipientAttributeId)
+    );
   }
 
   // check that target is allowed to receive tokens before enabling the transfer

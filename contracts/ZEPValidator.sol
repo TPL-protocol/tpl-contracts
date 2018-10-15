@@ -1,10 +1,10 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.25;
 
 import "openzeppelin-zos/contracts/Initializable.sol";
-import 'openzeppelin-zos/contracts/ownership/Ownable.sol';
-import 'openzeppelin-zos/contracts/lifecycle/Pausable.sol';
-import './AttributeRegistry.sol';
-import './BasicJurisdictionInterface.sol';
+import "openzeppelin-zos/contracts/ownership/Ownable.sol";
+import "openzeppelin-zos/contracts/lifecycle/Pausable.sol";
+import "./AttributeRegistryInterface.sol";
+import "./BasicJurisdictionInterface.sol";
 
 contract ZEPValidator is Initializable, Ownable, Pausable {
 
@@ -15,7 +15,7 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
   event IssuanceUnpaused();
 
   // declare registry interface, used to request attributes from a jurisdiction
-  AttributeRegistry registry;
+  AttributeRegistryInterface registry;
 
   // declare jurisdiction interface, used to set attributes in the jurisdiction
   BasicJurisdictionInterface jurisdiction;
@@ -47,13 +47,13 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
     address _jurisdiction,
     uint256 _validAttributeID
   )
-    initializer
     public
+    initializer
   {
     Ownable.initialize(msg.sender);
     Pausable.initialize(msg.sender);
     _issuancePaused = false;
-    registry = AttributeRegistry(_jurisdiction);
+    registry = AttributeRegistryInterface(_jurisdiction);
     jurisdiction = BasicJurisdictionInterface(_jurisdiction);
     validAttributeID = _validAttributeID;
     // NOTE: we can require that the jurisdiction implements the right interface
@@ -117,9 +117,9 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
 
   // an organization can add an attibute to an address if maximum isn't exceeded
   // (NOTE: this function would need to be payable if a jurisdiction fee is set)
-  function issueAttribute(address _who) external whenNotPaused whenIssuanceNotPaused {
+  function issueAttribute(address _account) external whenNotPaused whenIssuanceNotPaused {
     // check that an empty address was not provided by mistake
-    require(_who != address(0), "must supply a valid address");
+    require(_account != address(0), "must supply a valid address");
 
     // make sure the request is coming from a valid organization
     require(
@@ -135,35 +135,35 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
     );
  
     // assign the attribute to the jurisdiction (NOTE: a value is not required)
-    jurisdiction.addAttributeTo(_who, validAttributeID, 0);
+    jurisdiction.addAttributeTo(_account, validAttributeID, 0);
 
     // ensure that the attribute was correctly assigned
     require(
-      registry.hasAttribute(_who, validAttributeID) == true,
+      registry.hasAttribute(_account, validAttributeID) == true,
       "attribute addition was not accepted by the jurisdiction"
     );
 
     // add the address to the mapping of issued addresses
-    organizations[msg.sender].issuedAddresses[_who] = true;
+    organizations[msg.sender].issuedAddresses[_account] = true;
 
     // add the index of the address to the mapping of issued addresses
     uint256 index = organizations[msg.sender].addresses.length;
-    organizations[msg.sender].issuedAddressesIndex[_who] = index;
+    organizations[msg.sender].issuedAddressesIndex[_account] = index;
 
     // add the address to the end of the organization's `addresses` array
-    organizations[msg.sender].addresses.push(_who);
+    organizations[msg.sender].addresses.push(_account);
     
     // log the addition of the new attributed address
-    emit AttributeIssued(msg.sender, _who);
+    emit AttributeIssued(msg.sender, _account);
   }
 
   // an organization can revoke an attibute from an address
   // NOTE: organizations may still revoke attributes even after new issuance has
   // been paused. This is the intended behavior, as it allows them to correct
   // attributes they have issued that become compromised or otherwise erroneous.
-  function revokeAttribute(address _who) external whenNotPaused {
+  function revokeAttribute(address _account) external whenNotPaused {
     // check that an empty address was not provided by mistake
-    require(_who != address(0), "must supply a valid address");
+    require(_account != address(0), "must supply a valid address");
 
     // make sure the request is coming from a valid organization
     require(
@@ -173,17 +173,17 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
 
     // ensure that the address has been issued an attribute
     require(
-      organizations[msg.sender].issuedAddresses[_who] &&
+      organizations[msg.sender].issuedAddresses[_account] &&
       organizations[msg.sender].addresses.length > 0,
       "the organization is not permitted to revoke an unissued attribute"
     );
  
     // remove the attribute to the jurisdiction
-    jurisdiction.removeAttributeFrom(_who, validAttributeID);
+    jurisdiction.removeAttributeFrom(_account, validAttributeID);
 
     // ensure that the attribute was correctly removed
     require(
-      registry.hasAttribute(_who, validAttributeID) == false,
+      registry.hasAttribute(_account, validAttributeID) == false,
       "attribute revocation was not accepted by the jurisdiction"
     );
 
@@ -192,7 +192,7 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
     address lastAddress = organizations[msg.sender].addresses[lastIndex];
 
     // get the index to delete
-    uint256 indexToDelete = organizations[msg.sender].issuedAddressesIndex[_who];
+    uint256 indexToDelete = organizations[msg.sender].issuedAddressesIndex[_account];
 
     // set the address at indexToDelete to last address
     organizations[msg.sender].addresses[indexToDelete] = lastAddress;
@@ -204,7 +204,7 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
     organizations[msg.sender].addresses.length--;
     
     // log the addition of the new attributed address
-    emit AttributeRevoked(msg.sender, _who);
+    emit AttributeRevoked(msg.sender, _account);
   }
 
   // called by the owner to pause new attribute issuance, triggers stopped state

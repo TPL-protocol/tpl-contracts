@@ -80,7 +80,7 @@ module.exports = {test: async function (provider, testingContext) {
     process.exit(1)
   })
   console.log(
-    ' ✓  - TPL token contract deploys successfully'
+    ' ✓ TPL token contract deploys successfully'
   )
   passed++
 
@@ -98,7 +98,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).catch(error => {
     console.log(
-      " ✓  - jurisdiction contract can be initialized"
+      " ✓ jurisdiction contract can be initialized"
     )
     passed++
   })  
@@ -109,12 +109,12 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(ownerAddress => {
     assert.strictEqual(ownerAddress, address)
-    console.log(' ✓  - jurisdiction owner is set to the correct address')
+    console.log(' ✓ jurisdiction owner is set to the correct address')
     passed++
   })
 
   console.log(
-    ' ✓  - token contract referencing jurisdiction deploys successfully'
+    ' ✓ token contract referencing jurisdiction deploys successfully'
   )
   passed++
 
@@ -128,7 +128,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).catch(error => {
     console.log(
-      " ✓  - token contract can be initialized"
+      " ✓ token contract can be initialized"
     )
     passed++
   })
@@ -140,7 +140,7 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(registryAddress => {
     assert.strictEqual(registryAddress, Jurisdiction.options.address)
     console.log(
-      ' ✓  - registry utilized by token is set to the jurisdiction address'
+      ' ✓ registry utilized by token is set to the jurisdiction address'
     )
     passed++
   })
@@ -151,7 +151,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(balance => {
     assert.strictEqual(balance, (100).toString())
-    console.log(' ✓  - deploying address has the correct balance')
+    console.log(' ✓ deploying address has the correct balance')
     passed++
   })
 
@@ -162,12 +162,12 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(receipt => {
     assert.ok(receipt.status) 
     console.log(
-      " ✓  - operator can be approved for transferFrom"
+      " ✓ operator can be approved for transferFrom"
     )
     passed++
   }).catch(error => {
     console.log(
-      " ✘  - operator can be approved for transferFrom"
+      " ✘ operator can be approved for transferFrom"
     )
     failed++
   })
@@ -178,7 +178,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).catch(error => {
     console.log(
-      " ✓  - tokens can't be transferred before valid attributes are assigned"
+      " ✓ tokens can't be transferred before valid attributes are assigned"
     )
     passed++
   })
@@ -189,7 +189,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).catch(error => {
     console.log(
-      " ✓  - tokens can't transferFrom before valid attributes are assigned"
+      " ✓ tokens can't transferFrom before valid attributes are assigned"
     )
     passed++
   })
@@ -244,7 +244,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   })
-  console.log(` ✓  - Jurisdiction contract can be paused`)
+  console.log(` ✓ Jurisdiction contract can be paused`)
   passed++
 
   await Jurisdiction.methods.addValidator(
@@ -255,7 +255,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).catch(error => {
-    console.log(' ✓  - jurisdiction owner cannot add new validators when paused')
+    console.log(' ✓ jurisdiction owner cannot add new validators when paused')
     passed++
   })
 
@@ -265,7 +265,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   })
-  console.log(` ✓  - Jurisdiction contract can be unpaused`)
+  console.log(` ✓ Jurisdiction contract can be unpaused`)
   passed++
 
   await Jurisdiction.methods.addValidator(
@@ -283,7 +283,7 @@ module.exports = {test: async function (provider, testingContext) {
     const logs = receipt.events.ValidatorAdded.returnValues
     assert.strictEqual(logs.validator, validatorAddress)
     assert.strictEqual(logs.description, validator.description)
-    console.log(' ✓  - ValidatorAdded event is logged correctly')
+    console.log(' ✓ ValidatorAdded event is logged correctly')
     passed++
   })
 
@@ -295,22 +295,22 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(validatorInformation => {
     assert.strictEqual(validatorInformation, validator.description)
-    console.log(' ✓  - validator information is correctly accessible')
+    console.log(' ✓ validator information is correctly accessible')
     passed++
   }) 
 
-  await Jurisdiction.methods.countAvailableValidators(
+  await Jurisdiction.methods.countValidators(
   ).call({
     from: address,
     gas: 5000000,
     gasPrice: 10 ** 9
   }).then(validators => {
     assert.strictEqual(validators, '1')
-    console.log(' ✓  - validator is added to the count of avaiable validators')
+    console.log(' ✓ validator is added to the count of avaiable validators')
     passed++
   })  
 
-  await Jurisdiction.methods.getAvailableValidator(
+  await Jurisdiction.methods.getValidator(
     0
   ).call({
     from: address,
@@ -318,11 +318,11 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(validators => {
     assert.strictEqual(validators, validatorAddress)
-    console.log(' ✓  - validator is added correctly to the list of validators')
+    console.log(' ✓ validator is added correctly to the list of validators')
     passed++
   })  
 
-  await Jurisdiction.methods.getAvailableValidators(
+  await Jurisdiction.methods.getValidators(
   ).call({
     from: address,
     gas: 5000000,
@@ -330,7 +330,7 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(validators => {
     assert.strictEqual(validators.length, 1)
     assert.strictEqual(validators[0], validatorAddress)
-    console.log(' ✓  - validator can be accessed in batch as well')
+    console.log(' ✓ validator can be accessed in batch as well')
     passed++
   })  
 
@@ -343,11 +343,11 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(receipt => {
     assert.ok(receipt.status)
-    console.log(' ✓  - multiple validators may be added')
+    console.log(' ✓ multiple validators may be added')
     passed++
   })
 
-  await Jurisdiction.methods.getAvailableValidators(
+  await Jurisdiction.methods.getValidators(
   ).call({
     from: address,
     gas: 5000000,
@@ -357,7 +357,7 @@ module.exports = {test: async function (provider, testingContext) {
     assert.strictEqual(validators[0], validatorAddress)
     assert.strictEqual(validators[1], validatorTwo.address)
     console.log(
-      ' ✓  - multiple validators are added correctly to the list of validators'
+      ' ✓ multiple validators are added correctly to the list of validators'
     )
     passed++
   })  
@@ -370,7 +370,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).catch(error => {
-    console.log(' ✓  - attempt to add null address as a validator fails')
+    console.log(' ✓ attempt to add null address as a validator fails')
     passed++
   }) 
 
@@ -383,7 +383,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).catch(error => {
-    console.log(' ✓  - attempt to add validator at an existing address fails')
+    console.log(' ✓ attempt to add validator at an existing address fails')
     passed++
   })
 
@@ -395,7 +395,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).catch(error => {
-    console.log(' ✓  - attempt to add validator from non-owner account fails')
+    console.log(' ✓ attempt to add validator from non-owner account fails')
     passed++
   })
 
@@ -412,9 +412,9 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
 
     const logs = receipt.events.AttributeTypeAdded.returnValues
-    assert.strictEqual(logs.attribute, attribute.attributeId.toString())
+    assert.strictEqual(logs.attributeTypeID, attribute.attributeId.toString())
     assert.strictEqual(logs.description, attribute.description)
-    console.log(' ✓  - AttributeTypeAdded event is logged correctly')
+    console.log(' ✓ AttributeTypeAdded event is logged correctly')
     passed++
   }) 
 
@@ -426,7 +426,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).catch(error => {
-    console.log(' ✓  - attempt to add duplicate attribute type fails')
+    console.log(' ✓ attempt to add duplicate attribute type fails')
     passed++
   }) 
 
@@ -438,7 +438,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).catch(error => {
-    console.log(' ✓  - attempt to add attribute type from non-owner account fails')
+    console.log(' ✓ attempt to add attribute type from non-owner account fails')
     passed++
   }) 
 
@@ -451,7 +451,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(receipt => {
     assert.ok(receipt.status)
-    console.log(' ✓  - adding multiple attribute types is supported')
+    console.log(' ✓ adding multiple attribute types is supported')
     passed++
   }) 
 
@@ -469,8 +469,8 @@ module.exports = {test: async function (provider, testingContext) {
 
     const logs = receipt.events.ValidatorApprovalAdded.returnValues
     assert.strictEqual(logs.validator, attribute.targetValidator)
-    assert.strictEqual(logs.attribute, attribute.attributeId.toString())
-    console.log(' ✓  - ValidatorApprovalAdded event is logged correctly')
+    assert.strictEqual(logs.attributeTypeID, attribute.attributeId.toString())
+    console.log(' ✓ ValidatorApprovalAdded event is logged correctly')
     passed++
   })
 
@@ -482,7 +482,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).catch(error => {
-    console.log(' ✓  - attempt to add approval to undefined attribute type fails')
+    console.log(' ✓ attempt to add approval to undefined attribute type fails')
     passed++
   })
 
@@ -494,7 +494,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).catch(error => {
-    console.log(' ✓  - attempt to add approval to undefined validator fails')
+    console.log(' ✓ attempt to add approval to undefined validator fails')
     passed++
   })
 
@@ -506,7 +506,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).catch(error => {
-    console.log(' ✓  - attempt to add duplicate approval fails')
+    console.log(' ✓ attempt to add duplicate approval fails')
     passed++
   })
 
@@ -518,7 +518,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).catch(error => {
-    console.log(' ✓  - attempt to add approval from non-owner fails')
+    console.log(' ✓ attempt to add approval from non-owner fails')
     passed++
   })
 
@@ -531,7 +531,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(receipt => {
     assert.ok(receipt.status)
-    console.log(' ✓  - adding multiple approvals on a validator is supported')
+    console.log(' ✓ adding multiple approvals on a validator is supported')
     passed++
   })
 
@@ -544,11 +544,11 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(receipt => {
     assert.ok(receipt.status)
-    console.log(' ✓  - adding approvals on multiple validators is supported')
+    console.log(' ✓ adding approvals on multiple validators is supported')
     passed++
   })
 
-  await Jurisdiction.methods.isApproved(
+  await Jurisdiction.methods.canIssueAttributeType(
     attribute.targetValidator,
     attribute.attributeId
   ).call({
@@ -558,12 +558,12 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(isApproved => {
     assert.ok(isApproved)
     console.log(
-      ' ✓  - external calls to check for validator approvals are supported'
+      ' ✓ external calls to check for validator approvals are supported'
     )
     passed++
   })
 
-  await Jurisdiction.methods.isApproved(
+  await Jurisdiction.methods.canIssueAttributeType(
     validatorTwo.address,
     attribute.attributeId
   ).call({
@@ -573,7 +573,7 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(isApproved => {
     assert.strictEqual(isApproved, false)
     console.log(
-      ' ✓  - calls return false for unapproved validators'
+      ' ✓ calls return false for unapproved validators'
     )
     passed++
   })
@@ -588,7 +588,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9,
     value: 10 ** 1
   }).catch(error => {
-    console.log(' ✓  - attempt to add attribute with an attached value fails')
+    console.log(' ✓ attempt to add attribute with an attached value fails')
     passed++
   })
 
@@ -608,8 +608,9 @@ module.exports = {test: async function (provider, testingContext) {
     const logs = receipt.events.AttributeAdded.returnValues
     assert.strictEqual(logs.validator, validatorAddress)
     assert.strictEqual(logs.attributee, attributedAddress)
-    assert.strictEqual(logs.attribute, attribute.attributeId.toString())
-    console.log(' ✓  - AttributeAdded event is logged correctly')
+    assert.strictEqual(logs.attributeTypeID, attribute.attributeId.toString())
+    assert.strictEqual(logs.attributeValue, attribute.targetValue.toString())
+    console.log(' ✓ AttributeAdded event is logged correctly')
     passed++
   })
 
@@ -637,7 +638,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(receipt => {
     assert.ok(receipt.status)
-    console.log(' ✓  - multiple attributes can be added to an address')
+    console.log(' ✓ multiple attributes can be added to an address')
     passed++
   })
 
@@ -651,7 +652,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(receipt => {
     assert.ok(receipt.status)
-    console.log(' ✓  - attributes can be added to multiple addresses')
+    console.log(' ✓ attributes can be added to multiple addresses')
     passed++
   })
 
@@ -662,12 +663,12 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(canTransfer => {
     assert.ok(canTransfer) 
     console.log(
-      " ✓  - tokens can be checked for transfer between valid addresses"
+      " ✓ tokens can be checked for transfer between valid addresses"
     )
     passed++
   }).catch(error => {
     console.log(
-      " ✘  - tokens can be checked for transfer between valid addresses"
+      " ✘ tokens can be checked for transfer between valid addresses"
     )
     failed++
   })
@@ -679,12 +680,12 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(receipt => {
     assert.ok(receipt.status)    
     console.log(
-      " ✓  - tokens can be transferred between addresses with valid attributes"
+      " ✓ tokens can be transferred between addresses with valid attributes"
     )
     passed++
   }).catch(error => {
     console.log(
-      " ✘  - tokens can be transferred between addresses with valid attributes"
+      " ✘ tokens can be transferred between addresses with valid attributes"
     )
     failed++
   })
@@ -696,12 +697,12 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(canTransfer => {
     assert.ok(canTransfer) 
     console.log(
-      " ✓  - tokens can be checked for transferFrom between valid addresses"
+      " ✓ tokens can be checked for transferFrom between valid addresses"
     )
     passed++
   }).catch(error => {
     console.log(
-      " ✘  - tokens can be checked for transferFrom between valid addresses"
+      " ✘ tokens can be checked for transferFrom between valid addresses"
     )
     failed++
   })
@@ -713,12 +714,12 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(receipt => {
     assert.ok(receipt.status)    
     console.log(
-      " ✓  - tokens can transferFrom between addresses with valid attributes"
+      " ✓ tokens can transferFrom between addresses with valid attributes"
     )
     passed++
   }).catch(error => {
     console.log(
-      " ✘  - tokens can transferFrom between addresses with valid attributes"
+      " ✘ tokens can transferFrom between addresses with valid attributes"
     )
     failed++
   })
@@ -732,7 +733,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).catch(error => {
-    console.log(' ✓  - attempt to add duplicate attribute fails')
+    console.log(' ✓ attempt to add duplicate attribute fails')
     passed++
   })
 
@@ -745,7 +746,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).catch(error => {
-    console.log(' ✓  - attempt to add undefined attribute type fails')
+    console.log(' ✓ attempt to add undefined attribute type fails')
     passed++
   })
 
@@ -765,17 +766,17 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(isSupported => { 
     assert.strictEqual(isSupported, false)
-    console.log(' ✓  - interface support check for 0xffffffff fails as expected')
+    console.log(' ✓ interface support check for 0xffffffff fails as expected')
     passed++
   })
 
-  await Jurisdiction.methods.supportsInterface('0x8af1887e').call({
+  await Jurisdiction.methods.supportsInterface('0x5f46473f').call({
     from: address,
     gas: 30000,
     gasPrice: 10 ** 9
   }).then(isSupported => { 
     assert.ok(isSupported)
-    console.log(' ✓  - Registry interface support check is successful')
+    console.log(' ✓ Registry interface support check is successful')
     passed++
   })
 
@@ -792,7 +793,7 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
 
     console.log(
-      ' ✓  - addresses can contain an attribute with a value of 0'
+      ' ✓ addresses can contain an attribute with a value of 0'
     )
     passed++  
   })
@@ -807,7 +808,7 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(attributeExists => { 
     assert.ok(attributeExists)
     console.log(
-      ' ✓  - checks for additional assigned attributes on an address succeed'
+      ' ✓ checks for additional assigned attributes on an address succeed'
     )
     passed++  
   })
@@ -821,7 +822,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(attributeExists => { 
     assert.strictEqual(attributeExists, false)
-    console.log(' ✓  - undefined attribute types return false')
+    console.log(' ✓ undefined attribute types return false')
     passed++
   })
 
@@ -834,11 +835,11 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(attributeExists => { 
     assert.strictEqual(attributeExists, false)
-    console.log(' ✓  - unassigned attributes return false')
+    console.log(' ✓ unassigned attributes return false')
     passed++
   })
 
-  await Jurisdiction.methods.getAttribute(
+  await Jurisdiction.methods.getAttributeValue(
     attributedAddress,
     attribute.attributeId
   ).call({
@@ -851,7 +852,7 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   })
 
-  await Jurisdiction.methods.getAttribute(
+  await Jurisdiction.methods.getAttributeValue(
     attributedAddress,
     additionalAttribute.attributeId
   ).call({
@@ -860,11 +861,11 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(attributeValue => {
     assert.strictEqual(attributeValue, additionalAttribute.targetValue.toString())
-    console.log(' ✓  - addresses can have multiple separate attribute values')
+    console.log(' ✓ addresses can have multiple separate attribute values')
     passed++
   })
 
-  await Jurisdiction.methods.getAttribute(
+  await Jurisdiction.methods.getAttributeValue(
     attributedAddress,
     undefinedAttributeId
   ).call({
@@ -872,14 +873,14 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).then(attributeValue => {
-    console.log(' ✘  - undefined attribute types revert on getAttribute')
+    console.log(' ✘ undefined attribute types revert on getAttribute')
     failed++
   }).catch(error => {
-    console.log(' ✓  - undefined attribute types revert on getAttribute')
+    console.log(' ✓ undefined attribute types revert on getAttribute')
     passed++ 
   })
  
-  await Jurisdiction.methods.getAttribute(
+  await Jurisdiction.methods.getAttributeValue(
     inattributedAddress,
     attribute.attributeId
   ).call({
@@ -887,14 +888,14 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).then(attributeValue => {
-    console.log(' ✘  - unassigned attributes revert on getAttribute')
+    console.log(' ✘ unassigned attributes revert on getAttribute')
     failed++
   }).catch(error => {
-    console.log(' ✓  - unassigned attributes revert on getAttribute')
+    console.log(' ✓ unassigned attributes revert on getAttribute')
     passed++ 
   })
 
-  await Jurisdiction.methods.getAttributeInformation(
+  await Jurisdiction.methods.getAttributeTypeInformation(
     attribute.attributeId
   ).call({
     from: address,
@@ -906,7 +907,7 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   })
 
-  await Jurisdiction.methods.getAttributeInformation(
+  await Jurisdiction.methods.getAttributeTypeInformation(
     undefinedAttributeId
   ).call({
     from: address,
@@ -914,11 +915,11 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(attributeInformation => {
     assert.strictEqual('', attributeInformation)
-    console.log(' ✓  - undefined attribute types return empty values')
+    console.log(' ✓ undefined attribute types return empty values')
     passed++
   })
 
-  await Jurisdiction.methods.countAvailableAttributeIDs().call({
+  await Jurisdiction.methods.countAttributeTypes().call({
     from: address,
     gas: 5000000,
     gasPrice: 10 ** 9
@@ -931,7 +932,7 @@ module.exports = {test: async function (provider, testingContext) {
     failed++    
   })
 
-  await Jurisdiction.methods.getAvailableAttributeID(
+  await Jurisdiction.methods.getAttributeTypeID(
     0
   ).call({
     from: address,
@@ -946,7 +947,7 @@ module.exports = {test: async function (provider, testingContext) {
     failed++    
   })
 
-  await Jurisdiction.methods.getAvailableAttributeIDs().call({
+  await Jurisdiction.methods.getAttributeTypeIDs().call({
     from: address,
     gas: 5000000,
     gasPrice: 10 ** 9
@@ -971,7 +972,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(validatorInformation => {
     assert.strictEqual(validatorInformation, validator.description)
-    console.log(' ✓  - external calls retrieve new information on validator')
+    console.log(' ✓ external calls retrieve new information on validator')
     passed++
   })
 
@@ -990,8 +991,8 @@ module.exports = {test: async function (provider, testingContext) {
     const logs = receipt.events.AttributeRemoved.returnValues
     assert.strictEqual(logs.validator, validatorAddress)
     assert.strictEqual(logs.attributee, attributedAddress)
-    assert.strictEqual(logs.attribute, attribute.attributeId.toString())
-    console.log(' ✓  - AttributeRemoved event is logged correctly')
+    assert.strictEqual(logs.attributeTypeID, attribute.attributeId.toString())
+    console.log(' ✓ AttributeRemoved event is logged correctly')
     passed++
   })
 
@@ -1003,7 +1004,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).catch(error => {
-    console.log(' ✓  - validator cannot remove attributes that do not exist')
+    console.log(' ✓ validator cannot remove attributes that do not exist')
     passed++
   })
 
@@ -1015,10 +1016,10 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).then(receipt => {
-    console.log(' ✘  - validators may not remove attributes they did not approve')
+    console.log(' ✘ validators may not remove attributes they did not approve')
     failed++    
   }).catch(error => {
-    console.log(' ✓  - validators may not remove attributes they did not approve')
+    console.log(' ✓ validators may not remove attributes they did not approve')
     passed++
   })
 
@@ -1031,10 +1032,10 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(attributeExists => {
     assert.strictEqual(attributeExists, false)
-    console.log(' ✓  - external calls to check for removed attributes return false')
+    console.log(' ✓ external calls to check for removed attributes return false')
     passed++
   }).catch(error => {
-    console.log(' ✘  - external calls to check for removed attributes return false')
+    console.log(' ✘ external calls to check for removed attributes return false')
     failed++
   })
 
@@ -1044,12 +1045,12 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(receipt => {  
     console.log(
-      " ✘  - tokens can't be transferred after attributes have been revoked"
+      " ✘ tokens can't be transferred after attributes have been revoked"
     )
     failed++
   }).catch(error => {
     console.log(
-      " ✓  - tokens can't be transferred after attributes have been revoked"
+      " ✓ tokens can't be transferred after attributes have been revoked"
     )
     passed++
   })
@@ -1064,7 +1065,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(receipt => {
     assert.ok(receipt.status)
-    console.log(' ✓  - validators can renew attributes on an old addresses')
+    console.log(' ✓ validators can renew attributes on an old addresses')
     passed++
   })
 
@@ -1075,12 +1076,12 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(receipt => {
     assert.ok(receipt.status)    
     console.log(
-      " ✓  - tokens can be transferred from addresses with renewed attributes"
+      " ✓ tokens can be transferred from addresses with renewed attributes"
     )
     passed++
   }).catch(error => {
     console.log(
-      " ✘  - tokens can be transferred from addresses with renewed attributes"
+      " ✘ tokens can be transferred from addresses with renewed attributes"
     )
     failed++
   })
@@ -1099,8 +1100,8 @@ module.exports = {test: async function (provider, testingContext) {
 
     const logs = receipt.events.ValidatorApprovalRemoved.returnValues
     assert.strictEqual(logs.validator, validator.address)
-    assert.strictEqual(logs.attribute, attribute.attributeId.toString())
-    console.log(' ✓  - ValidatorApprovalRemoved event is logged correctly')
+    assert.strictEqual(logs.attributeTypeID, attribute.attributeId.toString())
+    console.log(' ✓ ValidatorApprovalRemoved event is logged correctly')
     passed++
   })
 
@@ -1112,7 +1113,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).catch(error => {
-    console.log(' ✓  - attempt to remove non-existant validator approval fails')
+    console.log(' ✓ attempt to remove non-existant validator approval fails')
     passed++
   })
 
@@ -1125,7 +1126,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).catch(error => {
     console.log(
-      ' ✓  - attempt to remove validator approval from non-owner account fails'
+      ' ✓ attempt to remove validator approval from non-owner account fails'
     )
     passed++
   })
@@ -1140,12 +1141,12 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(attributeExists => { 
     assert.strictEqual(attributeExists, false)
     console.log(
-      ' ✓  - attributes are no longer valid after validator approval is revoked'
+      ' ✓ attributes are no longer valid after validator approval is revoked'
     )
     passed++  
   })
 
-  await Jurisdiction.methods.getAttribute(
+  await Jurisdiction.methods.getAttributeValue(
     attributedAddress,
     attribute.attributeId
   ).call({
@@ -1154,12 +1155,12 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(attributeValue => {
     console.log(
-      ' ✘  - attributes invalidated on revoked approvals revert on getAttribute'
+      ' ✘ attributes invalidated on revoked approvals revert on getAttribute'
     )
     failed++
   }).catch(error => {
     console.log(
-      ' ✓  - attributes invalidated on revoked approvals revert on getAttribute'
+      ' ✓ attributes invalidated on revoked approvals revert on getAttribute'
     )
     passed++ 
   })
@@ -1170,12 +1171,12 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(receipt => {  
     console.log(
-      " ✘  - tokens can't be sent if validator's attribute approval is removed"
+      " ✘ tokens can't be sent if validator's attribute approval is removed"
     )
     failed++
   }).catch(error => {
     console.log(
-      " ✓  - tokens can't be sent if validator's attribute approval is removed"
+      " ✓ tokens can't be sent if validator's attribute approval is removed"
     )
     passed++
   })
@@ -1190,17 +1191,17 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(receipt => {
     assert.ok(receipt.status)
     console.log(
-      ' ✓  - renewing pre-existing validator approvals is supported'
+      ' ✓ renewing pre-existing validator approvals is supported'
     )
     passed++
   }).catch(error => {
     console.log(
-      ' ✘  - renewing pre-existing validator approvals is supported'
+      ' ✘ renewing pre-existing validator approvals is supported'
     )
     failed++    
   })
 
-  await Jurisdiction.methods.isApproved(
+  await Jurisdiction.methods.canIssueAttributeType(
     validator.address,
     attribute.attributeId
   ).call({
@@ -1210,12 +1211,12 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(isStillValid => {
     assert.ok(isStillValid)
     console.log(
-      ' ✓  - checks for validator approval are correct'
+      ' ✓ checks for validator approval are correct'
     )
     passed++
   }).catch(error => {
     console.log(
-      ' ✘  - checks for validator approval are correct'
+      ' ✘ checks for validator approval are correct'
     )
     failed++    
   })
@@ -1230,12 +1231,12 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(attributeExists => { 
     assert.ok(attributeExists)
     console.log(
-      ' ✓  - invalid attributes become valid after renewing validator approval'
+      ' ✓ invalid attributes become valid after renewing validator approval'
     )
     passed++  
   })
 
-  await Jurisdiction.methods.getAttribute(
+  await Jurisdiction.methods.getAttributeValue(
     attributedAddress,
     attribute.attributeId
   ).call({
@@ -1248,7 +1249,7 @@ module.exports = {test: async function (provider, testingContext) {
       (attribute.targetValue).toString()
     )
     console.log(
-      ' ✓  - attribute values from renewed validator approvals return correctly'
+      ' ✓ attribute values from renewed validator approvals return correctly'
     )
     passed++
   })
@@ -1260,12 +1261,12 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(receipt => {
     assert.ok(receipt.status)    
     console.log(
-      " ✓  - tokens can be sent if validator's attribute approval is renewed"
+      " ✓ tokens can be sent if validator's attribute approval is renewed"
     )
     passed++
   }).catch(error => {
     console.log(
-      " ✘  - tokens can be sent if validator's attribute approval is renewed"
+      " ✘ tokens can be sent if validator's attribute approval is renewed"
     )
     failed++
   })
@@ -1289,7 +1290,7 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
 
     assert.strictEqual(receipt.events.ValidatorRemoved, undefined)
-    console.log(' ✓  - ValidatorRemoved event is not logged')
+    console.log(' ✓ ValidatorRemoved event is not logged')
     passed++
   })
 
@@ -1306,11 +1307,11 @@ module.exports = {test: async function (provider, testingContext) {
 
     const logs = receipt.events.ValidatorRemoved.returnValues
     assert.strictEqual(logs.validator, validator.address)
-    console.log(' ✓  - ValidatorRemoved event is logged correctly')
+    console.log(' ✓ ValidatorRemoved event is logged correctly')
     passed++
   })
 
-  await Jurisdiction.methods.getAvailableValidators(
+  await Jurisdiction.methods.getValidators(
   ).call({
     from: address,
     gas: 5000000,
@@ -1319,12 +1320,12 @@ module.exports = {test: async function (provider, testingContext) {
     assert.strictEqual(validators.length, 1)
     assert.strictEqual(validators[0], validatorTwo.address)
     console.log(
-      ' ✓  - validators are removed correctly from the list of validators'
+      ' ✓ validators are removed correctly from the list of validators'
     )
     passed++
   })
 
-  await Jurisdiction.methods.isApproved(
+  await Jurisdiction.methods.canIssueAttributeType(
     validator.address,
     attribute.attributeId
   ).call({
@@ -1334,12 +1335,12 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(isStillValid => {
     assert.strictEqual(isStillValid, false)
     console.log(
-      ' ✓  - checks for validator approval show that the approval is removed'
+      ' ✓ checks for validator approval show that the approval is removed'
     )
     passed++
   }).catch(error => {
     console.log(
-      ' ✘  - checks for validator approval show that the approval is removed'
+      ' ✘ checks for validator approval show that the approval is removed'
     )
     failed++    
   })
@@ -1351,7 +1352,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).catch(error => {
-    console.log(' ✓  - attempt to remove non-existant validator fails')
+    console.log(' ✓ attempt to remove non-existant validator fails')
     passed++
   })  
 
@@ -1365,12 +1366,12 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(attributeExists => {
     assert.strictEqual(attributeExists, false)
     console.log(
-      ' ✓  - checks for attributes from removed validators return false'
+      ' ✓ checks for attributes from removed validators return false'
     )
     passed++
   })
 
-  await Jurisdiction.methods.getAttribute(
+  await Jurisdiction.methods.getAttributeValue(
     attributedAddress,
     attribute.attributeId
   ).call({
@@ -1379,12 +1380,12 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(attributeValue => {
     console.log(
-      ' ✘  - attribute values from removed validators revert on getAttribute'
+      ' ✘ attribute values from removed validators revert on getAttribute'
     )
     failed++
   }).catch(error => {
     console.log(
-      ' ✓  - attribute values from removed validators revert on getAttribute'
+      ' ✓ attribute values from removed validators revert on getAttribute'
     )
     passed++ 
   })
@@ -1395,12 +1396,12 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(receipt => {  
     console.log(
-      " ✘  - tokens cannot be sent after issuing validator is removed"
+      " ✘ tokens cannot be sent after issuing validator is removed"
     )
     failed++
   }).catch(error => {
     console.log(
-      " ✓  - tokens cannot be sent after issuing validator is removed"
+      " ✓ tokens cannot be sent after issuing validator is removed"
     )
     passed++
   })
@@ -1414,11 +1415,11 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(receipt => {
     assert.ok(receipt.status)
-    console.log(' ✓  - revoked validators can be renewed')
+    console.log(' ✓ revoked validators can be renewed')
     passed++
   })
 
-  await Jurisdiction.methods.isApproved(
+  await Jurisdiction.methods.canIssueAttributeType(
     validator.address,
     attribute.attributeId
   ).call({
@@ -1428,12 +1429,12 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(isStillValid => {
     assert.strictEqual(isStillValid, false)
     console.log(
-      ' ✓  - checks for renewed validator approval show they are NOT renewed'
+      ' ✓ checks for renewed validator approval show they are NOT renewed'
     )
     passed++
   }).catch(error => {
     console.log(
-      ' ✘  - checks for renewed validator approval show they are NOT renewed'
+      ' ✘ checks for renewed validator approval show they are NOT renewed'
     )
     failed++    
   })
@@ -1446,11 +1447,11 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(validatorInformation => {
     assert.strictEqual(validatorInformation, validator.description)
-    console.log(' ✓  - external calls can retrieve information on a validator')
+    console.log(' ✓ external calls can retrieve information on a validator')
     passed++
   })
 
-  await Jurisdiction.methods.getAvailableValidators(
+  await Jurisdiction.methods.getValidators(
   ).call({
     from: address,
     gas: 5000000,
@@ -1460,7 +1461,7 @@ module.exports = {test: async function (provider, testingContext) {
     assert.strictEqual(validators[0], validatorTwo.address)
     assert.strictEqual(validators[1], validatorAddress)
     console.log(
-      ' ✓  - renewed validators are added correctly to the list of validators'
+      ' ✓ renewed validators are added correctly to the list of validators'
     )
     passed++
   })
@@ -1475,12 +1476,12 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(attributeExists => {
     assert.strictEqual(attributeExists, false)
     console.log(
-      ' ✓  - attribute checks from renewed validators return false (reset approval!)'
+      ' ✓ attribute checks from renewed validators return false (reset approval!)'
     )
     passed++
   })
 
-  await Jurisdiction.methods.getAttribute(
+  await Jurisdiction.methods.getAttributeValue(
     attributedAddress,
     attribute.attributeId
   ).call({
@@ -1489,12 +1490,12 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(attributeValue => {
     console.log(
-      ' ✘  - attribute values from renewed validators revert on getAttribute'
+      ' ✘ attribute values from renewed validators revert on getAttribute'
     )
     failed++
   }).catch(error => {
     console.log(
-      ' ✓  - attribute values from renewed validators revert on getAttribute'
+      ' ✓ attribute values from renewed validators revert on getAttribute'
     )
     passed++ 
   })
@@ -1509,12 +1510,12 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(receipt => {
     assert.ok(receipt.status)
     console.log(
-      ' ✓  - renewing pre-existing renewed validator approvals is supported'
+      ' ✓ renewing pre-existing renewed validator approvals is supported'
     )
     passed++
   }).catch(error => {
     console.log(
-      ' ✘  - renewing pre-existing renewed validator approvals is supported'
+      ' ✘ renewing pre-existing renewed validator approvals is supported'
     )
     failed++    
   })
@@ -1529,12 +1530,12 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(attributeExists => {
     assert.strictEqual(attributeExists, true)
     console.log(
-      ' ✓  - reset attribute checks from renewed validators return true'
+      ' ✓ reset attribute checks from renewed validators return true'
     )
     passed++
   })
 
-  await Jurisdiction.methods.getAttribute(
+  await Jurisdiction.methods.getAttributeValue(
     attributedAddress,
     attribute.attributeId
   ).call({
@@ -1547,7 +1548,7 @@ module.exports = {test: async function (provider, testingContext) {
       attribute.targetValue.toString()
     )
     console.log(
-      ' ✓  - reset attribute values from renewed validators return correct value'
+      ' ✓ reset attribute values from renewed validators return correct value'
     )
     passed++
   })
@@ -1559,12 +1560,12 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(receipt => {
     assert.ok(receipt.status)    
     console.log(
-      " ✓  - tokens can be sent after issuing validator is renewed"
+      " ✓ tokens can be sent after issuing validator is renewed"
     )
     passed++
   }).catch(error => {
     console.log(
-      " ✘  - tokens can be sent after issuing validator is renewed"
+      " ✘ tokens can be sent after issuing validator is renewed"
     )
     failed++
   })
@@ -1576,7 +1577,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).catch(error => {
-    console.log(' ✓  - attempt to remove validator from non-owner account fails')
+    console.log(' ✓ attempt to remove validator from non-owner account fails')
     passed++
   })
 
@@ -1592,8 +1593,8 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
 
     const logs = receipt.events.AttributeTypeRemoved.returnValues
-    assert.strictEqual(logs.attribute, attribute.attributeId.toString())
-    console.log(' ✓  - AttributeTypeRemoved event is logged correctly')
+    assert.strictEqual(logs.attributeTypeID, attribute.attributeId.toString())
+    console.log(' ✓ AttributeTypeRemoved event is logged correctly')
     passed++
   })
 
@@ -1604,7 +1605,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   }).catch(error => {
-    console.log(' ✓  - attempt to remove non-existant attribute type fails')
+    console.log(' ✓ attempt to remove non-existant attribute type fails')
     passed++
   })  
 
@@ -1618,12 +1619,12 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(attributeExists => {
     assert.strictEqual(attributeExists, false)
     console.log(
-      ' ✓  - checks for attributes from removed attribute types return false'
+      ' ✓ checks for attributes from removed attribute types return false'
     )
     passed++
   })
 
-  await Jurisdiction.methods.getAttribute(
+  await Jurisdiction.methods.getAttributeValue(
     attributedAddress,
     attribute.attributeId
   ).call({
@@ -1632,12 +1633,12 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(attributeValue => {
     console.log(
-      ' ✘  - attribute values on removed attribute types revert on getAttribute'
+      ' ✘ attribute values on removed attribute types revert on getAttribute'
     )
     failed++
   }).catch(error => {
     console.log(
-      ' ✓  - attribute values on removed attribute types revert on getAttribute'
+      ' ✓ attribute values on removed attribute types revert on getAttribute'
     )
     passed++ 
   })
@@ -1648,17 +1649,17 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(receipt => {  
     console.log(
-      " ✘  - tokens cannot be sent after required attribute type is removed"
+      " ✘ tokens cannot be sent after required attribute type is removed"
     )
     failed++
   }).catch(error => {
     console.log(
-      " ✓  - tokens cannot be sent after required attribute type is removed"
+      " ✓ tokens cannot be sent after required attribute type is removed"
     )
     passed++
   })
 
-  await Jurisdiction.methods.getAvailableAttributeIDs().call({
+  await Jurisdiction.methods.getAttributeTypeIDs().call({
     from: address,
     gas: 5000000,
     gasPrice: 10 ** 9
@@ -1681,12 +1682,12 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(receipt => {
     console.log(
-      ' ✘  - attempt to modify parameters on attribute type renewals fails'
+      ' ✘ attempt to modify parameters on attribute type renewals fails'
     )
     failed++
   }).catch(error => {
     console.log(
-      ' ✓  - attempt to modify parameters on attribute type renewals fails'
+      ' ✓ attempt to modify parameters on attribute type renewals fails'
     )
     passed++
   }) 
@@ -1701,7 +1702,7 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(receipt => {
     assert.ok(receipt.status)
     console.log(
-      ' ✓  - revoked attribute types can be renewed when all properties match'
+      ' ✓ revoked attribute types can be renewed when all properties match'
     )
     passed++
   }) 
@@ -1716,12 +1717,12 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(attributeExists => {
     assert.strictEqual(attributeExists, true)
     console.log(
-      ' ✓  - attribute checks from renewed attribute types return true'
+      ' ✓ attribute checks from renewed attribute types return true'
     )
     passed++
   })
 
-  await Jurisdiction.methods.getAttribute(
+  await Jurisdiction.methods.getAttributeValue(
     attributedAddress,
     attribute.attributeId
   ).call({
@@ -1734,7 +1735,7 @@ module.exports = {test: async function (provider, testingContext) {
       attribute.targetValue.toString()
     )
     console.log(
-      ' ✓  - attribute values from renewed attribute types return correct value'
+      ' ✓ attribute values from renewed attribute types return correct value'
     )
     passed++
   })
@@ -1746,17 +1747,17 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(receipt => {
     assert.ok(receipt.status)    
     console.log(
-      " ✓  - tokens can be sent after required attribute type is renewed"
+      " ✓ tokens can be sent after required attribute type is renewed"
     )
     passed++
   }).catch(error => {
     console.log(
-      " ✘  - tokens can be sent after required attribute type is renewed"
+      " ✘ tokens can be sent after required attribute type is renewed"
     )
     failed++
   })
 
-  await Jurisdiction.methods.getAvailableAttributeIDs().call({
+  await Jurisdiction.methods.getAttributeTypeIDs().call({
     from: address,
     gas: 5000000,
     gasPrice: 10 ** 9
@@ -1781,7 +1782,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).catch(error => {
     console.log(
-      ' ✓  - attempt to remove attribute types from non-owner account fails'
+      ' ✓ attempt to remove attribute types from non-owner account fails'
     )
     passed++
   })
@@ -1795,13 +1796,13 @@ module.exports = {test: async function (provider, testingContext) {
   console.log(
     ` ${
       getAvailableAttributesTestTwoPassed ? '✓' : '✘'
-    }  - available attribute IDs are reduced after removal (mid-array is ok)`
+    } available attribute IDs are reduced after removal (mid-array is ok)`
   )
 
   console.log(
     ` ${
       getAvailableAttributesTestThreePassed ? '✓' : '✘'
-    }  - available attribute IDs are repopulated (order moved) after renewal`
+    } available attribute IDs are repopulated (order moved) after renewal`
   )
 
 
@@ -1820,8 +1821,8 @@ module.exports = {test: async function (provider, testingContext) {
     const logs = receipt.events.AttributeRemoved.returnValues
     assert.strictEqual(logs.validator, validatorAddress)
     assert.strictEqual(logs.attributee, attributedAddress)
-    assert.strictEqual(logs.attribute, attribute.attributeId.toString())
-    console.log(' ✓  - AttributeRemoved event is logged correctly')
+    assert.strictEqual(logs.attributeTypeID, attribute.attributeId.toString())
+    console.log(' ✓ AttributeRemoved event is logged correctly')
     passed++
   })
 

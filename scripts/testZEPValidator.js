@@ -164,7 +164,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).catch(error => {
     console.log(
-      " ✓  - jurisdiction contract can be initialized"
+      " ✓ jurisdiction contract can be initialized"
     )
     passed++
   })
@@ -175,7 +175,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   })
-  console.log(` ✓  - Jurisdiction contract can be paused`)
+  console.log(` ✓ Jurisdiction contract can be paused`)
   passed++
 
   await JurisdictionContractInstance.methods.unpause(
@@ -184,7 +184,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   })
-  console.log(` ✓  - Jurisdiction contract can be unpaused`)
+  console.log(` ✓ Jurisdiction contract can be unpaused`)
   passed++
 
   await ZEPValidatorContractInstance.methods.initialize(
@@ -196,7 +196,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).catch(error => {
     console.log(
-      " ✓  - ZEP Validator contract can be initialized"
+      " ✓ ZEP Validator contract can be initialized"
     )
     passed++
   })
@@ -210,7 +210,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).catch(error => {
     console.log(
-      " ✓  - Nice ZEP Validator contract can be initialized"
+      " ✓ Nice ZEP Validator contract can be initialized"
     )
     passed++
   })
@@ -224,7 +224,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).catch(error => {
     console.log(
-      " ✓  - Naughty ZEP Validator contract can be initialized"
+      " ✓ Naughty ZEP Validator contract can be initialized"
     )
     passed++
   })
@@ -239,7 +239,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).catch(error => {
     console.log(
-      " ✓  - token contract can be initialized"
+      " ✓ token contract can be initialized"
     )
     passed++
   })
@@ -250,7 +250,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(ownerAddress => {
     assert.strictEqual(ownerAddress, address)
-    console.log(' ✓  - jurisdiction owner is set to the correct address')
+    console.log(' ✓ jurisdiction owner is set to the correct address')
     passed++
   })
 
@@ -260,7 +260,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(ownerAddress => {
     assert.strictEqual(ownerAddress, address)
-    console.log(' ✓  - ZEP validator owner is set to the correct address')
+    console.log(' ✓ ZEP validator owner is set to the correct address')
     passed++
   })
 
@@ -270,7 +270,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(organizations => {
     assert.strictEqual(organizations.length, 0)
-    console.log(' ✓  - ZEP validator organizations are initially empty')
+    console.log(' ✓ ZEP validator organizations are initially empty')
     passed++
   })
 
@@ -285,7 +285,7 @@ module.exports = {test: async function (provider, testingContext) {
     assert.strictEqual(organization.maximumAddresses, '0')
     assert.strictEqual(organization.name, '')
     assert.strictEqual(organization.issuedAddresses.length, 0)
-    console.log(' ✓  - ZEP validator gives empty data for organization query')
+    console.log(' ✓ ZEP validator gives empty data for organization query')
     passed++
   })
 
@@ -296,7 +296,7 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(foundJurisdictionAddress => {
     assert.strictEqual(foundJurisdictionAddress, jurisdictionAddress)
     console.log(
-      ' ✓  - ZEP validator points to the correct jurisdiction address'
+      ' ✓ ZEP validator points to the correct jurisdiction address'
     )
     passed++
   })
@@ -308,7 +308,7 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(registryAddress => {
     assert.strictEqual(registryAddress, jurisdictionAddress)
     console.log(
-      ' ✓  - registry utilized by mock token is set to the jurisdiction address'
+      ' ✓ registry utilized by mock token is set to the jurisdiction address'
     )
     passed++
   })
@@ -319,7 +319,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(balance => {
     assert.strictEqual(balance, mockZEPTokenTotalSupply.toString())
-    console.log(' ✓  - mock token has the correct balance')
+    console.log(' ✓ mock token has the correct balance')
     passed++
   })
 
@@ -329,7 +329,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).catch(error => {
     console.log(
-      " ✓  - tokens can't be transferred before valid attributes are assigned"
+      " ✓ tokens can't be transferred before valid attributes are assigned"
     )
     passed++
   })
@@ -344,7 +344,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: '1000000000'
   })
-  console.log(` ✓  - ZEP attribute type can be added to jurisdiction`)
+  console.log(` ✓ ZEP attribute type can be added to jurisdiction`)
   passed++
 
   await JurisdictionContractInstance.methods.addValidator(
@@ -355,7 +355,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: '1000000000'
   })
-  console.log(` ✓  - ZEP validator can be added to jurisdiction`)
+  console.log(` ✓ ZEP validator can be added to jurisdiction`)
   passed++
 
   await JurisdictionContractInstance.methods.addValidatorApproval(
@@ -366,7 +366,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: '1000000000'
   })
-  console.log(` ✓  - ZEP validator can be approved to issue target attribute`)
+  console.log(` ✓ ZEP validator can be approved to issue target attribute`)
   passed++
 
   await ZEPValidatorContractInstance.methods.addOrganization(
@@ -384,7 +384,7 @@ module.exports = {test: async function (provider, testingContext) {
     const logs = receipt.events.OrganizationAdded.returnValues
     assert.strictEqual(logs.organization, organizationAddress)
     assert.strictEqual(logs.name, ZEPOrganizationName)
-    console.log(' ✓  - OrganizationAdded event is logged correctly')
+    console.log(' ✓ OrganizationAdded event is logged correctly')
     passed++
   })
 
@@ -395,7 +395,7 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(organizations => {
     assert.strictEqual(organizations.length, 1)
     assert.strictEqual(organizations[0], organizationAddress)
-    console.log(' ✓  - the organization address can be found')
+    console.log(' ✓ the organization address can be found')
     passed++
   })
 
@@ -411,7 +411,7 @@ module.exports = {test: async function (provider, testingContext) {
     assert.strictEqual(organization.name, ZEPOrganizationName)
     assert.strictEqual(organization.issuedAddresses.length, 0)
     console.log(
-      ' ✓  - ZEP validator gives correct data for organization query'
+      ' ✓ ZEP validator gives correct data for organization query'
     )
     passed++
   })
@@ -426,7 +426,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: '1000000000'
   }).catch(error => {
     console.log(
-      ` ✓  - ZEP validator cannot add an organization with an empty address`
+      ` ✓ ZEP validator cannot add an organization with an empty address`
     )
     passed++
   })
@@ -440,7 +440,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: '1000000000'
   }).catch(error => {
-    console.log(` ✓  - ZEP validator cannot add a duplicate organization`)
+    console.log(` ✓ ZEP validator cannot add a duplicate organization`)
     passed++
   })
 
@@ -453,7 +453,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: '1000000000'
   }).then(receipt => {
-    console.log(` ✓  - ZEP validator can add multiple organizations`)
+    console.log(` ✓ ZEP validator can add multiple organizations`)
     passed++
   })
 
@@ -466,7 +466,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: '1000000000'
   }).catch(error => {
-    console.log(` ✓  - non-owner cannot add an organization`)
+    console.log(` ✓ non-owner cannot add an organization`)
     passed++
   })
 
@@ -492,7 +492,7 @@ module.exports = {test: async function (provider, testingContext) {
     assert.strictEqual(organizations.length, 2)
     assert.strictEqual(organizations[0], organizationAddress)
     assert.strictEqual(organizations[1], address)
-    console.log(' ✓  - the organization addresses can still be found')
+    console.log(' ✓ the organization addresses can still be found')
     passed++
   })
 
@@ -508,7 +508,7 @@ module.exports = {test: async function (provider, testingContext) {
     assert.strictEqual(organization.name, ZEPOrganizationName)
     assert.strictEqual(organization.issuedAddresses.length, 0)
     console.log(
-      ' ✓  - ZEP validator gives updated data for organization query'
+      ' ✓ ZEP validator gives updated data for organization query'
     )
     passed++
   })
@@ -536,7 +536,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: '1000000000'
   }).catch(error => {
     console.log(
-      ` ✓  - non-owner cannot change maximum address an organization can issue`
+      ` ✓ non-owner cannot change maximum address an organization can issue`
     )
     passed++
   })
@@ -547,7 +547,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   })
-  console.log(` ✓  - ZEP validator attribute issuance can be paused`)
+  console.log(` ✓ ZEP validator attribute issuance can be paused`)
   passed++
 
   await ZEPValidatorContractInstance.methods.issuancePaused(
@@ -557,7 +557,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).then(isPaused => {
     assert.ok(isPaused)
-    console.log(` ✓  - checks for paused issuance return true when paused`)
+    console.log(` ✓ checks for paused issuance return true when paused`)
     passed++
   })
 
@@ -569,7 +569,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: '1000000000'
   }).catch(error => {
     console.log(
-      ` ✓  - organization cannot issue attributes when issuance is paused`
+      ` ✓ organization cannot issue attributes when issuance is paused`
     )
     passed++
   })
@@ -580,7 +580,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   })
-  console.log(` ✓  - ZEP validator attribute issuance can be unpaused`)
+  console.log(` ✓ ZEP validator attribute issuance can be unpaused`)
   passed++
 
   await ZEPValidatorContractInstance.methods.unpauseIssuance(
@@ -590,7 +590,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: 10 ** 9
   }).catch(error => {
     console.log(
-      ` ✓  - attribute issuance cannot be unpaused when already unpaused`
+      ` ✓ attribute issuance cannot be unpaused when already unpaused`
     )
     passed++
   })
@@ -601,7 +601,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   })
-  console.log(` ✓  - ZEP validator contract can be paused`)
+  console.log(` ✓ ZEP validator contract can be paused`)
   passed++
 
   await ZEPValidatorContractInstance.methods.issueAttribute(
@@ -612,7 +612,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: '1000000000'
   }).catch(error => {
     console.log(
-      ` ✓  - organization cannot issue attributes when contract is paused`
+      ` ✓ organization cannot issue attributes when contract is paused`
     )
     passed++
   })
@@ -623,7 +623,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: 10 ** 9
   })
-  console.log(` ✓  - ZEP validator contract can be unpaused`)
+  console.log(` ✓ ZEP validator contract can be unpaused`)
   passed++
 
   await JurisdictionContractInstance.methods.removeValidator(
@@ -633,7 +633,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: '1000000000'
   })
-  console.log(` ✓  - ZEP validator can be removed from jurisdiction`)
+  console.log(` ✓ ZEP validator can be removed from jurisdiction`)
   passed++
 
   await ZEPValidatorContractInstance.methods.issueAttribute(
@@ -657,7 +657,7 @@ module.exports = {test: async function (provider, testingContext) {
     gas: 5000000,
     gasPrice: '1000000000'
   })
-  console.log(` ✓  - ZEP validator can be added back to jurisdiction`)
+  console.log(` ✓ ZEP validator can be added back to jurisdiction`)
   passed++
 
   await JurisdictionContractInstance.methods.addValidatorApproval(
@@ -669,7 +669,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: '1000000000'
   })
   console.log(
-    ` ✓  - ZEP validator must be reapproved to issue target attribute`
+    ` ✓ ZEP validator must be reapproved to issue target attribute`
   )
   passed++
 
@@ -689,7 +689,7 @@ module.exports = {test: async function (provider, testingContext) {
     const logs = receipt.events.AttributeIssued.returnValues
     assert.strictEqual(logs.organization, organizationAddress)
     assert.strictEqual(logs.attributedAddress, attributedAddress)
-    console.log(' ✓  - AttributeIssued event is logged correctly')
+    console.log(' ✓ AttributeIssued event is logged correctly')
     passed++
   })
 
@@ -715,7 +715,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: '1000000000'
   }).catch(error => {
     console.log(
-      ` ✓  - ZEP validator cannot change max addresses to amount below current`
+      ` ✓ ZEP validator cannot change max addresses to amount below current`
     )
     passed++
   })
@@ -733,7 +733,7 @@ module.exports = {test: async function (provider, testingContext) {
     assert.strictEqual(organization.issuedAddresses.length, 1)
     assert.strictEqual(organization.issuedAddresses[0], attributedAddress)
     console.log(
-      ' ✓  - ZEP validator gives updated data for organization query'
+      ' ✓ ZEP validator gives updated data for organization query'
     )
     passed++
   })
@@ -746,7 +746,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: '1000000000'
   }).catch(error => {
     console.log(
-      ` ✓  - non-organization cannot issue attributes to an address`
+      ` ✓ non-organization cannot issue attributes to an address`
     )
     passed++
   })
@@ -759,7 +759,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: '1000000000'
   }).catch(error => {
     console.log(
-      ` ✓  - organization cannot issue attributes to an empty address`
+      ` ✓ organization cannot issue attributes to an empty address`
     )
     passed++
   })
@@ -772,7 +772,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: '1000000000'
   }).catch(error => {
     console.log(
-      ` ✓  - organization cannot issue attributes to duplicate addresses`
+      ` ✓ organization cannot issue attributes to duplicate addresses`
     )
     passed++
   })
@@ -785,7 +785,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: '1000000000'
   }).then(receipt => {
     console.log(
-      ` ✓  - organization can issue attributes to multiple address`
+      ` ✓ organization can issue attributes to multiple address`
     )
     passed++
   })
@@ -804,7 +804,7 @@ module.exports = {test: async function (provider, testingContext) {
     assert.strictEqual(organization.issuedAddresses[0], attributedAddress)
     assert.strictEqual(organization.issuedAddresses[1], address)
     console.log(
-      ' ✓  - ZEP validator gives updated data for organization query'
+      ' ✓ ZEP validator gives updated data for organization query'
     )
     passed++
   })
@@ -817,7 +817,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: '1000000000'
   }).catch(error => {
     console.log(
-      ` ✓  - organization cannot issue attributes beyond the allowed maximum`
+      ` ✓ organization cannot issue attributes beyond the allowed maximum`
     )
     passed++
   })  
@@ -851,7 +851,7 @@ module.exports = {test: async function (provider, testingContext) {
     const logs = receipt.events.AttributeRevoked.returnValues
     assert.strictEqual(logs.organization, organizationAddress)
     assert.strictEqual(logs.attributedAddress, attributedAddress)
-    console.log(' ✓  - AttributeRevoked event is logged correctly')
+    console.log(' ✓ AttributeRevoked event is logged correctly')
     passed++
   })
 
@@ -903,7 +903,7 @@ module.exports = {test: async function (provider, testingContext) {
     gasPrice: '1000000000'
   }).catch(error => {
     console.log(
-      ` ✓  - organization can't 'issue' attributes to naughty jurisdiction`
+      ` ✓ organization can't 'issue' attributes to naughty jurisdiction`
     )
     passed++
   })
@@ -931,7 +931,7 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(receipt => {
     assert.ok(receipt.status)
     console.log(
-      ` ✓  - organization can 'issue' attributes to nice jurisdiction`
+      ` ✓ organization can 'issue' attributes to nice jurisdiction`
     )
     passed++
   })
