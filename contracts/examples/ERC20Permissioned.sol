@@ -4,59 +4,93 @@ import "openzeppelin-zos/contracts/token/ERC20/ERC20.sol";
 import "../AttributeRegistryInterface.sol";
 import "../TPLTokenInterface.sol";
 
+/**
+ * @title ERC20 Permissioned Token example.
+ */
 contract ERC20Permissioned is Initializable, ERC20, TPLTokenInterface {
 
   // declare registry interface, used to request attributes from a jurisdiction
   AttributeRegistryInterface private _registry;
 
   // declare attribute ID required in order to receive transferred tokens
-  uint256 private _validRecipientAttributeID;
+  uint256 private _validAttributeTypeID;
 
-  // initialize token with an attribute registry address and valid attribute ID
+  /**
+  * @notice The initializer function, with an associated attribute registry at
+  * `registry` and an assignable attribute type with ID `validAttributeTypeID`.
+  * @param registry address The account of the associated attribute registry.  
+  * @param validAttributeTypeID uint256 The ID of the required attribute type.
+  * @dev Note that it may be appropriate to require that the referenced
+  * attribute registry supports the correct interface via EIP-165.
+  */
   function initialize(
     AttributeRegistryInterface registry,
-    uint256 validRecipientAttributeID
+    uint256 validAttributeTypeID
   )
     initializer
     public
   {
     _registry = AttributeRegistryInterface(registry);
-    _validRecipientAttributeID = validRecipientAttributeID;
+    _validAttributeTypeID = validAttributeTypeID;
   }
 
-  // check that target is allowed to receive tokens before enabling the transfer
+  /**
+   * @notice Transfer an amount of `value` to a recipient at account `to`.
+   * @param to address The account of the recipient.
+   * @param value uint256 the amount to be transferred.
+   * @return True if the transfer was successful.
+   */
   function transfer(address to, uint256 value) public returns (bool) {
     require(
-      _registry.hasAttribute(to, _validRecipientAttributeID),
+      _registry.hasAttribute(to, _validAttributeTypeID),
       "Transfer failed - recipient is not approved."
     );
     return(super.transfer(to, value));
   }
 
-  // check that the transfer is valid before enabling approved transfers as well
+  /**
+   * @notice Transfer an amount of `value` to a recipient at account `to` on
+   * behalf of a sender at account `from`.
+   * @param to address The account of the recipient.
+   * @param from address The account of the sender.
+   * @param value uint256 the amount to be transferred.
+   * @return True if the transfer was successful.
+   */
   function transferFrom(
     address from,
     address to,
     uint256 value
   ) public returns (bool) {
     require(
-      _registry.hasAttribute(to, _validRecipientAttributeID),
+      _registry.hasAttribute(to, _validAttributeTypeID),
       "Transfer failed - recipient is not approved."
     );
     return(super.transferFrom(from, to, value));
   }
 
-  // in order to transfer tokens, the receiver must be valid
-  // NOTE: consider returning an additional status code, e.g. EIP 1066
+  /**
+   * @notice Transfer an amount of `value` to a recipient at account `to`.
+   * @param to address The account of the recipient.
+   * @param value uint256 the amount to be transferred.
+   * @return True if the transfer will succeed, false otherwise.
+   * @dev Consider also returning a status code, e.g. EIP-1066
+   */
   function canTransfer(address to, uint256 value) external view returns (bool) {
     return (
       super.balanceOf(msg.sender) >= value && 
-      _registry.hasAttribute(to, _validRecipientAttributeID)
+      _registry.hasAttribute(to, _validAttributeTypeID)
     );
   }
 
-  // in order to transfer tokens via transferFrom, the receiver must be valid
-  // NOTE: consider returning an additional status code, e.g. EIP 1066
+  /**
+   * @notice Check if an account is approved to transfer an amount of `value` to
+   * a recipient at account `to` on behalf of a sender at account `from`.
+   * @param to address The account of the recipient.
+   * @param from address The account of the sender.
+   * @param value uint256 the amount to be transferred.
+   * @return True if the transfer will succeed, false otherwise.
+   * @dev Consider also returning a status code, e.g. EIP-1066
+   */
   function canTransferFrom(
     address from,
     address to,
@@ -65,17 +99,23 @@ contract ERC20Permissioned is Initializable, ERC20, TPLTokenInterface {
     return (
       super.balanceOf(from) >= value &&
       super.allowance(from, msg.sender) >= value &&
-      _registry.hasAttribute(to, _validRecipientAttributeID)
+      _registry.hasAttribute(to, _validAttributeTypeID)
     );
   }
 
-  // provide getter function for finding the registry address the token is using
+  /**
+   * @notice Get the account of the utilized attribute registry.
+   * @return The account of the registry.
+   */
   function getRegistry() external view returns (address) {
     return address(_registry);
   }
 
-  // external interface for getting the required attribute ID
+  /**
+   * @notice Get the ID of the attribute type required to receive tokens.
+   * @return The ID of the required attribute type.
+   */
   function getValidAttributeID() external view returns (uint256) {
-    return _validRecipientAttributeID;
+    return _validAttributeTypeID;
   }
 }

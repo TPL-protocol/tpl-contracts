@@ -5,10 +5,11 @@ pragma solidity ^0.4.25;
  */
 interface AttributeRegistryInterface {
   /**
-   * @notice Check if an attribute has been assigned to a given address.
-   * @param account The address to check.
-   * @param attributeTypeID The ID of the attribute type to check for.
-   * @return True if the attribute has been assigned, false otherwise.
+   * @notice Check if an attribute of the type with ID `attributeTypeID` has
+   * been assigned to the account at `account` and is still valid.
+   * @param account address The account to check for a valid attribute.
+   * @param attributeTypeID uint256 The ID of the attribute type to check for.
+   * @return True if the attribute is assigned and valid, false otherwise.
    */
   function hasAttribute(
   	address account,
@@ -16,10 +17,11 @@ interface AttributeRegistryInterface {
   ) external view returns (bool);
 
   /**
-   * @notice Retrieve the value of an attribute at a given address.
-   * @param account The address to check.
-   * @param attributeTypeID The ID of the attribute type to check for.
-   * @return The attribute value if an attribute is assigned, reverts otherwise.
+   * @notice Retrieve the value of the attribute of the type with ID
+   * `attributeTypeID` on the account at `account`, assuming it is valid.
+   * @param account address The account to check for the given attribute value.
+   * @param attributeTypeID uint256 The ID of the attribute type to check for.
+   * @return The attribute value if the attribute is valid, reverts otherwise.
    */
   function getAttributeValue(
   	address account,
@@ -27,14 +29,14 @@ interface AttributeRegistryInterface {
   ) external view returns (uint256);
 
   /**
-   * @notice Count all attribute types defined on the registry.
-   * @return The total number of available attribute types.
+   * @notice Count the number of attribute types defined by the registry.
+   * @return The number of available attribute types.
    */
   function countAttributeTypes() external view returns (uint256);
 
   /**
-   * @notice Retrieve an attribute type ID defined on the registry by index.
-   * @param index The attribute type's index in the registry.   
+   * @notice Get the ID of the attribute type at index `index`.
+   * @param index uint256 The index of the attribute type in question.
    * @return The ID of the attribute type.
    */
   function getAttributeTypeID(
