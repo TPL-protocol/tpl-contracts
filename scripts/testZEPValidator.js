@@ -578,7 +578,7 @@ module.exports = {test: async function (provider, testingContext) {
   console.log(` ✓ ZEP validator attribute issuance can be paused`)
   passed++
 
-  await ZEPValidatorContractInstance.methods.issuancePaused(
+  await ZEPValidatorContractInstance.methods.issuanceIsPaused(
   ).call({
     from: address,
     gas: 5000000,

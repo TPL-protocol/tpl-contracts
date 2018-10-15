@@ -3,6 +3,7 @@ pragma solidity ^0.4.25;
 import "../examples/ERC20Permissioned.sol";
 import "../AttributeRegistryInterface.sol";
 
+
 /**
  * @title An instance of an ERC20 Permissioned Token with an initial balance.
  */
@@ -22,8 +23,8 @@ contract TPLTokenInstance is Initializable, ERC20Permissioned {
     AttributeRegistryInterface registry,
     uint256 validAttributeTypeID
   )
-    initializer
     public
+    initializer
   {
     ERC20Permissioned.initialize(registry, validAttributeTypeID);
     _mint(msg.sender, initialBalance);

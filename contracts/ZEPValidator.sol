@@ -6,21 +6,26 @@ import "openzeppelin-zos/contracts/lifecycle/Pausable.sol";
 import "./AttributeRegistryInterface.sol";
 import "./BasicJurisdictionInterface.sol";
 
+
 /**
  * @title Initial validator contract for the ZEP token.
  */
 contract ZEPValidator is Initializable, Ownable, Pausable {
   // declare events
   event OrganizationAdded(address organization, string name);
+  
   event AttributeIssued(
     address indexed organization,
     address attributee
   );
+  
   event AttributeRevoked(
     address indexed organization,
     address attributee
   );
+  
   event IssuancePaused();
+  
   event IssuanceUnpaused();
 
   // declare registry interface, used to request attributes from a jurisdiction
@@ -50,33 +55,6 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
 
   // issuance of new attributes may be paused and unpaused by the ZEP validator.
   bool private _issuancePaused;
-
-  /**
-  * @notice The initializer function for the ZEP token, with owner and pauser
-  * roles initially assigned to contract creator (`message.caller.address()`),
-  * and with an associated jurisdiction at `jurisdiction` and an assignable
-  * attribute type with ID `validAttributeTypeID`.
-  * @param jurisdiction address The account of the associated jurisdiction.  
-  * @param validAttributeTypeID uint256 The ID of the attribute type to issue.
-  * @dev Note that it may be appropriate to require that the referenced
-  * jurisdiction supports the correct interface via EIP-165 and that the
-  * validator has been approved to issue attributes of the specified type when
-  * initializing the contract - it is not currently required.
-  */
-  function initialize(
-    address jurisdiction,
-    uint256 validAttributeTypeID
-  )
-    public
-    initializer
-  {
-    Ownable.initialize(msg.sender);
-    Pausable.initialize(msg.sender);
-    _issuancePaused = false;
-    _registry = AttributeRegistryInterface(jurisdiction);
-    _jurisdiction = BasicJurisdictionInterface(jurisdiction);
-    _validAttributeTypeID = validAttributeTypeID;
-  }
 
   /**
   * @notice Add an organization at account `organization` and with an initial
@@ -245,39 +223,6 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
   }
 
   /**
-   * @notice Pause all issuance of new attributes by organizations.
-   */
-  function pauseIssuance() public onlyOwner whenNotPaused whenIssuanceNotPaused {
-    _issuancePaused = true;
-    emit IssuancePaused();
-  }
-
-  /**
-   * @notice Unpause issuance of new attributes by organizations.
-   */
-  function unpauseIssuance() public onlyOwner whenNotPaused {
-    require(_issuancePaused); // only allow unpausing when issuance is paused
-    _issuancePaused = false;
-    emit IssuanceUnpaused();
-  }
-
-  /**
-   * @notice Determine if attribute issuance is currently paused.
-   * @return True if issuance is currently paused, false otherwise.
-   */
-  function issuancePaused() public view returns (bool) {
-    return _issuancePaused;
-  }
-
-  /**
-   * @notice Modifier to allow issuing attributes only when not paused
-   */
-  modifier whenIssuanceNotPaused() {
-    require(!_issuancePaused);
-    _;
-  }
-
-  /**
    * @notice Count the number of organizations defined by the validator.
    * @return The number of defined organizations.
    */
@@ -342,5 +287,65 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
    */
   function getValidAttributeTypeID() external view returns (uint256) {
     return _validAttributeTypeID;
+  }
+
+  /**
+  * @notice The initializer function for the ZEP token, with owner and pauser
+  * roles initially assigned to contract creator (`message.caller.address()`),
+  * and with an associated jurisdiction at `jurisdiction` and an assignable
+  * attribute type with ID `validAttributeTypeID`.
+  * @param jurisdiction address The account of the associated jurisdiction.  
+  * @param validAttributeTypeID uint256 The ID of the attribute type to issue.
+  * @dev Note that it may be appropriate to require that the referenced
+  * jurisdiction supports the correct interface via EIP-165 and that the
+  * validator has been approved to issue attributes of the specified type when
+  * initializing the contract - it is not currently required.
+  */
+  function initialize(
+    address jurisdiction,
+    uint256 validAttributeTypeID
+  )
+    public
+    initializer
+  {
+    Ownable.initialize(msg.sender);
+    Pausable.initialize(msg.sender);
+    _issuancePaused = false;
+    _registry = AttributeRegistryInterface(jurisdiction);
+    _jurisdiction = BasicJurisdictionInterface(jurisdiction);
+    _validAttributeTypeID = validAttributeTypeID;
+  }
+
+  /**
+   * @notice Pause all issuance of new attributes by organizations.
+   */
+  function pauseIssuance() public onlyOwner whenNotPaused whenIssuanceNotPaused {
+    _issuancePaused = true;
+    emit IssuancePaused();
+  }
+
+  /**
+   * @notice Unpause issuance of new attributes by organizations.
+   */
+  function unpauseIssuance() public onlyOwner whenNotPaused {
+    require(_issuancePaused); // only allow unpausing when issuance is paused
+    _issuancePaused = false;
+    emit IssuanceUnpaused();
+  }
+
+  /**
+   * @notice Determine if attribute issuance is currently paused.
+   * @return True if issuance is currently paused, false otherwise.
+   */
+  function issuanceIsPaused() public view returns (bool) {
+    return _issuancePaused;
+  }
+
+  /**
+   * @notice Modifier to allow issuing attributes only when not paused
+   */
+  modifier whenIssuanceNotPaused() {
+    require(!_issuancePaused);
+    _;
   }
 }

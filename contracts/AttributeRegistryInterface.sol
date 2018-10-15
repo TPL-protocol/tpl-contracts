@@ -1,5 +1,6 @@
 pragma solidity ^0.4.25;
 
+
 /**
  * @title Attribute Registry interface. EIP-165 ID: 0x5f46473f
  */
@@ -12,8 +13,8 @@ interface AttributeRegistryInterface {
    * @return True if the attribute is assigned and valid, false otherwise.
    */
   function hasAttribute(
-  	address account,
-  	uint256 attributeTypeID
+    address account,
+    uint256 attributeTypeID
   ) external view returns (bool);
 
   /**
@@ -24,8 +25,8 @@ interface AttributeRegistryInterface {
    * @return The attribute value if the attribute is valid, reverts otherwise.
    */
   function getAttributeValue(
-  	address account,
-  	uint256 attributeTypeID
+    address account,
+    uint256 attributeTypeID
   ) external view returns (uint256);
 
   /**
@@ -39,7 +40,5 @@ interface AttributeRegistryInterface {
    * @param index uint256 The index of the attribute type in question.
    * @return The ID of the attribute type.
    */
-  function getAttributeTypeID(
-    uint256 index
-  ) external view returns (uint256);
+  function getAttributeTypeID(uint256 index) external view returns (uint256);
 }

@@ -7,6 +7,7 @@ import "openzeppelin-zos/contracts/lifecycle/Pausable.sol";
 import "./AttributeRegistryInterface.sol";
 import "./BasicJurisdictionInterface.sol";
 
+
 /**
  * @title A basic TPL jurisdiction for assigning attributes to addresses.
  */
@@ -55,15 +56,6 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
 
   // addresses for all designated validators are also held in an array
   address[] private _validatorAccounts;
-
-  /**
-  * @notice The initializer function for the jurisdiction, with owner and pauser
-  * roles initially assigned to contract creator (`message.caller.address()`).
-  */
-  function initialize() public initializer {
-    Ownable.initialize(msg.sender);
-    Pausable.initialize(msg.sender);
-  }
 
   /**
   * @notice Add an attribute type with ID `ID` and description `description` to
@@ -252,7 +244,7 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
     );
 
     // check that the validator is not already approved
-    require (
+    require(
       _attributeTypes[attributeTypeID].approvedValidators[validator] == false,
       "validator is already approved on the provided attribute"
     );
@@ -402,7 +394,7 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
     uint256 attributeTypeID
   ) external view returns (uint256 value) {
     address validator = _issuedAttributes[account][attributeTypeID].validator;
-    require (
+    require(
       (
         _validators[validator].exists &&
         _attributeTypes[attributeTypeID].approvedValidators[validator] &&
@@ -541,11 +533,22 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
   function supportsInterface(bytes4 interfaceID) external view returns (bool) {
     return (
       interfaceID == this.supportsInterface.selector || // ERC165
-      interfaceID == this.hasAttribute.selector // AttributeRegistryInterface
-                     ^ this.getAttributeValue.selector
-                     ^ this.countAttributeTypes.selector
-                     ^ this.getAttributeTypeID.selector 
+      interfaceID == (
+        this.hasAttribute.selector 
+        ^ this.getAttributeValue.selector
+        ^ this.countAttributeTypes.selector
+        ^ this.getAttributeTypeID.selector
+      ) // AttributeRegistryInterface
     ); // 0x01ffc9a7 || 0x5f46473f
+  }
+
+  /**
+  * @notice The initializer function for the jurisdiction, with owner and pauser
+  * roles initially assigned to contract creator (`message.caller.address()`).
+  */
+  function initialize() public initializer {
+    Ownable.initialize(msg.sender);
+    Pausable.initialize(msg.sender);
   }
 
   /**

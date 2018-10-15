@@ -1,5 +1,6 @@
 pragma solidity ^0.4.25;
 
+
 /**
  * @title TPL Token interface. EIP-165 ID: 0x7d92a55e
  */

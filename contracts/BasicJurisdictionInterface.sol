@@ -1,28 +1,36 @@
 pragma solidity ^0.4.25;
 
+
 /**
  * @title Basic TPL Jurisdiction Interface.
  */
 interface BasicJurisdictionInterface {
   // declare events
   event AttributeTypeAdded(uint256 indexed attributeTypeID, string description);
+  
   event AttributeTypeRemoved(uint256 indexed attributeTypeID);
+  
   event ValidatorAdded(address indexed validator, string description);
+  
   event ValidatorRemoved(address indexed validator);
+  
   event ValidatorApprovalAdded(
     address validator,
     uint256 indexed attributeTypeID
   );
+
   event ValidatorApprovalRemoved(
     address validator,
     uint256 indexed attributeTypeID
   );
+
   event AttributeAdded(
     address validator,
     address indexed attributee,
     uint256 attributeTypeID,
     uint256 attributeValue
   );
+
   event AttributeRemoved(
     address validator,
     address indexed attributee,
