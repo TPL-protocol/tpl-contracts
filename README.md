@@ -1,4 +1,4 @@
-# transaction-permission-layer-tpl
+# Transaction Permission Layer (tpl-contracts)
 
 ![banner](images/TPL_01@3x.png)
 
