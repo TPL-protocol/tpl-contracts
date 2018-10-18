@@ -195,11 +195,11 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
 
     // first, start removing validator approvals until gas is exhausted
     while (_validatorApprovals[validator].length > 0 && gasleft() > 25000) {
-      // locate the last attribute ID in the validator approval group
-      uint256 lastAttributeID = _validatorApprovals[validator].length.sub(1);
+      // locate the index of last attribute ID in the validator approval group
+      uint256 lastIndex = _validatorApprovals[validator].length.sub(1);
 
       // locate the validator approval to be removed
-      uint256 targetApproval = _validatorApprovals[validator][lastAttributeID];
+      uint256 targetApproval = _validatorApprovals[validator][lastIndex];
 
       // remove the record of the approval from the associated attribute type
       delete _attributeTypes[targetApproval].approvedValidators[validator];
