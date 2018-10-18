@@ -3,8 +3,8 @@
 ![banner](images/TPL_01@3x.png)
 
 ![GitHub](https://img.shields.io/github/license/tpl-protocol/tpl-contracts.svg)
-[![Build Status](https://travis-ci.com/TPL-protocol/tpl-contracts.svg?branch=audit-fix)](https://travis-ci.com/TPL-protocol/tpl-contracts)
-[![Coverage Status](https://coveralls.io/repos/github/TPL-protocol/tpl-contracts/badge.svg?branch=audit-fix)](https://coveralls.io/github/TPL-protocol/tpl-contracts?branch=audit-fix)
+[![Build Status](https://travis-ci.com/TPL-protocol/tpl-contracts.svg?branch=audit-fix-2)](https://travis-ci.com/TPL-protocol/tpl-contracts)
+[![Coverage Status](https://coveralls.io/repos/github/TPL-protocol/tpl-contracts/badge.svg?branch=audit-fix-2)](https://coveralls.io/github/TPL-protocol/tpl-contracts?branch=audit-fix-2)
 [![standard-readme compliant](https://img.shields.io/badge/standard--readme-OK-green.svg)](https://github.com/RichardLitt/standard-readme)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
@@ -12,9 +12,9 @@
 
 TPL is a method for assigning metadata (or **“attributes”**) to Ethereum addresses. These attributes then form the basis for designing systems that enforce permissions when performing certain transactions. For instance, using TPL, securities tokens can require that attributes be present and have an appropriate value every time a token is sent or received. This allows projects to remain compliant with regulations by **validating every single exchange between participants**, beyond just the initial offering.
 
-At the core of TPL is the [jurisdiction](https://github.com/TPL-protocol/tpl-contracts/blob/audit-fix/contracts/BasicJurisdiction.sol) — a single smart contract that links attributes to addresses. It implements an [Attribute Registry interface](https://github.com/TPL-protocol/tpl-contracts/blob/audit-fix/contracts/AttributeRegistryInterface.sol), where attributes are registered to addresses as a key-value pair with a single canonical value. [Implementing tokens](https://github.com/TPL-protocol/tpl-contracts/blob/audit-fix/contracts/examples/ERC20Permissioned.sol) then use this interface to request attributes that will inform whether to permit or reject the token transfer. Furthermore, implementers do not need to know any additional information on who set the attribute or how, and can check for the attribute value in a straightforward and efficient manner.
+At the core of TPL is the [jurisdiction](https://github.com/TPL-protocol/tpl-contracts/blob/audit-fix-2/contracts/BasicJurisdiction.sol) — a single smart contract that links attributes to addresses. It implements an [Attribute Registry interface](https://github.com/TPL-protocol/tpl-contracts/blob/audit-fix-2/contracts/AttributeRegistryInterface.sol), where attributes are registered to addresses as a key-value pair with a single canonical value. [Implementing tokens](https://github.com/TPL-protocol/tpl-contracts/blob/audit-fix-2/contracts/examples/ERC20Permissioned.sol) then use this interface to request attributes that will inform whether to permit or reject the token transfer. Furthermore, implementers do not need to know any additional information on who set the attribute or how, and can check for the attribute value in a straightforward and efficient manner.
 
-This jurisdiction does not set attributes itself, but rather defines a valid set of attribute types and designates [validators](https://github.com/TPL-protocol/tpl-contracts/blob/audit-fix/contracts/ZEPValidator.sol) that are approved to issue specific attribute types. The validators then either add attributes directly, or sign off-chain attribute approvals that can be relayed to the jurisdiction by the attribute holder or a designated third party. Considerable focus is also paid to ensuring that the jurisdiction and validators can revoke attributes, or entire categories of attributes, when necessary.
+This jurisdiction does not set attributes itself, but rather defines a valid set of attribute types and designates [validators](https://github.com/TPL-protocol/tpl-contracts/blob/audit-fix-2/contracts/ZEPValidator.sol) that are approved to issue specific attribute types. The validators then either add attributes directly, or sign off-chain attribute approvals that can be relayed to the jurisdiction by the attribute holder or a designated third party. Considerable focus is also paid to ensuring that the jurisdiction and validators can revoke attributes, or entire categories of attributes, when necessary.
 
 TPL is designed to be flexible enough for a wide variety of use-cases beyond just securities tokens, and promotes a distributed architecture where information is shared between multiple jurisdictions with their own specialties. It does so by allowing jurisdictions to specify secondary sources for any type of attribute, delegating the query to another jurisdiction or other attribute registry. A basic jurisdiction is also available that implements a smaller subset of these features.
 
@@ -34,7 +34,7 @@ TPL is designed to be flexible enough for a wide variety of use-cases beyond jus
 First, ensure that [Node.js](https://nodejs.org/en/download/current/), [Yarn](https://yarnpkg.com/en/docs/install), and [ganache-cli](https://github.com/trufflesuite/ganache-cli#installation) are installed. Next, clone the repository and install dependencies:
 
 ```sh
-$ git clone -b audit-fix https://github.com/TPL-protocol/tpl-contracts
+$ git clone -b audit-fix-2 https://github.com/TPL-protocol/tpl-contracts
 $ cd tpl-contracts
 $ yarn install
 ```

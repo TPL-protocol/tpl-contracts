@@ -217,6 +217,9 @@ contract ZEPValidator is Initializable, Ownable, Pausable {
     
     // remove the (now duplicate) account at the end by trimming the array
     _organizations[msg.sender].accounts.length--;
+
+    // remove the account from the organization's issuedAccounts mapping as well
+    delete _organizations[msg.sender].issuedAccounts[account];
     
     // log the addition of the new attributed account
     emit AttributeRevoked(msg.sender, account);

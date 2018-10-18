@@ -51,6 +51,9 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
   // attribute approvals by validator are held in a mapping
   mapping(address => uint256[]) private _validatorApprovals;
 
+   // attribute approval index by validator is tracked as well
+  mapping(address => mapping(uint256 => uint256)) private _validatorApprovalsIndex;
+
   // IDs for all supplied attributes are held in an array (enables enumeration)
   uint256[] private _attributeIDs;
 
@@ -94,7 +97,7 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
       "attribute type properties must match initial properties assigned to ID"
     );
 
-    // set the attribute mapping, assigning the index as the end of attributeId
+    // set the attribute mapping, assigning the index as the end of attributeID
     _attributeTypes[ID] = AttributeType({
       exists: true,
       index: _attributeIDs.length,
@@ -102,7 +105,7 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
       // NOTE: no approvedValidators variable declaration - must be added later
     });
     
-    // add the attribute type id to the end of the attributeId array
+    // add the attribute type id to the end of the attributeID array
     _attributeIDs.push(ID);
 
     // log the addition of the attribute type
@@ -125,7 +128,7 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
     // get the attribute ID at the last index of the array
     uint256 lastAttributeID = _attributeIDs[_attributeIDs.length.sub(1)];
 
-    // set the attributeId at attribute-to-delete.index to the last attribute ID
+    // set the attributeID at attribute-to-delete.index to the last attribute ID
     _attributeIDs[_attributeTypes[ID].index] = lastAttributeID;
 
     // update the index of the attribute type that was moved
@@ -193,38 +196,44 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
     // first, start removing validator approvals until gas is exhausted
     while (_validatorApprovals[validator].length > 0 && gasleft() > 25000) {
       // locate the last attribute ID in the validator approval group
-      uint256 lastAttributeId = _validatorApprovals[validator].length.sub(1);
+      uint256 lastAttributeID = _validatorApprovals[validator].length.sub(1);
 
       // locate the validator approval to be removed
-      uint256 targetApproval = _validatorApprovals[validator][lastAttributeId];
+      uint256 targetApproval = _validatorApprovals[validator][lastAttributeID];
 
       // remove the record of the approval from the associated attribute type
       delete _attributeTypes[targetApproval].approvedValidators[validator];
+
+      // remove the record of the index of the approval
+      delete _validatorApprovalsIndex[validator][targetApproval];
 
       // drop the last attribute ID from the validator approval group
       _validatorApprovals[validator].length--;
     }
 
-    // proceed if all approvals have been successfully removed
-    if (_validatorApprovals[validator].length == 0) {
-      // get the validator address at the last index of the array
-      address lastAccount = _validatorAccounts[_validatorAccounts.length.sub(1)];
+    // require that all approvals were successfully removed
+    require(
+      _validatorApprovals[validator].length == 0,
+      "Cannot remove validator - first remove any existing validator approvals"
+    );
 
-      // set the address at validator-to-delete.index to last validator address
-      _validatorAccounts[_validators[validator].index] = lastAccount;
+    // get the validator address at the last index of the array
+    address lastAccount = _validatorAccounts[_validatorAccounts.length.sub(1)];
 
-      // update the index of the attribute type that was moved
-      _validators[lastAccount].index = _validators[validator].index;
-      
-      // remove (duplicate) validator address at the end by trimming the array
-      _validatorAccounts.length--;
+    // set the address at validator-to-delete.index to last validator address
+    _validatorAccounts[_validators[validator].index] = lastAccount;
 
-      // remove the validator record
-      delete _validators[validator];
+    // update the index of the attribute type that was moved
+    _validators[lastAccount].index = _validators[validator].index;
+    
+    // remove (duplicate) validator address at the end by trimming the array
+    _validatorAccounts.length--;
 
-      // log the removal of the validator
-      emit ValidatorRemoved(validator);
-    }
+    // remove the validator record
+    delete _validators[validator];
+
+    // log the removal of the validator
+    emit ValidatorRemoved(validator);
   }
 
   /**
@@ -251,6 +260,10 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
 
     // set the validator approval status on the attribute
     _attributeTypes[attributeTypeID].approvedValidators[validator] = true;
+
+    // add the record of the index of the validator approval to be added
+    uint256 index = _validatorApprovals[validator].length;
+    _validatorApprovalsIndex[validator][attributeTypeID] = index;
 
     // include the attribute type in the validator approval mapping
     _validatorApprovals[validator].push(attributeTypeID);
@@ -281,6 +294,24 @@ contract BasicJurisdiction is Initializable, Ownable, Pausable, AttributeRegistr
 
     // remove the validator approval status from the attribute
     delete _attributeTypes[attributeTypeID].approvedValidators[validator];
+
+    // locate the last attribute ID in the validator approval group
+    uint256 lastAttributeID = _validatorApprovals[validator].length.sub(1);
+
+    // locate the index of the validator approval to be removed
+    uint256 index = _validatorApprovalsIndex[validator][attributeTypeID];
+
+    // replace the validator approval with the last approval in the array
+    _validatorApprovals[validator][index] = lastAttributeID;
+
+    // drop the last attribute ID from the validator approval group
+    _validatorApprovals[validator].length--;
+
+    // update the record of the index of the swapped-in approval
+    _validatorApprovalsIndex[validator][lastAttributeID] = index;
+
+    // remove the record of the index of the removed approval
+    delete _validatorApprovalsIndex[validator][attributeTypeID];
     
     // log the removal of the validator's attribute type approval
     emit ValidatorApprovalRemoved(validator, attributeTypeID);

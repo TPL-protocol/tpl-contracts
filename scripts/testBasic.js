@@ -1278,14 +1278,14 @@ module.exports = {test: async function (provider, testingContext) {
     gas: gasToUse, 
     gasPrice: 10 ** 9
   }).then(receipt => {
-    assert.ok(receipt.status)
     console.log(
-      ' ✓ jurisdiction owner cannot be deleted until all approvals are deleted'
+      " ✘ validator cannot be deleted until all approvals are deleted"
     )
-    passed++
-
-    assert.strictEqual(receipt.events.ValidatorRemoved, undefined)
-    console.log(' ✓ ValidatorRemoved event is not logged')
+    failed++
+  }).catch(error => {
+    console.log(
+      ' ✓ validator cannot be deleted until all approvals are deleted'
+    )
     passed++
   })
 
