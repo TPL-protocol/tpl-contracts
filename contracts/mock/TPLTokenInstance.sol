@@ -1,13 +1,13 @@
 pragma solidity ^0.4.25;
 
-import "../examples/ERC20Permissioned.sol";
+import "../token/TPLRestrictedReceiverToken.sol";
 import "../AttributeRegistryInterface.sol";
 
 
 /**
- * @title An instance of an ERC20 Permissioned Token with an initial balance.
+ * @title An instance of TPLRestrictedReceiverToken with an initial balance.
  */
-contract TPLTokenInstance is Initializable, ERC20Permissioned {
+contract TPLTokenInstance is Initializable, TPLRestrictedReceiverToken {
   /**
   * @notice The initializer function, with an associated attribute registry at
   * `registry`, an assignable attribute type with ID `validAttributeTypeID`, and
@@ -26,7 +26,7 @@ contract TPLTokenInstance is Initializable, ERC20Permissioned {
     public
     initializer
   {
-    ERC20Permissioned.initialize(registry, validAttributeTypeID);
+    TPLRestrictedReceiverToken.initialize(registry, validAttributeTypeID);
     _mint(msg.sender, initialBalance);
   }
 }

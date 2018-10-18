@@ -668,19 +668,19 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   })
 
-  await TPLToken.methods.canTransfer(attributedAddress, 10).call({
+  await TPLToken.methods.canReceive(attributedAddress).call({
     from: address,
     gas: 5000000,
     gasPrice: 10 ** 9
-  }).then(canTransfer => {
-    assert.ok(canTransfer) 
+  }).then(canReceive => {
+    assert.ok(canReceive) 
     console.log(
-      " ✓ tokens can be checked for transfer between valid addresses"
+      " ✓ accounts can be checked as valid token receivers"
     )
     passed++
   }).catch(error => {
     console.log(
-      " ✘ tokens can be checked for transfer between valid addresses"
+      " ✘ accounts can be checked as valid token receivers"
     )
     failed++
   })
@@ -698,23 +698,6 @@ module.exports = {test: async function (provider, testingContext) {
   }).catch(error => {
     console.log(
       " ✘ tokens can be transferred between addresses with valid attributes"
-    )
-    failed++
-  })
-
-  await TPLToken.methods.canTransferFrom(address, attributedAddress, 10).call({
-    from: address,
-    gas: 5000000,
-    gasPrice: 10 ** 9
-  }).then(canTransfer => {
-    assert.ok(canTransfer) 
-    console.log(
-      " ✓ tokens can be checked for transferFrom between valid addresses"
-    )
-    passed++
-  }).catch(error => {
-    console.log(
-      " ✘ tokens can be checked for transferFrom between valid addresses"
     )
     failed++
   })

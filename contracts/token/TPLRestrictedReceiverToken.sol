@@ -1,14 +1,14 @@
 pragma solidity ^0.4.25;
 
 import "openzeppelin-zos/contracts/token/ERC20/ERC20.sol";
+import "./TPLRestrictedReceiverTokenInterface.sol";
 import "../AttributeRegistryInterface.sol";
-import "../TPLTokenInterface.sol";
 
 
 /**
- * @title ERC20 Permissioned Token example.
+ * @title Permissioned ERC20 token: transfers are restricted to valid receivers.
  */
-contract ERC20Permissioned is Initializable, ERC20, TPLTokenInterface {
+contract TPLRestrictedReceiverToken is Initializable, ERC20, TPLRestrictedReceiverTokenInterface {
 
   // declare registry interface, used to request attributes from a jurisdiction
   AttributeRegistryInterface private _registry;
@@ -17,38 +17,13 @@ contract ERC20Permissioned is Initializable, ERC20, TPLTokenInterface {
   uint256 private _validAttributeTypeID;
 
   /**
-   * @notice Transfer an amount of `value` to a recipient at account `to`.
-   * @param to address The account of the recipient.
-   * @param value uint256 the amount to be transferred.
-   * @return True if the transfer will succeed, false otherwise.
-   * @dev Consider also returning a status code, e.g. EIP-1066
+   * @notice Check if an account is approved to receive token transfers at
+   * account `receiver`.
+   * @param receiver address The account of the recipient.
+   * @return True if the receiver is valid, false otherwise.
    */
-  function canTransfer(address to, uint256 value) external view returns (bool) {
-    return (
-      super.balanceOf(msg.sender) >= value && 
-      _registry.hasAttribute(to, _validAttributeTypeID)
-    );
-  }
-
-  /**
-   * @notice Check if an account is approved to transfer an amount of `value` to
-   * a recipient at account `to` on behalf of a sender at account `from`.
-   * @param to address The account of the recipient.
-   * @param from address The account of the sender.
-   * @param value uint256 the amount to be transferred.
-   * @return True if the transfer will succeed, false otherwise.
-   * @dev Consider also returning a status code, e.g. EIP-1066
-   */
-  function canTransferFrom(
-    address from,
-    address to,
-    uint256 value
-  ) external view returns (bool) {
-    return (
-      super.balanceOf(from) >= value &&
-      super.allowance(from, msg.sender) >= value &&
-      _registry.hasAttribute(to, _validAttributeTypeID)
-    );
+  function canReceive(address receiver) external view returns (bool) {
+    return _registry.hasAttribute(receiver, _validAttributeTypeID);
   }
 
   /**
@@ -87,23 +62,23 @@ contract ERC20Permissioned is Initializable, ERC20, TPLTokenInterface {
   }
 
   /**
-   * @notice Transfer an amount of `value` to a recipient at account `to`.
-   * @param to address The account of the recipient.
+   * @notice Transfer an amount of `value` to a receiver at account `to`.
+   * @param to address The account of the receiver.
    * @param value uint256 the amount to be transferred.
    * @return True if the transfer was successful.
    */
   function transfer(address to, uint256 value) public returns (bool) {
     require(
       _registry.hasAttribute(to, _validAttributeTypeID),
-      "Transfer failed - recipient is not approved."
+      "Transfer failed - receiver is not approved."
     );
-    return(super.transfer(to, value));
+    return super.transfer(to, value);
   }
 
   /**
-   * @notice Transfer an amount of `value` to a recipient at account `to` on
+   * @notice Transfer an amount of `value` to a receiver at account `to` on
    * behalf of a sender at account `from`.
-   * @param to address The account of the recipient.
+   * @param to address The account of the receiver.
    * @param from address The account of the sender.
    * @param value uint256 the amount to be transferred.
    * @return True if the transfer was successful.
@@ -115,8 +90,8 @@ contract ERC20Permissioned is Initializable, ERC20, TPLTokenInterface {
   ) public returns (bool) {
     require(
       _registry.hasAttribute(to, _validAttributeTypeID),
-      "Transfer failed - recipient is not approved."
+      "Transfer failed - receiver is not approved."
     );
-    return(super.transferFrom(from, to, value));
+    return super.transferFrom(from, to, value);
   }
 }
