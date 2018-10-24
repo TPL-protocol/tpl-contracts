@@ -1,5 +1,5 @@
 var assert = require('assert');
-const JurisdictionContractData = require('../build/contracts/BasicJurisdiction.json')
+const JurisdictionContractData = require('../build/contracts/Jurisdiction.json')
 const TPLTokenContractData = require('../build/contracts/TPLTokenInstance.json')
 
 module.exports = {test: async function (provider, testingContext) {
@@ -574,6 +574,9 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   })
 
+  /*
+  // NOTE: this is one test that will fail on the standard jurisdiction, as the
+  // standard jurisdiction actually accepts attached values / funds.
   await Jurisdiction.methods.issueAttribute(
     attributedAddress,
     attribute.attributeId,
@@ -587,6 +590,7 @@ module.exports = {test: async function (provider, testingContext) {
     console.log(' ✓ attempt to add attribute with an attached value fails')
     passed++
   })
+  */
 
   await Jurisdiction.methods.issueAttribute(
     attributedAddress,

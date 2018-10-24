@@ -1,0 +1,17 @@
+  {
+    "extends": "default",
+    "rules": {
+      "max-line-length": 131,
+      "no-inline-assembly": false,
+      "avoid-tx-origin": false,
+      "multiple-sends": false,
+      "function-max-lines": false,
+      "code-complexity": 9,
+      "func-param-name-mixedcase": false,
+      "compiler-fixed": false,
+      "avoid-throw": false,
+      "avoid-suicide": "error",
+      "avoid-sha3": "warn",
+      "indent": ["warn", 2]
+    }
+  }

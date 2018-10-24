@@ -1,19 +1,19 @@
 {
-  "name": "TPL-1.0",
-  "version": "1.0",
+  "name": "TPL-1.0.1",
+  "version": "1.0.1",
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "openzeppelin-solidity": "1.11.0",
-    "web3": "^1.0.0-beta.35"
-  },
-  "devDependencies": {
+    "openzeppelin-solidity": "2.0.0",
+    "web3": "^1.0.0-beta.35",
+    "solhint": "1.4.0",
+    "truffle": "5.0.0-beta.1",
     "coveralls": "^3.0.2",
     "solidity-coverage": "^0.5.11"
   },
   "scripts": {
-  	"build": "truffle compile",
-  	"test": "truffle compile; node scripts/testBasic.js; node scripts/test.js",
+  	"build": "./node_modules/.bin/truffle compile",
+  	"test": "./node_modules/.bin/truffle compile compile && node scripts/testBasicDirect.js && node scripts/testExtendedDirect.js && node scripts/testBasicOnExtendedDirect.js && echo 'skipping scripts/testOptimizationDisabled.js'",
   	"coverage": "./node_modules/.bin/solidity-coverage"
   }
 }
