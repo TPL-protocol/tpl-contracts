@@ -309,6 +309,16 @@ module.exports = {test: async function (provider, testingContext) {
       11111,
       67890
     ),
+    targetTwoOperatorSignature: await signValidation(
+      validator.address,
+      Jurisdiction.options.address,
+      attributedAddress,
+      inattributedAddress,
+      0,
+      0,
+      11111,
+      67890
+    ),
     signatureToInvalidate: await signValidation(
       validator.address,
       Jurisdiction.options.address,
@@ -406,6 +416,16 @@ module.exports = {test: async function (provider, testingContext) {
       Jurisdiction.options.address,
       attributedAddress,
       0,
+      2 * 10 ** 14 + 10 ** 7 + 10 ** 8, // fundsRequired: stake, j. fee, v. fee
+      10 ** 8,
+      77777,
+      88888
+    ),
+    targetOperatorSignature: await signValidation(
+      validator.address,
+      Jurisdiction.options.address,
+      attributedAddress,
+      inattributedAddress,
       2 * 10 ** 14 + 10 ** 7 + 10 ** 8, // fundsRequired: stake, j. fee, v. fee
       10 ** 8,
       77777,
@@ -665,6 +685,20 @@ module.exports = {test: async function (provider, testingContext) {
   }).then(receipt => {
     assert.ok(receipt.status)
     console.log(' ✓  - adding multiple attribute types is supported')
+    passed++
+  }) 
+
+  await Jurisdiction.methods.addRestrictedAttributeType(
+    restrictedAttribute.attributeId, // duplicate
+    restrictedAttribute.description
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 1
+  }).catch(error => {
+    console.log(
+      ' ✓  - adding duplicate restricted attribute types is not supported'
+    )
     passed++
   }) 
 
@@ -2041,6 +2075,25 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   })
 
+  await Jurisdiction.methods.canAddAttributeFor(
+    attributedAddress,
+    attribute.attributeId,
+    attribute.targetValueTwo,
+    0,
+    attribute.validatorFee,
+    attribute.targetTwoOperatorSignature
+  ).call({
+    from: inattributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 1
+  }).then(canAdd => {
+    assert.ok(canAdd)
+    console.log(
+      ' ✓ operator can check if signed msgs from approved validator are valid'
+    )
+    passed++
+  })
+
   await Jurisdiction.methods.canAddAttribute(
     attribute.attributeId,
     attribute.targetValueTwo + 1,
@@ -2055,6 +2108,25 @@ module.exports = {test: async function (provider, testingContext) {
     assert.strictEqual(canAdd, false)
     console.log(
       ' ✓  - altered signed messages from approved validator are invalid'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.canAddAttributeFor(
+    attributedAddress,
+    attribute.attributeId,
+    attribute.targetValueTwo + 1,
+    0,
+    attribute.validatorFee,
+    attribute.targetTwoOperatorSignature
+  ).call({
+    from: inattributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 1
+  }).then(canAdd => {
+    assert.strictEqual(canAdd, false)
+    console.log(
+      ' ✓ altered signed operator messages from approved validator are invalid'
     )
     passed++
   })
@@ -2113,6 +2185,28 @@ module.exports = {test: async function (provider, testingContext) {
     ),
     attribute.signatureToInvalidate
   ).send({
+    from: inattributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 1
+  }).catch(error => {
+    console.log(
+      ' ✓  - non-validators cannot invalidate a signed attribute approval'
+    )
+    passed++
+  }) 
+
+  await Jurisdiction.methods.invalidateAttributeApproval(
+    getAttributeApprovalHash(
+      Jurisdiction.options.address,
+      attributedAddress,
+      nullAddress,
+      0,
+      attribute.validatorFee,
+      attribute.attributeId,
+      attribute.invalidatedTargetValue
+    ),
+    attribute.signatureToInvalidate
+  ).send({
     from: validatorAddress,
     gas: 5000000,
     gasPrice: 10 ** 1
@@ -2138,6 +2232,66 @@ module.exports = {test: async function (provider, testingContext) {
       ' ✓  - attribute approval validity checks return false after invalidation'
     )
     passed++    
+  })
+
+  await Jurisdiction.methods.issueAttribute(
+    attributedAddress,
+    attribute.attributeId,
+    attribute.targetValue
+  ).send({
+    from: validatorAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 1,
+    value: 0
+  }).then(receipt => {
+    assert.ok(receipt.status)
+  })
+
+  await Jurisdiction.methods.canAddAttribute(
+    attribute.attributeId,
+    attribute.targetValueTwo,
+    0,
+    attribute.validatorFee,
+    attribute.targetTwoSignature
+  ).call({
+    from: attributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 1
+  }).then(canAdd => {
+    assert.strictEqual(canAdd, false)
+    console.log(
+      ' ✓  - checks to add an attribute if one already exists return false'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.addAttribute(
+    attribute.attributeId,
+    attribute.targetValueTwo,
+    attribute.validatorFee,
+    attribute.targetTwoSignature
+  ).send({
+    from: attributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 1,
+    value: 0
+  }).catch(error => {
+    console.log(
+      ' ✓  - users cannot add an attribute if one already exists'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.revokeAttribute(
+    attributedAddress,
+    attribute.attributeId
+  ).send({
+    from: validatorAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 1,
+    value: 0
+  }).then(receipt => {
+    assert.ok(receipt.status)
   })
 
   await Jurisdiction.methods.addAttribute(
@@ -2349,7 +2503,7 @@ module.exports = {test: async function (provider, testingContext) {
   }).catch(error => {
     console.log(' ✓  - users cannot directly remove a restricted attribute')
     passed++
-  })  
+  })
 
   await Jurisdiction.methods.addAttributeType(
     stakedAttribute.attributeId,
@@ -2424,6 +2578,42 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   })
 
+  await Jurisdiction.methods.addAttributeFor(
+    attributedAddress,
+    stakedAttribute.attributeId,
+    stakedAttribute.targetValue,
+    stakedAttribute.validatorFee,
+    stakedAttribute.targetSignature
+  ).send({
+    from: inattributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 9,
+    value: 10 ** 7 + 10 ** 8 + 1
+  }).catch(error => {
+    console.log(
+      ' ✓  - operator attempt to add attribute when stake < minimumStake fails'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.addAttributeFor(
+    attributedAddress,
+    stakedAttribute.attributeId,
+    stakedAttribute.targetValue,
+    stakedAttribute.validatorFee,
+    stakedAttribute.targetSignature
+  ).send({
+    from: inattributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 9,
+    value: stakeAmount - 1
+  }).catch(error => {
+    console.log(
+      ' ✓  - operator attempt to add attribute when msg.value < stake fails'
+    )
+    passed++
+  })
+
   await Jurisdiction.methods.addAttribute(
     stakedAttribute.attributeId,
     stakedAttribute.targetValue,
@@ -2458,6 +2648,57 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   })
 
+  await Jurisdiction.methods.issueAttribute(
+    attributedAddress,
+    stakedAttribute.attributeId,
+    stakedAttribute.targetValue,
+  ).send({
+    from: validatorAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 1,
+    value: 10 ** 8 // jurisdiction fee
+  }).then(receipt => {
+    assert.ok(receipt.status)
+    console.log(
+      ' ✓  - validators can issue attributes that require jurisdiction fees'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.addAttributeFor(
+    attributedAddress,
+    stakedAttribute.attributeId,
+    stakedAttribute.targetValue,
+    stakedAttribute.validatorFee,
+    stakedAttribute.targetSignature
+  ).send({
+    from: inattributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 9,
+    value: stakeAmount
+  }).catch(error => {
+    console.log(
+      ' ✓  - operator attempt to add attribute that already exists fails'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.revokeAttribute(
+    attributedAddress,
+    stakedAttribute.attributeId
+  ).send({
+    from: validatorAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 1,
+    value: 0
+  }).then(receipt => {
+    assert.ok(receipt.status)
+    console.log(
+      ' ✓  - validators can revoke attributes that required jurisdiction fees'
+    )
+    passed++
+  })
+
   balance = await web3.eth.getBalance(attributedAddress)
 
   await Jurisdiction.methods.addAttribute(
@@ -2484,7 +2725,6 @@ module.exports = {test: async function (provider, testingContext) {
     assert.strictEqual(logs.amount, stakeAmount.toString())
     console.log(' ✓  - StakeAllocated event is logged correctly')
     passed++
-
   }).catch(error => {
     console.log(
       ' ✘  - attribute is added if minumumRequiredStake <= stake == msg.value'
@@ -2507,7 +2747,6 @@ module.exports = {test: async function (provider, testingContext) {
     ' ✓  - address balance is reduced by the expected amount'
   )
   passed++
-
 
   await Jurisdiction.methods.removeAttribute(
     stakedAttribute.attributeId,
@@ -2722,6 +2961,34 @@ module.exports = {test: async function (provider, testingContext) {
     )
     failed++
   }
+
+  await Jurisdiction.methods.setAttributeTypeMinimumRequiredStake(
+    stakedFeeAttribute.attributeId,
+    stakedFeeAttribute.minimumStake
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 1
+  }).catch(error => {
+    console.log(
+      ' ✓  - minimum stake cannot be set on non-existant attribute types'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.setAttributeTypeJurisdictionFee(
+    stakedFeeAttribute.attributeId,
+    stakedFeeAttribute.jurisdictionFee
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 1
+  }).catch(error => {
+    console.log(
+      ' ✓  - jurisdiction fees cannot be set on non-existant attribute types'
+    )
+    passed++
+  })
 
   await Jurisdiction.methods.addAttributeType(
     stakedFeeAttribute.attributeId,
@@ -3372,6 +3639,21 @@ module.exports = {test: async function (provider, testingContext) {
     passed++
   })
 
+  await Jurisdiction.methods.setAttributeTypeSecondarySource(
+    badSecondaryAttribute.attributeId,
+    badSecondaryAttribute.secondarySource,
+    badSecondaryAttribute.secondaryId,
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 1
+  }).catch(error => {
+    console.log(
+      ' ✓  - secondary sources cannot be set on non-existant attribute types'
+    )
+    passed++
+  })
+
   //  - attribute types can be set to secondary addresses without registries
   // NOTE: this should potentially be disallowed!!
   await Jurisdiction.methods.addAttributeType(
@@ -3600,6 +3882,36 @@ module.exports = {test: async function (provider, testingContext) {
 
   await Jurisdiction.methods.removeAttributeFor(
     unownedAddress,
+    restrictedAttribute.attributeId,
+  ).send({
+    from: attributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 1,
+    value: 0
+  }).catch(error => {
+    console.log(
+      ' ✓  - operators cannot remove restricted attributes'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.removeAttributeFor(
+    unownedAddress,
+    attribute.attributeId,
+  ).send({
+    from: attributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 1,
+    value: 0
+  }).catch(error => {
+    console.log(
+      ' ✓  - operators cannot remove attributes they didnt assign'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.removeAttributeFor(
+    unownedAddress,
     attribute.attributeId,
   ).send({
     from: address,
@@ -3631,6 +3943,21 @@ module.exports = {test: async function (provider, testingContext) {
     assert.strictEqual(logs.attributee, unownedAddress)
     assert.strictEqual(logs.attributeTypeID, attribute.attributeId.toString())
     console.log(' ✓  - AttributeRemoved event is logged correctly')
+    passed++
+  })
+
+  await Jurisdiction.methods.removeAttributeFor(
+    unownedAddress,
+    attribute.attributeId,
+  ).send({
+    from: inattributedAddress,
+    gas: 5000000,
+    gasPrice: 10 ** 1,
+    value: 0
+  }).catch(error => {
+    console.log(
+      ' ✓  - operators cannot remove attribute approvals that do not exist'
+    )
     passed++
   })
 
@@ -3677,6 +4004,20 @@ module.exports = {test: async function (provider, testingContext) {
   }).catch(error => {
     console.log(
       ' ✓  - operators cannot reuse attribute approvals'
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.setAttributeTypeOnlyPersonal(
+    onlyPersonalAttribute.attributeId,
+    onlyPersonalAttribute.onlyPersonal
+  ).send({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 1
+  }).catch(error => {
+    console.log(
+      ' ✓  - personal-only cannot be set on non-existant attribute types'
     )
     passed++
   })

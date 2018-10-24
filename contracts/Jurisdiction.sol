@@ -1296,7 +1296,7 @@ contract Jurisdiction is Ownable, Pausable, AttributeRegistryInterface, BasicJur
     );
   }
 
-  // users can check whether a signature for adding an attribute is still valid
+  // users can check whether a signed attribute approval is currently valid
   function canAddAttribute(
     uint256 attributeTypeID,
     uint256 value,
@@ -1322,15 +1322,17 @@ contract Jurisdiction is Ownable, Pausable, AttributeRegistryInterface, BasicJur
     uint256 minimumStake = _attributeTypes[attributeTypeID].minimumStake;
     uint256 jurisdictionFee = _attributeTypes[attributeTypeID].jurisdictionFee;
 
-    // determine if the attribute can still be added
+    // determine if the attribute can currently be added.
+    // NOTE: consider returning an error code along with the boolean.
     return (
       fundsRequired >= minimumStake.add(jurisdictionFee).add(validatorFee) &&
       _invalidAttributeApprovalHashes[hash] == false &&
-      canValidate(validator, attributeTypeID)
+      canValidate(validator, attributeTypeID) &&
+      _issuedAttributes[msg.sender][attributeTypeID].exists == false
     );
   }
 
-  // operators can check whether an attribute approval signature is still valid
+  // operators can check whether a signed attribute approval is currently valid
   function canAddAttributeFor(
     address account,
     uint256 attributeTypeID,
@@ -1357,11 +1359,13 @@ contract Jurisdiction is Ownable, Pausable, AttributeRegistryInterface, BasicJur
     uint256 minimumStake = _attributeTypes[attributeTypeID].minimumStake;
     uint256 jurisdictionFee = _attributeTypes[attributeTypeID].jurisdictionFee;
 
-    // determine if the attribute can still be added
+    // determine if the attribute can currently be added.
+    // NOTE: consider returning an error code along with the boolean.
     return (
       fundsRequired >= minimumStake.add(jurisdictionFee).add(validatorFee) &&
       _invalidAttributeApprovalHashes[hash] == false &&
-      canValidate(validator, attributeTypeID)
+      canValidate(validator, attributeTypeID) &&
+      _issuedAttributes[account][attributeTypeID].exists == false
     );
   }
 
