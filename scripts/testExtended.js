@@ -3834,6 +3834,7 @@ module.exports = {test: async function (provider, testingContext) {
     console.log(' ✓  - AttributeAdded event is logged correctly')
     passed++
   }).catch(error => {
+        console.error(error)
     console.log(
       ' ✘ users can add an attribute via signed message from approved validator'
     )

@@ -93,7 +93,7 @@ contract Jurisdiction is Ownable, Pausable, AttributeRegistryInterface, BasicJur
   ) external onlyOwner whenNotPaused {
     // prevent existing attributes with the same id from being overwritten
     require(
-      isAttributeType(ID) == false,
+      !isAttributeType(ID),
       "an attribute type with the provided ID already exists"
     );
 
@@ -152,7 +152,7 @@ contract Jurisdiction is Ownable, Pausable, AttributeRegistryInterface, BasicJur
   ) external onlyOwner whenNotPaused {
     // prevent existing attributes with the same id from being overwritten
     require(
-      isAttributeType(ID) == false,
+      !isAttributeType(ID),
       "an attribute type with the provided ID already exists"
     );
 
@@ -335,7 +335,7 @@ contract Jurisdiction is Ownable, Pausable, AttributeRegistryInterface, BasicJur
 
     // prevent existing validators from being overwritten
     require(
-      isValidator(validator) == false,
+      !isValidator(validator),
       "a validator with the provided address already exists"
     );
 
@@ -442,7 +442,7 @@ contract Jurisdiction is Ownable, Pausable, AttributeRegistryInterface, BasicJur
 
     // check that the validator is not already approved
     require(
-      _attributeTypes[attributeTypeID].approvedValidators[validator] == false,
+      !_attributeTypes[attributeTypeID].approvedValidators[validator],
       "validator is already approved on the provided attribute"
     );
 
@@ -563,7 +563,7 @@ contract Jurisdiction is Ownable, Pausable, AttributeRegistryInterface, BasicJur
     );
 
     require(
-      _issuedAttributes[account][attributeTypeID].validator == address(0),
+      !_issuedAttributes[account][attributeTypeID].exists,
       "duplicate attributes are not supported, remove existing attribute first"
     );
 
@@ -721,6 +721,11 @@ contract Jurisdiction is Ownable, Pausable, AttributeRegistryInterface, BasicJur
     // downside is that everyone will have to keep track of the extra parameter.
     // Another solution is to just modifiy the required stake or fee amount.
 
+    require(
+      !_issuedAttributes[msg.sender][attributeTypeID].exists,
+      "duplicate attributes are not supported, remove existing attribute first"
+    );
+
     // retrieve required minimum stake and jurisdiction fees on attribute type
     uint256 minimumStake = _attributeTypes[attributeTypeID].minimumStake;
     uint256 jurisdictionFee = _attributeTypes[attributeTypeID].jurisdictionFee;
@@ -745,7 +750,7 @@ contract Jurisdiction is Ownable, Pausable, AttributeRegistryInterface, BasicJur
     );
 
     require(
-      _invalidAttributeApprovalHashes[hash] == false,
+      !_invalidAttributeApprovalHashes[hash],
       "signed attribute approvals from validators may not be reused"
     );
 
@@ -759,13 +764,6 @@ contract Jurisdiction is Ownable, Pausable, AttributeRegistryInterface, BasicJur
       canValidate(validator, attributeTypeID),
       "signature does not match an approved validator for given attribute type"
     );
-
-    require(
-      _issuedAttributes[msg.sender][attributeTypeID].validator == address(0),
-      "duplicate attributes are not supported, remove existing attribute first"
-    );
-    // alternately, check attributes[validator][msg.sender][_attribute].exists
-    // and update value / increment stake if the validator is the same?
 
     // store attribute value and amount of ether staked in correct scope
     _issuedAttributes[msg.sender][attributeTypeID] = IssuedAttribute({
@@ -812,17 +810,17 @@ contract Jurisdiction is Ownable, Pausable, AttributeRegistryInterface, BasicJur
   function removeAttribute(uint256 attributeTypeID) external {
     // attributes may only be removed by the user if they are not restricted
     require(
-      _attributeTypes[attributeTypeID].restricted == false,
+      !_attributeTypes[attributeTypeID].restricted,
       "only jurisdiction or issuing validator may remove a restricted attribute"
     );
-
-    // determine the assigned validator on the user attribute
-    address validator = _issuedAttributes[msg.sender][attributeTypeID].validator;
 
     require(
       _issuedAttributes[msg.sender][attributeTypeID].exists,
       "only existing attributes may be removed"
     );
+
+    // determine the assigned validator on the user attribute
+    address validator = _issuedAttributes[msg.sender][attributeTypeID].validator;
 
     // determine if the attribute has a staked value
     uint256 stake = _issuedAttributes[msg.sender][attributeTypeID].stake;
@@ -878,8 +876,13 @@ contract Jurisdiction is Ownable, Pausable, AttributeRegistryInterface, BasicJur
 
     // attributes may only be added by a third party if onlyPersonal is false
     require(
-      _attributeTypes[attributeTypeID].onlyPersonal == false,
+      !_attributeTypes[attributeTypeID].onlyPersonal,
       "only operatable attributes may be added on behalf of another address"
+    );
+
+    require(
+      !_issuedAttributes[account][attributeTypeID].exists,
+      "duplicate attributes are not supported, remove existing attribute first"
     );
 
     // retrieve required minimum stake and jurisdiction fees on attribute type
@@ -906,7 +909,7 @@ contract Jurisdiction is Ownable, Pausable, AttributeRegistryInterface, BasicJur
     );
 
     require(
-      _invalidAttributeApprovalHashes[hash] == false,
+      !_invalidAttributeApprovalHashes[hash],
       "signed attribute approvals from validators may not be reused"
     );
 
@@ -920,13 +923,6 @@ contract Jurisdiction is Ownable, Pausable, AttributeRegistryInterface, BasicJur
       canValidate(validator, attributeTypeID),
       "signature does not match an approved validator for provided attribute"
     );
-
-    require(
-      _issuedAttributes[account][attributeTypeID].validator == address(0),
-      "duplicate attributes are not supported, remove existing attribute first"
-    );
-    // alternately, check attributes[validator][_who][_attribute].exists
-    // and update value / increment stake if the validator is the same?
 
     // store attribute value and amount of ether staked in correct scope
     _issuedAttributes[account][attributeTypeID] = IssuedAttribute({
@@ -974,7 +970,7 @@ contract Jurisdiction is Ownable, Pausable, AttributeRegistryInterface, BasicJur
   function removeAttributeFor(address account, uint256 attributeTypeID) external {
     // attributes may only be removed by the user if they are not restricted
     require(
-      _attributeTypes[attributeTypeID].restricted == false,
+      !_attributeTypes[attributeTypeID].restricted,
       "only jurisdiction or issuing validator may remove a restricted attribute"
     );
 
@@ -1326,9 +1322,9 @@ contract Jurisdiction is Ownable, Pausable, AttributeRegistryInterface, BasicJur
     // NOTE: consider returning an error code along with the boolean.
     return (
       fundsRequired >= minimumStake.add(jurisdictionFee).add(validatorFee) &&
-      _invalidAttributeApprovalHashes[hash] == false &&
+      !_invalidAttributeApprovalHashes[hash] &&
       canValidate(validator, attributeTypeID) &&
-      _issuedAttributes[msg.sender][attributeTypeID].exists == false
+      !_issuedAttributes[msg.sender][attributeTypeID].exists
     );
   }
 
@@ -1363,9 +1359,9 @@ contract Jurisdiction is Ownable, Pausable, AttributeRegistryInterface, BasicJur
     // NOTE: consider returning an error code along with the boolean.
     return (
       fundsRequired >= minimumStake.add(jurisdictionFee).add(validatorFee) &&
-      _invalidAttributeApprovalHashes[hash] == false &&
+      !_invalidAttributeApprovalHashes[hash] &&
       canValidate(validator, attributeTypeID) &&
-      _issuedAttributes[account][attributeTypeID].exists == false
+      !_issuedAttributes[account][attributeTypeID].exists
     );
   }
 
