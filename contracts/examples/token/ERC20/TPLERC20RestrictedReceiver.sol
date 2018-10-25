@@ -1,14 +1,14 @@
 pragma solidity ^0.4.25;
 
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import "./TPLRestrictedReceiverTokenInterface.sol";
-import "../AttributeRegistryInterface.sol";
+import "./TPLERC20RestrictedReceiverInterface.sol";
+import "../../../AttributeRegistryInterface.sol";
 
 
 /**
  * @title Permissioned ERC20 token: transfers are restricted to valid receivers.
  */
-contract TPLRestrictedReceiverToken is ERC20, TPLRestrictedReceiverTokenInterface {
+contract TPLERC20RestrictedReceiver is ERC20, TPLERC20RestrictedReceiverInterface {
 
   // declare registry interface, used to request attributes from a jurisdiction
   AttributeRegistryInterface private _registry;

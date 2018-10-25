@@ -12,7 +12,7 @@ import "./ExtendedJurisdictionInterface.sol";
 /**
  * @title An extended TPL jurisdiction for assigning attributes to addresses.
  */
-contract Jurisdiction is Ownable, Pausable, AttributeRegistryInterface, BasicJurisdictionInterface, ExtendedJurisdictionInterface {
+contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, BasicJurisdictionInterface, ExtendedJurisdictionInterface {
   using ECDSA for bytes32;
   using SafeMath for uint256;
 

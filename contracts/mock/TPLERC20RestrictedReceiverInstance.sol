@@ -1,13 +1,13 @@
 pragma solidity ^0.4.25;
 
-import "../token/TPLRestrictedReceiverToken.sol";
+import "../examples/token/ERC20/TPLERC20RestrictedReceiver.sol";
 import "../AttributeRegistryInterface.sol";
 
 
 /**
  * @title An instance of TPLRestrictedReceiverToken with an initial balance.
  */
-contract TPLTokenInstance is TPLRestrictedReceiverToken {
+contract TPLERC20RestrictedReceiverInstance is TPLERC20RestrictedReceiver {
   /**
   * @notice The constructor function, with an associated attribute registry at
   * `registry`, an assignable attribute type with ID `validAttributeTypeID`, and
@@ -22,7 +22,7 @@ contract TPLTokenInstance is TPLRestrictedReceiverToken {
     uint256 initialBalance,
     AttributeRegistryInterface registry,
     uint256 validAttributeTypeID
-  ) public TPLRestrictedReceiverToken(registry, validAttributeTypeID) {
+  ) public TPLERC20RestrictedReceiver(registry, validAttributeTypeID) {
     _mint(msg.sender, initialBalance);
   }
 }

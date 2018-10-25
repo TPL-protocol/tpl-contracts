@@ -2,9 +2,9 @@ pragma solidity ^0.4.25;
 
 
 /**
- * @title TPL Restricted Receiver Token interface. EIP-165 ID: 0xca62cde9
+ * @title TPL ERC20 Restricted Receiver interface. EIP-165 ID: 0xca62cde9
  */
-interface TPLRestrictedReceiverTokenInterface {
+interface TPLERC20RestrictedReceiverInterface {
   /**
    * @notice Check if an account is approved to receive token transfers at
    * account `receiver`.

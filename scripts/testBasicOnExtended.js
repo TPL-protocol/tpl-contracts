@@ -1,6 +1,6 @@
 var assert = require('assert');
-const JurisdictionContractData = require('../build/contracts/Jurisdiction.json')
-const TPLTokenContractData = require('../build/contracts/TPLTokenInstance.json')
+const JurisdictionContractData = require('../build/contracts/ExtendedJurisdiction.json')
+const TPLTokenContractData = require('../build/contracts/TPLERC20RestrictedReceiverInstance.json')
 
 module.exports = {test: async function (provider, testingContext) {
   var web3 = provider
