@@ -5,6 +5,7 @@
 ![GitHub](https://img.shields.io/github/license/tpl-protocol/tpl-contracts.svg)
 [![Build Status](https://travis-ci.com/TPL-protocol/tpl-contracts.svg?branch=master)](https://travis-ci.com/TPL-protocol/tpl-contracts)
 [![Coverage Status](https://coveralls.io/repos/github/TPL-protocol/tpl-contracts/badge.svg?branch=master)](https://coveralls.io/github/TPL-protocol/tpl-contracts?branch=master)
+[![standard-readme compliant](https://img.shields.io/badge/standard--readme-OK-green.svg)](https://github.com/RichardLitt/standard-readme)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
 > Contracts implementing a TPL jurisdiction and an ERC20-enforced TPL.
@@ -27,6 +28,7 @@ TPL is designed to be flexible enough for a wide variety of use-cases beyond jus
 
 - [Install](#install)
 - [Usage](#usage)
+- [API](#api)
 - [Additional Information](#additional-information)
 - [Maintainers](#maintainers)
 - [Contribute](#contribute)
@@ -57,6 +59,1395 @@ $ ./node_modules/.bin/solhint "contracts/**/*.sol"
 ```
 
 Contracts may also be deployed locally using `$ node scripts/deploy.js`.
+
+## API
+*NOTE: This documentation is still a work in progress. See the relevant contract source code for additional information.*
+* [AttributeRegistryInterface](#attributeregistryinterface)
+  * [getAttributeTypeID](#function-getattributetypeid)
+  * [hasAttribute](#function-hasattribute)
+  * [getAttributeValue](#function-getattributevalue)
+  * [countAttributeTypes](#function-countattributetypes)
+* [BasicJurisdictionInterface](#basicjurisdictioninterface)
+  * [getAttributeTypeID](#function-getattributetypeid)
+  * [getAttributeValidator](#function-getattributevalidator)
+  * [removeValidator](#function-removevalidator)
+  * [issueAttribute](#function-issueattribute)
+  * [addValidator](#function-addvalidator)
+  * [addValidatorApproval](#function-addvalidatorapproval)
+  * [removeAttributeType](#function-removeattributetype)
+  * [getAttributeTypeIDs](#function-getattributetypeids)
+  * [countValidators](#function-countvalidators)
+  * [getValidatorDescription](#function-getvalidatordescription)
+  * [addAttributeType](#function-addattributetype)
+  * [removeValidatorApproval](#function-removevalidatorapproval)
+  * [getValidator](#function-getvalidator)
+  * [getValidators](#function-getvalidators)
+  * [countAttributeTypes](#function-countattributetypes)
+  * [canIssueAttributeType](#function-canissueattributetype)
+  * [revokeAttribute](#function-revokeattribute)
+  * [getAttributeTypeDescription](#function-getattributetypedescription)
+  * [AttributeTypeAdded](#event-attributetypeadded)
+  * [AttributeTypeRemoved](#event-attributetyperemoved)
+  * [ValidatorAdded](#event-validatoradded)
+  * [ValidatorRemoved](#event-validatorremoved)
+  * [ValidatorApprovalAdded](#event-validatorapprovaladded)
+  * [ValidatorApprovalRemoved](#event-validatorapprovalremoved)
+  * [AttributeAdded](#event-attributeadded)
+  * [AttributeRemoved](#event-attributeremoved)
+* [ExtendedJurisdictionInterface](#extendedjurisdictioninterface)
+  * [invalidateAttributeApproval](#function-invalidateattributeapproval)
+  * [setAttributeTypeOnlyPersonal](#function-setattributetypeonlypersonal)
+  * [removeAttribute](#function-removeattribute)
+  * [setValidatorSigningKey](#function-setvalidatorsigningkey)
+  * [addAttribute](#function-addattribute)
+  * [getAttributeTypeInformation](#function-getattributetypeinformation)
+  * [addAttributeFor](#function-addattributefor)
+  * [getValidatorSigningKey](#function-getvalidatorsigningkey)
+  * [canAddAttribute](#function-canaddattribute)
+  * [setAttributeTypeJurisdictionFee](#function-setattributetypejurisdictionfee)
+  * [canAddAttributeFor](#function-canaddattributefor)
+  * [getAttributeApprovalHash](#function-getattributeapprovalhash)
+  * [setAttributeTypeMinimumRequiredStake](#function-setattributetypeminimumrequiredstake)
+  * [setAttributeTypeSecondarySource](#function-setattributetypesecondarysource)
+  * [addRestrictedAttributeType](#function-addrestrictedattributetype)
+  * [removeAttributeFor](#function-removeattributefor)
+  * [ValidatorSigningKeyModified](#event-validatorsigningkeymodified)
+  * [StakeAllocated](#event-stakeallocated)
+  * [StakeRefunded](#event-stakerefunded)
+  * [FeePaid](#event-feepaid)
+  * [TransactionRebatePaid](#event-transactionrebatepaid)
+* [TPLBasicValidatorInterface](#tplbasicvalidatorinterface)
+  * [getJurisdiction](#function-getjurisdiction)
+  * [isValidator](#function-isvalidator)
+  * [issueAttribute](#function-issueattribute)
+  * [canIssueAttribute](#function-canissueattribute)
+  * [canRevokeAttribute](#function-canrevokeattribute)
+  * [canIssueAttributeType](#function-canissueattributetype)
+  * [revokeAttribute](#function-revokeattribute)
+* [TPLExtendedValidatorInterface](#tplextendedvalidatorinterface)
+  * [withdraw](#function-withdraw)
+  * [setSigningKey](#function-setsigningkey)
+  * [invalidateAttributeApproval](#function-invalidateattributeapproval)
+  * [canIssueAttribute](#function-canissueattribute)
+  * [getSigningKey](#function-getsigningkey)
+  * [getAttributeApprovalHash](#function-getattributeapprovalhash)
+* [TPLERC20RestrictedReceiverInterface](#tplerc20restrictedreceiverinterface)
+  * [getRegistry](#function-getregistry)
+  * [canReceive](#function-canreceive)
+* [TPLERC20PermissionedInterface](#tplerc20permissionedinterface)
+  * [getRegistry](#function-getregistry)
+  * [canTransfer](#function-cantransfer)
+  * [canTransferFrom](#function-cantransferfrom)
+* [TPLERC721RestrictedOwnerInterface](#tplerc721restrictedownerinterface)
+  * [getRegistry](#function-getregistry)
+  * [canOwn](#function-canown)
+* [TPLERC721PermissionedInterface](#tplerc721permissionedinterface)
+  * [canSafeTransferFrom](#function-cansafetransferfrom)
+  * [canTransferFrom](#function-cantransferfrom)
+  * [getRegistry](#function-getregistry)
+  * [canSafeTransferFrom](#function-cansafetransferfrom)
+
+### AttributeRegistryInterface
+---
+
+#### *function* getAttributeTypeID
+
+AttributeRegistryInterface.getAttributeTypeID(index) `view` `0e62fde6`
+
+**Get the ID of the attribute type at index `index`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* | index | uint256 The index of the attribute type in question. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* |  | undefined |
+
+#### *function* hasAttribute
+
+AttributeRegistryInterface.hasAttribute(account, attributeTypeID) `view` `4b5f297a`
+
+**Check if an attribute of the type with ID `attributeTypeID` has been assigned to the account at `account` and is still valid.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | account | address The account to check for a valid attribute. |
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type to check for. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bool* |  | undefined |
+
+#### *function* getAttributeValue
+
+AttributeRegistryInterface.getAttributeValue(account, attributeTypeID) `view` `cd6c8343`
+
+**Retrieve the value of the attribute of the type with ID `attributeTypeID` on the account at `account`, assuming it is valid.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | account | address The account to check for the given attribute value. |
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type to check for. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* |  | undefined |
+
+#### *function* countAttributeTypes
+
+AttributeRegistryInterface.countAttributeTypes() `view` `d71710e0`
+
+**Count the number of attribute types defined by the registry.**
+
+
+
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* |  | undefined |
+
+
+
+### BasicJurisdictionInterface
+---
+
+#### *function* getAttributeTypeID
+
+BasicJurisdictionInterface.getAttributeTypeID(index) `view` `0e62fde6`
+
+**Get the ID of the attribute type at index `index`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* | index | uint256 The index of the attribute type in question. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* |  | undefined |
+
+#### *function* getAttributeValidator
+
+BasicJurisdictionInterface.getAttributeValidator(account, attributeTypeID) `view` `17cf31d8`
+
+**Find the validator that issued the attribute of the type with ID `attributeTypeID` on the account at `account` and determine if the validator is still valid.**
+
+> if no attribute of the given attribute type exists on the account, the function will return (address(0), false).
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | account | address The account that contains the attribute be checked. |
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type in question. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | validator | undefined |
+| *bool* | isStillValid | undefined |
+
+#### *function* removeValidator
+
+BasicJurisdictionInterface.removeValidator(validator) `nonpayable` `40a141ff`
+
+**Remove the validator at address `validator` from the jurisdiction.**
+
+> Any attributes issued by the validator will become invalid upon their removal. If the validator is reinstated, those attributes will become valid again. Any approvals to issue attributes of a given type will need to be set from scratch in the event a validator is reinstated.
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | validator | address The account of the validator to remove. |
+
+
+#### *function* issueAttribute
+
+BasicJurisdictionInterface.issueAttribute(account, attributeTypeID, value) `payable` `50135c3a`
+
+**Issue an attribute of the type with ID `attributeTypeID` and a value of `value` to `account` if `message.caller.address()` is approved validator.**
+
+> Existing attributes of the given type on the address must be removed in order to set a new attribute. Be aware that ownership of the account to which the attribute is assigned may still be transferable - restricting assignment to externally-owned accounts may partially alleviate this issue.
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | account | address The account to issue the attribute on. |
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type to issue. |
+| *uint256* | value | uint256 An optional value for the issued attribute. |
+
+
+#### *function* addValidator
+
+BasicJurisdictionInterface.addValidator(validator, description) `nonpayable` `63e2a232`
+
+**Add account `validator` as a validator with a description `description` who can be approved to set attributes of specific types.**
+
+> Note that the jurisdiction can add iteslf as a validator if desired.
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | validator | address The account to assign as the validator. |
+| *string* | description | string A description of the validator. |
+
+
+#### *function* addValidatorApproval
+
+BasicJurisdictionInterface.addValidatorApproval(validator, attributeTypeID) `nonpayable` `7756588c`
+
+**Approve the validator at address `validator` to issue attributes of the type with ID `attributeTypeID`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | validator | address The account of the validator to approve. |
+| *uint256* | attributeTypeID | uint256 The ID of the approved attribute type. |
+
+
+#### *function* removeAttributeType
+
+BasicJurisdictionInterface.removeAttributeType(ID) `nonpayable` `7aedf3e0`
+
+**Remove the attribute type with ID `ID` from the jurisdiction.**
+
+> All issued attributes of the given type will become invalid upon removal, but will become valid again if the attribute is reinstated.
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* | ID | uint256 The ID of the attribute type to remove. |
+
+
+#### *function* getAttributeTypeIDs
+
+BasicJurisdictionInterface.getAttributeTypeIDs() `view` `9679c72a`
+
+**Get the IDs of all available attribute types on the jurisdiction.**
+
+
+
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256[]* |  | undefined |
+
+#### *function* countValidators
+
+BasicJurisdictionInterface.countValidators() `view` `97f3c806`
+
+**Count the number of validators defined by the jurisdiction.**
+
+
+
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* |  | undefined |
+
+#### *function* getValidatorDescription
+
+BasicJurisdictionInterface.getValidatorDescription(validator) `view` `a43569b3`
+
+**Get a description of the validator at account `validator`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | validator | address The account of the validator in question. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *string* | description | undefined |
+
+#### *function* addAttributeType
+
+BasicJurisdictionInterface.addAttributeType(ID, description) `nonpayable` `acb29172`
+
+**Add an attribute type with ID `ID` and description `description` to the jurisdiction.**
+
+> Once an attribute type is added with a given ID, the description of the attribute type cannot be changed, even if the attribute type is removed and added back later.
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* | ID | uint256 The ID of the attribute type to add. |
+| *string* | description | string A description of the attribute type. |
+
+
+#### *function* removeValidatorApproval
+
+BasicJurisdictionInterface.removeValidatorApproval(validator, attributeTypeID) `nonpayable` `b340ec81`
+
+**Deny the validator at address `validator` the ability to continue to issue attributes of the type with ID `attributeTypeID`.**
+
+> Any attributes of the specified type issued by the validator in question will become invalid once the approval is removed. If the approval is reinstated, those attributes will become valid again. The approval will also be removed if the approved validator is removed.
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | validator | address The account of the validator with removed approval. |
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type to unapprove. |
+
+
+#### *function* getValidator
+
+BasicJurisdictionInterface.getValidator(index) `view` `b5d89627`
+
+**Get the account of the validator at index `index`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* | index | uint256 The index of the validator in question. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* |  | undefined |
+
+#### *function* getValidators
+
+BasicJurisdictionInterface.getValidators() `view` `b7ab4db5`
+
+**Get the accounts of all available validators on the jurisdiction.**
+
+
+
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address[]* |  | undefined |
+
+#### *function* countAttributeTypes
+
+BasicJurisdictionInterface.countAttributeTypes() `view` `d71710e0`
+
+**Count the number of attribute types defined by the jurisdiction.**
+
+
+
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* |  | undefined |
+
+#### *function* canIssueAttributeType
+
+BasicJurisdictionInterface.canIssueAttributeType(validator, attributeTypeID) `view` `f287f8fb`
+
+**Determine if a validator at account `validator` is able to issue attributes of the type with ID `attributeTypeID`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | validator | address The account of the validator. |
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type to check. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bool* |  | undefined |
+
+#### *function* revokeAttribute
+
+BasicJurisdictionInterface.revokeAttribute(account, attributeTypeID) `nonpayable` `f9292ffb`
+
+**Revoke the attribute of the type with ID `attributeTypeID` from `account` if `message.caller.address()` is the issuing validator.**
+
+> Validators may still revoke issued attributes even after they have been removed or had their approval to issue the attribute type removed - this enables them to address any objectionable issuances before being reinstated.
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | account | address The account to issue the attribute on. |
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type to issue. |
+
+
+#### *function* getAttributeTypeDescription
+
+BasicJurisdictionInterface.getAttributeTypeDescription(attributeTypeID) `view` `feec036f`
+
+**Get a description of the attribute type with ID `attributeTypeID`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type to check for. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *string* | description | undefined |
+#### *event* AttributeTypeAdded
+
+BasicJurisdictionInterface.AttributeTypeAdded(attributeTypeID, description) `e35410b0`
+
+Arguments
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* | attributeTypeID | indexed |
+| *string* | description | not indexed |
+
+#### *event* AttributeTypeRemoved
+
+BasicJurisdictionInterface.AttributeTypeRemoved(attributeTypeID) `3302c92b`
+
+Arguments
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* | attributeTypeID | indexed |
+
+#### *event* ValidatorAdded
+
+BasicJurisdictionInterface.ValidatorAdded(validator, description) `1b7d03cc`
+
+Arguments
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | validator | indexed |
+| *string* | description | not indexed |
+
+#### *event* ValidatorRemoved
+
+BasicJurisdictionInterface.ValidatorRemoved(validator) `e1434e25`
+
+Arguments
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | validator | indexed |
+
+#### *event* ValidatorApprovalAdded
+
+BasicJurisdictionInterface.ValidatorApprovalAdded(validator, attributeTypeID) `b85fe33f`
+
+Arguments
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | validator | not indexed |
+| *uint256* | attributeTypeID | indexed |
+
+#### *event* ValidatorApprovalRemoved
+
+BasicJurisdictionInterface.ValidatorApprovalRemoved(validator, attributeTypeID) `61556816`
+
+Arguments
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | validator | not indexed |
+| *uint256* | attributeTypeID | indexed |
+
+#### *event* AttributeAdded
+
+BasicJurisdictionInterface.AttributeAdded(validator, attributee, attributeTypeID, attributeValue) `fc11e611`
+
+Arguments
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | validator | not indexed |
+| *address* | attributee | indexed |
+| *uint256* | attributeTypeID | not indexed |
+| *uint256* | attributeValue | not indexed |
+
+#### *event* AttributeRemoved
+
+BasicJurisdictionInterface.AttributeRemoved(validator, attributee, attributeTypeID) `aa5b822d`
+
+Arguments
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | validator | not indexed |
+| *address* | attributee | indexed |
+| *uint256* | attributeTypeID | not indexed |
+
+
+
+### ExtendedJurisdictionInterface
+---
+
+#### *function* invalidateAttributeApproval
+
+ExtendedJurisdictionInterface.invalidateAttributeApproval(hash, signature) `nonpayable` `0e9065df`
+
+**Invalidate a signed attribute approval before it has been set by supplying the hash of the approval `hash` and the signature `signature`.**
+
+> Attribute approvals can only be removed by issuing validators or the jurisdiction itself.
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bytes32* | hash | bytes32 The hash of the attribute approval. |
+| *bytes* | signature | bytes The hash's signature, resolving to the signing key. |
+
+
+#### *function* setAttributeTypeOnlyPersonal
+
+ExtendedJurisdictionInterface.setAttributeTypeOnlyPersonal(ID, onlyPersonal) `nonpayable` `13cbb970`
+
+**Enable or disable a restriction for a given attribute type ID `ID` that prevents attributes of the given type from being set by operators based on the provided value for `onlyPersonal`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* | ID | uint256 The attribute type ID in question. |
+| *bool* | onlyPersonal | bool Whether the address may only be set personally. |
+
+
+#### *function* removeAttribute
+
+ExtendedJurisdictionInterface.removeAttribute(attributeTypeID) `nonpayable` `18bbfb9c`
+
+**Remove an attribute of the type with ID `attributeTypeID` from account of `msg.sender`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type to remove. |
+
+
+#### *function* setValidatorSigningKey
+
+ExtendedJurisdictionInterface.setValidatorSigningKey(newSigningKey) `nonpayable` `2724a477`
+
+**Set the public address associated with a validator signing key, used to sign off-chain attribute approvals, as `newSigningKey`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | newSigningKey | address The address associated with signing key to set. |
+
+
+#### *function* addAttribute
+
+ExtendedJurisdictionInterface.addAttribute(attributeTypeID, value, validatorFee, signature) `payable` `62e9674f`
+
+**Add an attribute of the type with ID `attributeTypeID`, an attribute value of `value`, and an associated validator fee of `validatorFee` to account of `msg.sender` by passing in a signed attribute approval with signature `signature`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type to add. |
+| *uint256* | value | uint256 The value for the attribute to add. |
+| *uint256* | validatorFee | uint256 The fee to be paid to the issuing validator. |
+| *bytes* | signature | bytes The signature from the validator attribute approval. |
+
+
+#### *function* getAttributeTypeInformation
+
+ExtendedJurisdictionInterface.getAttributeTypeInformation(attributeTypeID) `view` `6b600462`
+
+**Get comprehensive information on an attribute type with ID `attributeTypeID`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* | attributeTypeID | uint256 The attribute type ID in question. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *string* | description | undefined |
+| *bool* | isRestricted | undefined |
+| *bool* | isOnlyPersonal | undefined |
+| *address* | secondarySource | undefined |
+| *uint256* | secondaryId | undefined |
+| *uint256* | minimumRequiredStake | undefined |
+| *uint256* | jurisdictionFee | undefined |
+
+#### *function* addAttributeFor
+
+ExtendedJurisdictionInterface.addAttributeFor(account, attributeTypeID, value, validatorFee, signature) `payable` `81050c65`
+
+**Add an attribute of the type with ID `attributeTypeID`, an attribute value of `value`, and an associated validator fee of `validatorFee` to account `account` by passing in a signed attribute approval with signature `signature`.**
+
+> Restricted attribute types can only be removed by issuing validators or the jurisdiction itself.
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | account | address The account to add the attribute to. |
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type to add. |
+| *uint256* | value | uint256 The value for the attribute to add. |
+| *uint256* | validatorFee | uint256 The fee to be paid to the issuing validator. |
+| *bytes* | signature | bytes The signature from the validator attribute approval. |
+
+
+#### *function* getValidatorSigningKey
+
+ExtendedJurisdictionInterface.getValidatorSigningKey(validator) `view` `9302091f`
+
+**Get a validator's signing key.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | validator | address The account of the validator. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | signingKey | undefined |
+
+#### *function* canAddAttribute
+
+ExtendedJurisdictionInterface.canAddAttribute(attributeTypeID, value, fundsRequired, validatorFee, signature) `view` `952600ac`
+
+**Check if a given signed attribute approval is currently valid when submitted directly by `msg.sender`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type in question. |
+| *uint256* | value | uint256 The value of the attribute in the approval. |
+| *uint256* | fundsRequired | uint256 The amount to be included with the approval. |
+| *uint256* | validatorFee | uint256 The required fee to be paid to the validator. |
+| *bytes* | signature | bytes The attribute approval signature, based on a hash of the other parameters and the submitting account. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bool* |  | undefined |
+
+#### *function* setAttributeTypeJurisdictionFee
+
+ExtendedJurisdictionInterface.setAttributeTypeJurisdictionFee(ID, fee) `nonpayable` `aee338ee`
+
+**Set a required fee for a given attribute type ID `ID` and an amount of `fee`, to be paid to the owner of the jurisdiction upon assignment of attributes of the given type.**
+
+> To remove a fee requirement from an attribute type, the fee amount should be set to 0.
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* | ID | uint256 The attribute type ID to set the required fee for. |
+| *uint256* | fee | uint256 The required fee amount to be paid upon assignment. |
+
+
+#### *function* canAddAttributeFor
+
+ExtendedJurisdictionInterface.canAddAttributeFor(account, attributeTypeID, value, fundsRequired, validatorFee, signature) `view` `b09b37d8`
+
+**Check if a given signed attribute approval is currently valid for a given account when submitted by the operator at `msg.sender`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | account | address The account specified by the attribute approval. |
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type in question. |
+| *uint256* | value | uint256 The value of the attribute in the approval. |
+| *uint256* | fundsRequired | uint256 The amount to be included with the approval. |
+| *uint256* | validatorFee | uint256 The required fee to be paid to the validator. |
+| *bytes* | signature | bytes The attribute approval signature, based on a hash of the other parameters and the submitting account. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bool* |  | undefined |
+
+#### *function* getAttributeApprovalHash
+
+ExtendedJurisdictionInterface.getAttributeApprovalHash(account, operator, attributeTypeID, value, fundsRequired, validatorFee) `view` `d99f2c97`
+
+**Get the hash of a given attribute approval.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | account | address The account specified by the attribute approval. |
+| *address* | operator | address An optional account permitted to submit approval. |
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type in question. |
+| *uint256* | value | uint256 The value of the attribute in the approval. |
+| *uint256* | fundsRequired | uint256 The amount to be included with the approval. |
+| *uint256* | validatorFee | uint256 The required fee to be paid to the validator. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bytes32* | hash | undefined |
+
+#### *function* setAttributeTypeMinimumRequiredStake
+
+ExtendedJurisdictionInterface.setAttributeTypeMinimumRequiredStake(ID, minimumRequiredStake) `nonpayable` `e4bbca9f`
+
+**Set a minimum required stake for a given attribute type ID `ID` and an amount of `stake`, to be locked in the jurisdiction upon assignment of attributes of the given type. The stake will be applied toward a transaction rebate in the event the attribute is revoked, with the remainder returned to the staker.**
+
+> To remove a stake requirement from an attribute type, the stake amount should be set to 0.
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* | ID | uint256 The attribute type ID to set a minimum required stake for. |
+| *uint256* | minimumRequiredStake | uint256 The minimum required funds to lock up. |
+
+
+#### *function* setAttributeTypeSecondarySource
+
+ExtendedJurisdictionInterface.setAttributeTypeSecondarySource(ID, attributeRegistry, sourceAttributeTypeID) `nonpayable` `e5541be7`
+
+**Set a secondary source for a given attribute type ID `ID`, with an address `registry` of the secondary source in question and a given `sourceAttributeTypeID` for attribute type ID to check on the secondary source. The secondary source will only be checked for the given attribute in cases where no attribute of the given attribute type ID is assigned locally.**
+
+> To remove a secondary source on an attribute type, the registry address should be set to the null address.
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* | ID | uint256 The attribute type ID to set the secondary source for. |
+| *address* | attributeRegistry | address The secondary attribute registry account. |
+| *uint256* | sourceAttributeTypeID | uint256 The attribute type ID on the secondary source to check. |
+
+
+#### *function* addRestrictedAttributeType
+
+ExtendedJurisdictionInterface.addRestrictedAttributeType(ID, description) `nonpayable` `eb3b274c`
+
+**Add a restricted attribute type with ID `ID` and description `description` to the jurisdiction. Restricted attribute types can only be removed by the issuing validator or the jurisdiction.**
+
+> Once an attribute type is added with a given ID, the description or the restricted status of the attribute type cannot be changed, even if the attribute type is removed and added back later.
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* | ID | uint256 The ID of the restricted attribute type to add. |
+| *string* | description | string A description of the restricted attribute type. |
+
+
+#### *function* removeAttributeFor
+
+ExtendedJurisdictionInterface.removeAttributeFor(account, attributeTypeID) `nonpayable` `fdf9101c`
+
+**Remove an attribute of the type with ID `attributeTypeID` from account of `account`.**
+
+> Restricted attribute types can only be removed by issuing validators or the jurisdiction itself.
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | account | address The account to remove the attribute from. |
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type to remove. |
+
+#### *event* ValidatorSigningKeyModified
+
+ExtendedJurisdictionInterface.ValidatorSigningKeyModified(validator, newSigningKey) `a0d7a9c0`
+
+Arguments
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | validator | indexed |
+| *address* | newSigningKey | not indexed |
+
+#### *event* StakeAllocated
+
+ExtendedJurisdictionInterface.StakeAllocated(staker, attribute, amount) `299c1112`
+
+Arguments
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | staker | indexed |
+| *uint256* | attribute | indexed |
+| *uint256* | amount | not indexed |
+
+#### *event* StakeRefunded
+
+ExtendedJurisdictionInterface.StakeRefunded(staker, attribute, amount) `cb777cb6`
+
+Arguments
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | staker | indexed |
+| *uint256* | attribute | indexed |
+| *uint256* | amount | not indexed |
+
+#### *event* FeePaid
+
+ExtendedJurisdictionInterface.FeePaid(recipient, payee, attribute, amount) `6096acf1`
+
+Arguments
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | recipient | indexed |
+| *address* | payee | indexed |
+| *uint256* | attribute | indexed |
+| *uint256* | amount | not indexed |
+
+#### *event* TransactionRebatePaid
+
+ExtendedJurisdictionInterface.TransactionRebatePaid(submitter, payee, attribute, amount) `016befcd`
+
+Arguments
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | submitter | indexed |
+| *address* | payee | indexed |
+| *uint256* | attribute | indexed |
+| *uint256* | amount | not indexed |
+
+
+
+### TPLBasicValidatorInterface
+---
+
+#### *function* getJurisdiction
+
+TPLBasicValidatorInterface.getJurisdiction() `view` `1fa1087c`
+
+**Get account of utilized jurisdiction and associated attribute registry managed by the jurisdiction.**
+
+
+
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* |  | undefined |
+
+#### *function* isValidator
+
+TPLBasicValidatorInterface.isValidator() `view` `330e9e3d`
+
+**Check if contract is assigned as a validator on the jurisdiction.**
+
+
+
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bool* |  | undefined |
+
+#### *function* issueAttribute
+
+TPLBasicValidatorInterface.issueAttribute(account, attributeTypeID) `payable` `89972e42`
+
+**Issue an attribute of the type with ID `attributeTypeID` to account `account` on the jurisdiction.**
+
+> Note that the function is payable - this is so that the function in question can support both basic and extended jurisdictions. Attaching a value when utilizing a basic jurisdiction will revert the transaction.
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | account | address The account to issue the attribute to. |
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type in question. |
+
+
+#### *function* canIssueAttribute
+
+TPLBasicValidatorInterface.canIssueAttribute(account, attributeTypeID) `view` `99342c7c`
+
+**Check if the validator is approved to issue an attribute of the type with ID `attributeTypeID` to account `account` on the jurisdiction.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | account | address The account to check for issuing the attribute to. |
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type in question. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bool* |  | undefined |
+| *bytes1* |  | undefined |
+
+#### *function* canRevokeAttribute
+
+TPLBasicValidatorInterface.canRevokeAttribute(account, attributeTypeID) `view` `a20673f4`
+
+**Check if the validator is approved to revoke an attribute of the type with ID `attributeTypeID` from account `account` on the jurisdiction.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | account | address The checked account for revoking the attribute from. |
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type in question. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bool* |  | undefined |
+| *bytes1* |  | undefined |
+
+#### *function* canIssueAttributeType
+
+TPLBasicValidatorInterface.canIssueAttributeType(attributeTypeID) `view` `b61ef753`
+
+**Check if the validator is approved to issue attributes of the type with ID `attributeTypeID` on the jurisdiction.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type in question. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bool* |  | undefined |
+
+#### *function* revokeAttribute
+
+TPLBasicValidatorInterface.revokeAttribute(account, attributeTypeID) `nonpayable` `f9292ffb`
+
+**Revoke an attribute of the type with ID `attributeTypeID` from account `account` on the jurisdiction.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | account | address The account to revoke the attribute from. |
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type in question.
+
+
+
+### TPLExtendedValidatorInterface
+---
+
+
+#### *function* withdraw
+
+TPLExtendedValidatorInterface.withdraw(to, value) `nonpayable` `040cf020`
+
+**Withdraw funds paid into the validator of amount `value` to the account at `to`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bytes32* | to | address The address to withdraw to. |
+| *uint256* | value | uint256 The amount to withdraw. |
+
+
+#### *function* setSigningKey
+
+TPLExtendedValidatorInterface.setSigningKey(newSigningKey) `nonpayable` `0ab4423e`
+
+**Set a signing key on the jurisdiction with an associated public key at address `newSigningKey`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | newSigningKey | address The signing key to set. |
+
+
+#### *function* invalidateAttributeApproval
+
+TPLExtendedValidatorInterface.invalidateAttributeApproval(hash, signature) `nonpayable` `0e9065df`
+
+**Invalidate a signed attribute approval before it has been set by supplying the hash of the approval `hash` and the signature `signature`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bytes32* | hash | bytes32 The hash of the attribute approval. |
+| *bytes* | signature | bytes The hash's signature, resolving to the signing key. |
+
+
+#### *function* canIssueAttribute
+
+TPLExtendedValidatorInterface.canIssueAttribute(account, attributeTypeID, value) `view` `0f748814`
+
+**Check if the validator is approved to issue an attribute of the type with ID `attributeTypeID` to account `account` on the jurisdiction when `msg.value` is set to `value`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | account | address The account to issue the attribute to. |
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type in question. |
+| *uint256* | value | uint256 The amount of ether included in the transaction. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bool* |  | undefined |
+| *bytes1* |  | undefined |
+
+#### *function* getSigningKey
+
+TPLExtendedValidatorInterface.getSigningKey() `view` `8faf7747`
+
+**Get the validator's signing key on the jurisdiction.**
+
+
+
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* |  | undefined |
+
+#### *function* getAttributeApprovalHash
+
+TPLExtendedValidatorInterface.getAttributeApprovalHash(account, operator, attributeTypeID, value, fundsRequired, validatorFee) `view` `d99f2c97`
+
+**Get the hash of a given attribute approval from the jurisdiction.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | account | address The account specified by the attribute approval. |
+| *address* | operator | address An optional account permitted to submit approval. |
+| *uint256* | attributeTypeID | uint256 The ID of the attribute type in question. |
+| *uint256* | value | uint256 The value of the attribute in the approval. |
+| *uint256* | fundsRequired | uint256 The amount to be included with the approval. |
+| *uint256* | validatorFee | uint256 The required fee to be paid to the validator. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bytes32* | hash | undefined |
+
+
+
+### TPLERC20RestrictedReceiverInterface
+---
+
+
+#### *function* getRegistry
+
+TPLERC20RestrictedReceiverInterface.getRegistry() `view` `5ab1bd53`
+
+**Get the account of the utilized attribute registry.**
+
+
+
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* |  | undefined |
+
+#### *function* canReceive
+
+TPLERC20RestrictedReceiverInterface.canReceive(receiver) `view` `90d370ba`
+
+**Check if an account is approved to receive token transfers at account `receiver`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | receiver | address The account of the recipient. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bool* |  | undefined |
+
+
+
+### TPLERC20PermissionedInterface
+---
+
+
+#### *function* getRegistry
+
+TPLERC20PermissionedInterface.getRegistry() `view` `5ab1bd53`
+
+**Get the account of the utilized attribute registry.**
+
+
+
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* |  | undefined |
+
+#### *function* canTransfer
+
+TPLERC20PermissionedInterface.canTransfer(to, value) `nonpayable` `d45e09c1`
+
+**Check if an account is approved to transfer tokens to account `to` of an amount `value`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | to | address The account of the recipient. |
+| *uint256* | value | uint256 The amount to transfer. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bool* |  | undefined |
+| *bytes1* |  | undefined |
+
+#### *function* canTransferFrom
+
+TPLERC20PermissionedInterface.canTransferFrom(from, to, value) `nonpayable` `f37d11cc`
+
+**Check if an account is approved to transfer tokens on behalf of account `from` to account `to` of an amount `value`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | from | address The account holding the tokens to be sent. |
+| *address* | to | address The account of the recipient. |
+| *uint256* | value | uint256 The amount to transfer. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bool* |  | undefined |
+| *bytes1* |  | undefined |
+
+
+
+### TPLERC721RestrictedOwnerInterface
+---
+
+
+#### *function* getRegistry
+
+TPLERC721RestrictedOwnerInterface.getRegistry() `view` `5ab1bd53`
+
+**Get the account of the utilized attribute registry.**
+
+
+
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* |  | undefined |
+
+#### *function* canOwn
+
+TPLERC721RestrictedOwnerInterface.canOwn(account) `view` `a4886b69`
+
+**Check if an account `account` is approved to own NFTs.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | account | address The account in question. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bool* |  | undefined |
+
+
+
+### TPLERC721PermissionedInterface
+---
+
+#### *function* canSafeTransferFrom
+
+TPLERC721PermissionedInterface.canSafeTransferFrom(from, to, tokenId, value, data) `view` `3571ffa3`
+
+**Check if a transfer of the NFT with ID `tokenId` on behalf of account `from` to a recipient at account `to` with `msg.value` of `value` and data `data` is approved. The check must fail if the recipient of the transfer does not correctly implement `onERC721Received`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | from | address The current owner of the NFT. |
+| *address* | to | address The new owner. |
+| *uint256* | tokenId | uint256 The NFT to transfer. |
+| *uint256* | value | uint256 The amount of ether to include with the transaction.    |
+| *bytes* | data | bytes Additional data with no specified format to be included. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bool* |  | undefined |
+| *bytes1* |  | undefined |
+
+#### *function* canTransferFrom
+
+TPLERC721PermissionedInterface.canTransferFrom(from, to, tokenId, value) `view` `55e9a76e`
+
+**Check if a transfer of the NFT with ID `tokenId` on behalf of account `from` to a recipient at account `to` with `msg.value` of `value` is approved. THE CALLER IS RESPONSIBLE TO CONFIRM THAT `to` IS CAPABLE OF RECEIVING NFTS OR ELSE THEY MAY BE PERMANENTLY LOST.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | from | address The current owner of the NFT. |
+| *address* | to | address The new owner. |
+| *uint256* | tokenId | uint256 The NFT to transfer. |
+| *uint256* | value | uint256 The amount of ether to include with the transaction.    |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bool* |  | undefined |
+| *bytes1* |  | undefined |
+
+#### *function* getRegistry
+
+TPLERC721PermissionedInterface.getRegistry() `view` `5ab1bd53`
+
+**Get the account of the utilized attribute registry.**
+
+
+
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* |  | undefined |
+
+#### *function* canSafeTransferFrom
+
+TPLERC721PermissionedInterface.canSafeTransferFrom(from, to, tokenId, value) `view` `97f0f17a`
+
+**Check if a transfer of the NFT with ID `tokenId` on behalf of account `from` to a recipient at account `to` with `msg.value` of `value` is approved. The check must fail if the recipient of the transfer does not correctly implement `onERC721Received`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *address* | from | address The current owner of the NFT. |
+| *address* | to | address The new owner. |
+| *uint256* | tokenId | uint256 The NFT to transfer. |
+| *uint256* | value | uint256 The amount of ether to include with the transaction.    |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *bool* |  | undefined |
+| *bytes1* |  | undefined |
+
 
 ## Additional Information
 
