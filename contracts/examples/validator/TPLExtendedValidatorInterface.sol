@@ -35,7 +35,7 @@ interface TPLExtendedValidatorInterface {
   function setSigningKey(address newSigningKey) external;
 
   /**
-   * @notice Get the hash of a given attribute approval from the jurisdiction
+   * @notice Get the hash of a given attribute approval from the jurisdiction.
    * @param account address The account specified by the attribute approval.
    * @param operator address An optional account permitted to submit approval.
    * @param attributeTypeID uint256 The ID of the attribute type in question.

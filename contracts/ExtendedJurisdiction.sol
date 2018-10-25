@@ -508,16 +508,20 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
     emit ValidatorApprovalRemoved(validator, attributeTypeID);
   }
 
-  // validators may modify the public key corresponding to their signing key.
+  /**
+  * @notice Set the public address associated with a validator signing key, used
+  * to sign off-chain attribute approvals, as `newSigningKey`.
+  * @param newSigningKey address The address associated with signing key to set.
+  * @dev Consider having the validator submit a signed proof demonstrating that
+  * the provided signing key is indeed a signing key in their control - this
+  * helps mitigate the fringe attack vector where a validator could set the
+  * address of another validator candidate (especially in the case of a deployed
+  * smart contract) as their "signing key" in order to block them from being
+  * added to the jurisdiction (due to the required property of signing keys
+  * being unique, coupled with the fact that new validators are set up with
+  * their address as the default initial signing key).
+  */
   function setValidatorSigningKey(address newSigningKey) external {
-    // NOTE: consider having the validator submit a signed proof demonstrating
-    // that the provided signing key is indeed a signing key in their control -
-    // this helps mitigate the fringe attack vector where a validator could set
-    // the address of another validator candidate (especially in the case of a
-    // deployed smart contract) as their "signing key" in order to block them
-    // from being added to the jurisdiction (due to the required property of 
-    // signing keys being unique, coupled with the fact that new validators are
-    // set up with their address as the default initial signing key).
     require(
       isValidator(msg.sender),
       "only validators may modify validator signing keys");
@@ -702,7 +706,16 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
     }
   }
 
-  // users of the jurisdiction add attributes by including a validator signature
+  /**
+  * @notice Add an attribute of the type with ID `attributeTypeID`, an attribute
+  * value of `value`, and an associated validator fee of `validatorFee` to
+  * account of `msg.sender` by passing in a signed attribute approval with
+  * signature `signature`.
+  * @param attributeTypeID uint256 The ID of the attribute type to add.
+  * @param value uint256 The value for the attribute to add.
+  * @param validatorFee uint256 The fee to be paid to the issuing validator.
+  * @param signature bytes The signature from the validator attribute approval.
+  */
   function addAttribute(
     uint256 attributeTypeID,
     uint256 value,
@@ -806,7 +819,11 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
     }
   }
 
-  // users may remove unrestricted attributes from the jurisdiction at any time
+  /**
+  * @notice Remove an attribute of the type with ID `attributeTypeID` from
+  * account of `msg.sender`.
+  * @param attributeTypeID uint256 The ID of the attribute type to remove.
+  */
   function removeAttribute(uint256 attributeTypeID) external {
     // attributes may only be removed by the user if they are not restricted
     require(
@@ -854,7 +871,19 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
     }
   }
 
-  // others can also add attributes by including an address and valid signature
+  /**
+  * @notice Add an attribute of the type with ID `attributeTypeID`, an attribute
+  * value of `value`, and an associated validator fee of `validatorFee` to
+  * account `account` by passing in a signed attribute approval with signature
+  * `signature`.
+  * @param account address The account to add the attribute to.
+  * @param attributeTypeID uint256 The ID of the attribute type to add.
+  * @param value uint256 The value for the attribute to add.
+  * @param validatorFee uint256 The fee to be paid to the issuing validator.
+  * @param signature bytes The signature from the validator attribute approval.
+  * @dev Restricted attribute types can only be removed by issuing validators or
+  * the jurisdiction itself.
+  */
   function addAttributeFor(
     address account,
     uint256 attributeTypeID,
@@ -966,7 +995,14 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
     }
   }
 
-  // an operator who has set an unrestricted attribute may also remove it
+  /**
+  * @notice Remove an attribute of the type with ID `attributeTypeID` from
+  * account of `account`.
+  * @param account address The account to remove the attribute from.
+  * @param attributeTypeID uint256 The ID of the attribute type to remove.
+  * @dev Restricted attribute types can only be removed by issuing validators or
+  * the jurisdiction itself.
+  */
   function removeAttributeFor(address account, uint256 attributeTypeID) external {
     // attributes may only be removed by the user if they are not restricted
     require(
@@ -1006,7 +1042,14 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
     }
   }
 
-  // owner and issuing validators may invalidate a signed attribute approval
+  /**
+   * @notice Invalidate a signed attribute approval before it has been set by
+   * supplying the hash of the approval `hash` and the signature `signature`.
+   * @param hash bytes32 The hash of the attribute approval.
+   * @param signature bytes The hash's signature, resolving to the signing key.
+   * @dev Attribute approvals can only be removed by issuing validators or the
+   * jurisdiction itself.
+   */
   function invalidateAttributeApproval(
     bytes32 hash,
     bytes signature
@@ -1127,7 +1170,12 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
     return _attributeTypes[attributeTypeID].description;
   }
 
-  // external interface for getting full information on an attribute type by ID
+  /**
+   * @notice Get comprehensive information on an attribute type with ID
+   * `attributeTypeID`.
+   * @param attributeTypeID uint256 The attribute type ID in question.
+   * @return Information on the attribute type in question.
+   */
   function getAttributeTypeInformation(
     uint256 attributeTypeID
   ) external view returns (
@@ -1271,7 +1319,16 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
     ); // 0x01ffc9a7 || 0x5f46473f
   }
 
-  // external interface for getting the hash of an attribute approval
+  /**
+   * @notice Get the hash of a given attribute approval.
+   * @param account address The account specified by the attribute approval.
+   * @param operator address An optional account permitted to submit approval.
+   * @param attributeTypeID uint256 The ID of the attribute type in question.
+   * @param value uint256 The value of the attribute in the approval.
+   * @param fundsRequired uint256 The amount to be included with the approval.
+   * @param validatorFee uint256 The required fee to be paid to the validator.
+   * @return The hash of the attribute approval.
+   */
   function getAttributeApprovalHash(
     address account,
     address operator,
@@ -1292,7 +1349,17 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
     );
   }
 
-  // users can check whether a signed attribute approval is currently valid
+  /**
+   * @notice Check if a given signed attribute approval is currently valid when
+   * submitted directly by `msg.sender`.
+   * @param attributeTypeID uint256 The ID of the attribute type in question.
+   * @param value uint256 The value of the attribute in the approval.
+   * @param fundsRequired uint256 The amount to be included with the approval.
+   * @param validatorFee uint256 The required fee to be paid to the validator.
+   * @param signature bytes The attribute approval signature, based on a hash of
+   * the other parameters and the submitting account.
+   * @return True if the approval is currently valid, false otherwise.
+   */
   function canAddAttribute(
     uint256 attributeTypeID,
     uint256 value,
@@ -1328,7 +1395,18 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
     );
   }
 
-  // operators can check whether a signed attribute approval is currently valid
+  /**
+   * @notice Check if a given signed attribute approval is currently valid for a
+   * given account when submitted by the operator at `msg.sender`.
+   * @param account address The account specified by the attribute approval.
+   * @param attributeTypeID uint256 The ID of the attribute type in question.
+   * @param value uint256 The value of the attribute in the approval.
+   * @param fundsRequired uint256 The amount to be included with the approval.
+   * @param validatorFee uint256 The required fee to be paid to the validator.
+   * @param signature bytes The attribute approval signature, based on a hash of
+   * the other parameters and the submitting account.
+   * @return True if the approval is currently valid, false otherwise.
+   */
   function canAddAttributeFor(
     address account,
     uint256 attributeTypeID,

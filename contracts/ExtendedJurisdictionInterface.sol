@@ -103,10 +103,23 @@ interface ExtendedJurisdictionInterface {
   */
   function setAttributeTypeJurisdictionFee(uint256 ID, uint256 fee) external;
 
-  // validators may set a public key corresponding to their signing key.
+  /**
+  * @notice Set the public address associated with a validator signing key, used
+  * to sign off-chain attribute approvals, as `newSigningKey`.
+  * @param newSigningKey address The address associated with signing key to set.
+  */
   function setValidatorSigningKey(address newSigningKey) external;
 
-  // users of the jurisdiction add attributes by including a validator signature
+  /**
+  * @notice Add an attribute of the type with ID `attributeTypeID`, an attribute
+  * value of `value`, and an associated validator fee of `validatorFee` to
+  * account of `msg.sender` by passing in a signed attribute approval with
+  * signature `signature`.
+  * @param attributeTypeID uint256 The ID of the attribute type to add.
+  * @param value uint256 The value for the attribute to add.
+  * @param validatorFee uint256 The fee to be paid to the issuing validator.
+  * @param signature bytes The signature from the validator attribute approval.
+  */
   function addAttribute(
     uint256 attributeTypeID,
     uint256 value,
@@ -114,10 +127,26 @@ interface ExtendedJurisdictionInterface {
     bytes signature
   ) external payable;
 
-  // users may remove unrestricted attributes from the jurisdiction at any time
+  /**
+  * @notice Remove an attribute of the type with ID `attributeTypeID` from
+  * account of `msg.sender`.
+  * @param attributeTypeID uint256 The ID of the attribute type to remove.
+  */
   function removeAttribute(uint256 attributeTypeID) external;
 
-  // others can also add attributes by including an address and valid signature
+  /**
+  * @notice Add an attribute of the type with ID `attributeTypeID`, an attribute
+  * value of `value`, and an associated validator fee of `validatorFee` to
+  * account `account` by passing in a signed attribute approval with signature
+  * `signature`.
+  * @param account address The account to add the attribute to.
+  * @param attributeTypeID uint256 The ID of the attribute type to add.
+  * @param value uint256 The value for the attribute to add.
+  * @param validatorFee uint256 The fee to be paid to the issuing validator.
+  * @param signature bytes The signature from the validator attribute approval.
+  * @dev Restricted attribute types can only be removed by issuing validators or
+  * the jurisdiction itself.
+  */
   function addAttributeFor(
     address account,
     uint256 attributeTypeID,
@@ -126,16 +155,39 @@ interface ExtendedJurisdictionInterface {
     bytes signature
   ) external payable;
 
-  // an operator who has set an unrestricted attribute may also remove it
+  /**
+  * @notice Remove an attribute of the type with ID `attributeTypeID` from
+  * account of `account`.
+  * @param account address The account to remove the attribute from.
+  * @param attributeTypeID uint256 The ID of the attribute type to remove.
+  * @dev Restricted attribute types can only be removed by issuing validators or
+  * the jurisdiction itself.
+  */
   function removeAttributeFor(address account, uint256 attributeTypeID) external;
 
-  // owner and issuing validators may invalidate a signed attribute approval
+  /**
+   * @notice Invalidate a signed attribute approval before it has been set by
+   * supplying the hash of the approval `hash` and the signature `signature`.
+   * @param hash bytes32 The hash of the attribute approval.
+   * @param signature bytes The hash's signature, resolving to the signing key.
+   * @dev Attribute approvals can only be removed by issuing validators or the
+   * jurisdiction itself.
+   */
   function invalidateAttributeApproval(
     bytes32 hash,
     bytes signature
   ) external;
 
-  // external interface for getting the hash of an attribute approval
+  /**
+   * @notice Get the hash of a given attribute approval.
+   * @param account address The account specified by the attribute approval.
+   * @param operator address An optional account permitted to submit approval.
+   * @param attributeTypeID uint256 The ID of the attribute type in question.
+   * @param value uint256 The value of the attribute in the approval.
+   * @param fundsRequired uint256 The amount to be included with the approval.
+   * @param validatorFee uint256 The required fee to be paid to the validator.
+   * @return The hash of the attribute approval.
+   */
   function getAttributeApprovalHash(
     address account,
     address operator,
@@ -145,7 +197,17 @@ interface ExtendedJurisdictionInterface {
     uint256 validatorFee
   ) external view returns (bytes32 hash);
 
-  // users can check whether a signature for adding an attribute is still valid
+  /**
+   * @notice Check if a given signed attribute approval is currently valid when
+   * submitted directly by `msg.sender`.
+   * @param attributeTypeID uint256 The ID of the attribute type in question.
+   * @param value uint256 The value of the attribute in the approval.
+   * @param fundsRequired uint256 The amount to be included with the approval.
+   * @param validatorFee uint256 The required fee to be paid to the validator.
+   * @param signature bytes The attribute approval signature, based on a hash of
+   * the other parameters and the submitting account.
+   * @return True if the approval is currently valid, false otherwise.
+   */
   function canAddAttribute(
     uint256 attributeTypeID,
     uint256 value,
@@ -154,7 +216,18 @@ interface ExtendedJurisdictionInterface {
     bytes signature
   ) external view returns (bool);
 
-  // operators can check whether an attribute approval signature is still valid
+  /**
+   * @notice Check if a given signed attribute approval is currently valid for a
+   * given account when submitted by the operator at `msg.sender`.
+   * @param account address The account specified by the attribute approval.
+   * @param attributeTypeID uint256 The ID of the attribute type in question.
+   * @param value uint256 The value of the attribute in the approval.
+   * @param fundsRequired uint256 The amount to be included with the approval.
+   * @param validatorFee uint256 The required fee to be paid to the validator.
+   * @param signature bytes The attribute approval signature, based on a hash of
+   * the other parameters and the submitting account.
+   * @return True if the approval is currently valid, false otherwise.
+   */
   function canAddAttributeFor(
     address account,
     uint256 attributeTypeID,
@@ -164,7 +237,12 @@ interface ExtendedJurisdictionInterface {
     bytes signature
   ) external view returns (bool);
 
-  // external interface for getting information on an attribute type by ID
+  /**
+   * @notice Get comprehensive information on an attribute type with ID
+   * `attributeTypeID`.
+   * @param attributeTypeID uint256 The attribute type ID in question.
+   * @return Information on the attribute type in question.
+   */
   function getAttributeTypeInformation(
     uint256 attributeTypeID
   ) external view returns (
@@ -177,7 +255,11 @@ interface ExtendedJurisdictionInterface {
     uint256 jurisdictionFee
   );
   
-  // external interface for getting the signing key of a validator by address
+  /**
+   * @notice Get a validator's signing key.
+   * @param validator address The account of the validator.
+   * @return The account referencing the public component of the signing key.
+   */
   function getValidatorSigningKey(
     address validator
   ) external view returns (
