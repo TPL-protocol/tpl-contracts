@@ -945,6 +945,19 @@ module.exports = {test: async function (provider, testingContext) {
     failed++    
   })
 
+  await Jurisdiction.methods.getAttributeTypeID(
+    2
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 1
+  }).catch(error => {
+    console.log(
+      " ✓  - Out-of-range attribute type IDs revert"
+    )
+    passed++
+  })
+
   await Jurisdiction.methods.getValidatorDescription(
     validator.address
   ).call({
