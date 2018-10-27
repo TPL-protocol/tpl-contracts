@@ -52,13 +52,12 @@ $ ganache-cli --gasLimit 8000000
 
 Then, to run tests:
 ```sh
-$ yarn run coverage
 $ yarn test
-$ node scripts/gasAnalysis.js
-$ ./node_modules/.bin/solhint "contracts/**/*.sol"
+$ yarn coverage
+$ yarn linter
 ```
 
-Contracts may also be deployed locally using `$ node scripts/deploy.js`.
+A jurisdiction may then be deployed locally using `yarn deploy basic` or `yarn deploy extended`.
 
 ## API
 *NOTE: This documentation is still a work in progress. See the relevant contract source code for additional information.*
