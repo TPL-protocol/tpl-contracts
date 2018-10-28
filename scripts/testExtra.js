@@ -1,8 +1,8 @@
 var assert = require('assert');
-const JurisdictionContractData = require('../build/contracts/BasicJurisdiction.json')
-const TPLERC20ContractData = require('../build/contracts/TPLERC20RestrictedReceiverInstance.json')
-const TPLERC721ContractData = require('../build/contracts/TPLERC721PermissionedInstance.json')
-const TPLValidatorContractData = require('../build/contracts/TPLBasicValidatorInstance.json')
+const JurisdictionContractData = require('../build/contracts/ExtendedJurisdiction.json')
+const TPLERC20ContractData = require('../build/contracts/DrinkToken.json')
+const TPLERC721ContractData = require('../build/contracts/CryptoCopycats.json')
+const TPLValidatorContractData = require('../build/contracts/CryptoCopycatsCooperative.json')
 
 module.exports = {test: async function (provider, testingContext) {
   var web3 = provider
@@ -193,15 +193,17 @@ module.exports = {test: async function (provider, testingContext) {
 
   const attributeDetails = {
     ERC20: {
-      initialBalance: 100,
+      name: "Drink Token",
       typeId: '11111',
       description: 'Valid token recipient'
     },
     ERC721: {
+      name: "Crypto Copycats",
       typeId: '22222',
       description: 'Valid token holder' 
     },
     validator: {
+      name: "Crypto Copycats Cooperative",
       typeId: '22222',
       description: 'Designated validator'
     }
@@ -231,7 +233,6 @@ module.exports = {test: async function (provider, testingContext) {
       data: TPLERC20Deployer.deploy({
         data: TPLERC20ContractData.bytecode,
         arguments: [
-          attributeDetails.ERC20.initialBalance,
           Jurisdiction.options.address,
           attributeDetails.ERC20.typeId
         ]
@@ -247,7 +248,6 @@ module.exports = {test: async function (provider, testingContext) {
     {
       data: TPLERC20ContractData.bytecode,
       arguments: [
-        attributeDetails.ERC20.initialBalance,
         Jurisdiction.options.address,
         attributeDetails.ERC20.typeId
       ]
@@ -388,6 +388,42 @@ module.exports = {test: async function (provider, testingContext) {
     true,
     value => {
       assert.strictEqual(value, Jurisdiction.options.address)
+    }
+  )
+
+  await runTest(
+    'ERC20 description is set correctly',
+    TPLERC20,
+    'name',
+    'call',
+    [],
+    true,
+    value => {
+      assert.strictEqual(value, attributeDetails.ERC20.name)
+    }
+  )
+
+  await runTest(
+    'ERC721 description is set correctly',
+    TPLERC721,
+    'name',
+    'call',
+    [],
+    true,
+    value => {
+      assert.strictEqual(value, attributeDetails.ERC721.name)
+    }
+  )
+
+  await runTest(
+    'validator description is set correctly',
+    TPLValidator,
+    'name',
+    'call',
+    [],
+    true,
+    value => {
+      assert.strictEqual(value, attributeDetails.validator.name)
     }
   )
 
@@ -563,11 +599,61 @@ module.exports = {test: async function (provider, testingContext) {
   )
 
   await runTest(
+    'regular validator may issue attributes to jurisdiction',
+    Jurisdiction,
+    'issueAttribute',
+    'send',
+    [
+      address,
+      attributeDetails.ERC20.typeId,
+      0 // Value is not needed
+    ],
+    true
+  )
+
+  await runTest(
+    'attribute holder can mint ERC20 tokens',
+    TPLERC20,
+    'fermint',
+    'send',
+    [],
+    true
+  )
+
+  await runTest(
+    'ERC20 token balance is updated',
+    TPLERC20,
+    'balanceOf',
+    'call',
+    [address],
+    true,
+    value => {
+      assert.strictEqual(value, '1')
+    }
+  )
+
+  await runTest(
+    'attribute holder can burn ERC20 tokens',
+    TPLERC20,
+    'liquidate',
+    'send',
+    [],
+    true,
+    value => {
+      assert.strictEqual(value.events.PourDrink.returnValues.drinker, address)
+    }    
+  )
+
+  await runTest(
     'validator contract may issue attributes to jurisdiction',
     TPLValidator,
     'issueAttribute',
     'send',
-    [],
+    [
+      true,
+      true,
+      false
+    ],
     true
   )
 

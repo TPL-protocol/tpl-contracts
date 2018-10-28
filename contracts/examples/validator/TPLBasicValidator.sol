@@ -11,13 +11,13 @@ import "../../BasicJurisdictionInterface.sol";
 contract TPLBasicValidator is TPLBasicValidatorInterface {
 
   // declare registry interface, used to request attributes from a jurisdiction
-  AttributeRegistryInterface private _registry;
+  AttributeRegistryInterface internal _registry;
 
   // declare registry interface, set to same address as the registry
-  BasicJurisdictionInterface private _jurisdiction;
+  BasicJurisdictionInterface internal _jurisdiction;
 
   // declare attribute ID required in order to receive transferred tokens
-  uint256 private _validAttributeTypeID;
+  uint256 internal _validAttributeTypeID;
 
   /**
   * @notice The constructor function, with an associated attribute registry at

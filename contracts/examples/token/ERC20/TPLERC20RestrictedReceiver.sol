@@ -11,10 +11,10 @@ import "../../../AttributeRegistryInterface.sol";
 contract TPLERC20RestrictedReceiver is ERC20, TPLERC20RestrictedReceiverInterface {
 
   // declare registry interface, used to request attributes from a jurisdiction
-  AttributeRegistryInterface private _registry;
+  AttributeRegistryInterface internal _registry;
 
   // declare attribute ID required in order to receive transferred tokens
-  uint256 private _validAttributeTypeID;
+  uint256 internal _validAttributeTypeID;
 
   /**
   * @notice The constructor function, with an associated attribute registry at

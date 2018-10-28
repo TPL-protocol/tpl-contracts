@@ -11,10 +11,10 @@ import "../../../AttributeRegistryInterface.sol";
 contract TPLERC721Permissioned is ERC721, TPLERC721PermissionedInterface {
 
   // Declare registry interface, used to request attributes from a jurisdiction.
-  AttributeRegistryInterface private _registry;
+  AttributeRegistryInterface internal _registry;
 
   // Declare attribute ID required in order to hold tokens,
-  uint256 private _validAttributeTypeID;
+  uint256 internal _validAttributeTypeID;
 
   /**
   * @notice The constructor function, with an associated attribute registry at
