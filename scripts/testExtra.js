@@ -1,6 +1,6 @@
 var assert = require('assert');
 const JurisdictionContractData = require('../build/contracts/BasicJurisdiction.json')
-const TPLTokenContractData = require('../build/contracts/TPLERC721PermissionedInstance.json')
+const TPLERC721ContractData = require('../build/contracts/TPLERC721PermissionedInstance.json')
 
 module.exports = {test: async function (provider, testingContext) {
   var web3 = provider
@@ -12,6 +12,156 @@ module.exports = {test: async function (provider, testingContext) {
   if (addresses.length < 4) {
     console.log('cannot find enough addresses to run tests...')
     return false
+  }
+
+  async function send(
+    title,
+    instance,
+    method,
+    args,
+    from,
+    value,
+    gas,
+    gasPrice,
+    shouldSucceed,
+    assertionCallback
+  ) {
+    let succeeded = true
+    receipt = await instance.methods[method](...args).send({
+      from: from,
+      value: value,
+      gas: gas,
+      gasPrice:gasPrice
+    }).catch(error => {
+      succeeded = false
+    })
+
+    if (succeeded !== shouldSucceed) {
+      return false
+    } else if (!shouldSucceed) {
+      return true
+    }
+
+    assert.ok(receipt.status)
+
+    let assertionsPassed
+    try {
+      assertionCallback(receipt)
+      assertionsPassed = true
+    } catch(error) {
+      assertionsPassed = false
+    }
+    
+    return assertionsPassed
+  }
+
+  async function call(
+    title,
+    instance,
+    method,
+    args,
+    from,
+    value,
+    gas,
+    gasPrice,
+    shouldSucceed,
+    assertionCallback
+  ) {
+    let succeeded = true
+    returnValues = await instance.methods[method](...args).call({
+      from: from,
+      value: value,
+      gas: gas,
+      gasPrice:gasPrice
+    }).catch(error => {
+      succeeded = false
+    })
+
+    if (succeeded !== shouldSucceed) {
+      return false
+    } else if (!shouldSucceed) {
+      return true
+    }
+
+    let assertionsPassed
+    try {
+      assertionCallback(returnValues)
+      assertionsPassed = true
+    } catch(error) {
+      assertionsPassed = false
+    }
+
+    return assertionsPassed
+  }
+
+  async function runTest(
+    title,
+    instance,
+    method,
+    callOrSend,
+    args,
+    shouldSucceed,
+    assertionCallback,
+    from,
+    value
+  ) {
+    if (typeof(callOrSend) === 'undefined') {
+      callOrSend = 'send'
+    }
+    if (typeof(args) === 'undefined') {
+      args = []
+    }
+    if (typeof(shouldSucceed) === 'undefined') {
+      shouldSucceed = true
+    }
+    if (typeof(assertionCallback) === 'undefined') {
+      assertionCallback = (value) => {}
+    }
+    if (typeof(from) === 'undefined') {
+      from = address
+    }
+    if (typeof(value) === 'undefined') {
+      value = 0
+    }
+    let ok = false
+    if (callOrSend === 'send') {
+      ok = await send(
+        title,
+        instance,
+        method,
+        args,
+        from,
+        value,
+        gasLimit - 1,
+        10 ** 1,
+        shouldSucceed,
+        assertionCallback
+      )
+    } else if (callOrSend === 'call') {
+      ok = await call(
+        title,
+        instance,
+        method,
+        args,
+        from,
+        value,
+        gasLimit - 1,
+        10 ** 1,
+        shouldSucceed,
+        assertionCallback
+      )      
+    } else {
+      console.error('must use call or send!')
+      process.exit(1)
+    }
+
+    if (ok) {
+      console.log(` ✓ ${title}`)
+      passed++
+    } else {
+      console.log(` ✘ ${title}`)
+      failed++
+    }
   }
 
   const address = addresses[0]
@@ -27,8 +177,8 @@ module.exports = {test: async function (provider, testingContext) {
     JurisdictionContractData.abi
   )
 
-  const TPLTokenDeployer = new web3.eth.Contract(
-    TPLTokenContractData.abi
+  const TPLERC721Deployer = new web3.eth.Contract(
+    TPLERC721ContractData.abi
   )
 
   // set up some flags so we can delay display of a few test results
@@ -57,8 +207,8 @@ module.exports = {test: async function (provider, testingContext) {
 
   deployGas = await web3.eth.estimateGas({
       from: address,
-      data: TPLTokenDeployer.deploy({
-        data: TPLTokenContractData.bytecode,
+      data: TPLERC721Deployer.deploy({
+        data: TPLERC721ContractData.bytecode,
         arguments: [
           Jurisdiction.options.address,
           11111
@@ -71,9 +221,9 @@ module.exports = {test: async function (provider, testingContext) {
     process.exit(1)
   }
 
-  const TPLToken = await TPLTokenDeployer.deploy(
+  const TPLERC721 = await TPLERC721Deployer.deploy(
     {
-      data: TPLTokenContractData.bytecode,
+      data: TPLERC721ContractData.bytecode,
       arguments: [
         Jurisdiction.options.address,
         11111
@@ -88,106 +238,100 @@ module.exports = {test: async function (provider, testingContext) {
     process.exit(1)
   })
   console.log(
-    ' ✓ TPL token contract deploys successfully'
+    ' ✓ TPLERC721 contract deploys successfully'
   )
   passed++
 
-
-
   // **************************** begin testing ***************************** //
-
-
   console.log(' ✓ jurisdiction contract deploys successfully')
   passed++
 
-  await Jurisdiction.methods.owner().call({
-    from: address,
-    gas: 5000000,
-    gasPrice: 10 ** 9
-  }).then(ownerAddress => {
-    assert.strictEqual(ownerAddress, address)
-    console.log(' ✓ jurisdiction owner is set to the correct address')
-    passed++
-  })
+  await runTest(
+    'jurisdiction owner is set to the correct address',
+    Jurisdiction,
+    'owner',
+    'call',
+    [],
+    true,
+    value => {
+      assert.strictEqual(value, address)
+    }
+  )
 
   console.log(
     ' ✓ token contract referencing jurisdiction deploys successfully'
   )
   passed++
 
-  await TPLToken.methods.getRegistry().call({
-    from: address,
-    gas: 5000000,
-    gasPrice: 10 ** 9
-  }).then(registryAddress => {
-    assert.strictEqual(registryAddress, Jurisdiction.options.address)
-    console.log(
-      ' ✓ registry utilized by token is set to the jurisdiction address'
-    )
-    passed++
-  })
 
-  await TPLToken.methods.getValidAttributeID().call({
-    from: address,
-    gas: 5000000,
-    gasPrice: 10 ** 9
-  }).then(ID => {
-    assert.strictEqual(ID, '11111')
-    console.log(
-      ' ✓ attribute ID required by token is set to the correct value'
-    )
-    passed++
-  })
+  await runTest(
+    'registry utilized by token is set to the jurisdiction address',
+    TPLERC721,
+    'getRegistry',
+    'call',
+    [],
+    true,
+    value => {
+      assert.strictEqual(value, Jurisdiction.options.address)
+    }
+  )
 
-  await TPLToken.methods.balanceOf(address).call({
-    from: address,
-    gas: 5000000,
-    gasPrice: 10 ** 9
-  }).then(balance => {
-    assert.strictEqual(balance, (1).toString())
-    console.log(' ✓ deploying address has the correct balance')
-    passed++
-  })
+  await runTest(
+    'attribute ID required by token is set to the correct value',
+    TPLERC721,
+    'getValidAttributeID',
+    'call',
+    [],
+    true,
+    value => {
+      assert.strictEqual(value, '11111')
+    }
+  )
+
+  await runTest(
+    'deploying address has the correct balance',
+    TPLERC721,
+    'balanceOf',
+    'call',
+    [address],
+    true,
+    value => {
+      assert.strictEqual(value, '1')
+    }
+  )
+
+  let tokenId
+  await runTest(
+    'deploying address has the correct balance',
+    TPLERC721,
+    'tokenOfOwnerByIndex',
+    'call',
+    [address, 0],
+    true,
+    value => {
+      tokenId = value
+    }
+  )
+
+  await runTest(
+    'token cannot be transferred before the recipient has attribute assigned',
+    TPLERC721,
+    'transferFrom',
+    'send',
+    [address, inattributedAddress, tokenId],
+    false
+  )
+
+  await runTest(
+    'attribute types may be assigned to the jurisdiction',
+    Jurisdiction,
+    'addAttributeType',
+    'send',
+    [11111, 'Qualified owner'],
+    true
+  )
 
   /*
-  await TPLToken.methods.approve(address, 10).send({
-    from: address,
-    gas: 5000000,
-    gasPrice: 10 ** 9
-  }).then(receipt => {
-    assert.ok(receipt.status) 
-    console.log(
-      " ✓ operator can be approved for transferFrom"
-    )
-    passed++
-  }).catch(error => {
-    console.log(
-      " ✘ operator can be approved for transferFrom"
-    )
-    failed++
-  })
-
-  await TPLToken.methods.transfer(inattributedAddress, 10).send({
-    from: address,
-    gas: 5000000,
-    gasPrice: 10 ** 9
-  }).catch(error => {
-    console.log(
-      " ✓ tokens can't be transferred before valid attributes are assigned"
-    )
-    passed++
-  })
-
-  await TPLToken.methods.transferFrom(address, inattributedAddress, 10).send({
-    from: address,
-    gas: 5000000,
-    gasPrice: 10 ** 9
-  }).catch(error => {
-    console.log(
-      " ✓ tokens can't transferFrom before valid attributes are assigned"
-    )
-    passed++
-  })
 
   // create stub objects that will be used for setting and comparing values
   const validator = {

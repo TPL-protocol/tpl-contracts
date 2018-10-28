@@ -26,27 +26,15 @@ contract TPLERC721PermissionedInstance is TPLERC721Permissioned, ERC721Enumerabl
   }
 
   function _mockMint() internal {
-    bytes32 initialTokenInput = keccak256(
-      abi.encodePacked(
-        msg.sender,
-        blockhash(block.number - 1),
-        now
+    uint256 tokenId = uint256(
+      keccak256(
+        abi.encodePacked(
+          msg.sender,
+          blockhash(block.number - 1),
+          now
+        )
       )
     );
-
-    /*
-    bytes32 out;
-    for (uint i = 0; i < 32; i++) {
-      uint8 candidate = uint8(initialTokenInput[i]);
-      while (candidate > 153 || candidate % 16 > 9) {
-        candidate = candidate * 127;
-      }
-      out |= bytes32(bytes1(candidate) & 0xFF) >> (i * 8);
-    }
-    
-    uint256 tokenId = uint256(out);
-    */
-    uint256 tokenId = uint256(initialTokenInput);
 
     _mint(msg.sender, tokenId);
   }
