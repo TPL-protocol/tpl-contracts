@@ -3,6 +3,7 @@
     "rules": {
       "max-line-length": 131,
       "no-inline-assembly": false,
+      "not-rely-on-time": false,
       "avoid-tx-origin": false,
       "multiple-sends": false,
       "function-max-lines": false,
