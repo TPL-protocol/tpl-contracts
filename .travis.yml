@@ -17,6 +17,7 @@ install:
   - yarn global add coveralls
   - yarn install
 script:
+  - yarn linter
   - yarn build
   - yarn deploy basic && yarn deploy extended && yarn deploy token
   - yarn coverage && cat coverage/lcov.info | coveralls

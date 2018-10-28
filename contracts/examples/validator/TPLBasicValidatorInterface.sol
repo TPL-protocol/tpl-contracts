@@ -6,6 +6,28 @@ pragma solidity ^0.4.25;
  */
 interface TPLBasicValidatorInterface {
   /**
+   * @notice Issue an attribute of the type with ID `attributeTypeID` to account
+   * `account` on the jurisdiction.
+   * @param account address The account to issue the attribute to.
+   * @param attributeTypeID uint256 The ID of the attribute type in question.
+   * @dev Note that the function is payable - this is so that the function in
+   * question can support both basic and extended jurisdictions. Attaching a
+   * value when utilizing a basic jurisdiction will revert the transaction.
+   */  
+  function issueAttribute(
+    address account,
+    uint256 attributeTypeID
+  ) external payable;
+
+  /**
+   * @notice Revoke an attribute of the type with ID `attributeTypeID` from
+   * account `account` on the jurisdiction.
+   * @param account address The account to revoke the attribute from.
+   * @param attributeTypeID uint256 The ID of the attribute type in question.
+   */  
+  function revokeAttribute(address account, uint256 attributeTypeID) external;
+
+  /**
    * @notice Check if contract is assigned as a validator on the jurisdiction.
    * @return True if validator is assigned, false otherwise.
    */  
@@ -44,28 +66,6 @@ interface TPLBasicValidatorInterface {
     address account,
     uint256 attributeTypeID
   ) external view returns (bool, bytes1);
-
-  /**
-   * @notice Issue an attribute of the type with ID `attributeTypeID` to account
-   * `account` on the jurisdiction.
-   * @param account address The account to issue the attribute to.
-   * @param attributeTypeID uint256 The ID of the attribute type in question.
-   * @dev Note that the function is payable - this is so that the function in
-   * question can support both basic and extended jurisdictions. Attaching a
-   * value when utilizing a basic jurisdiction will revert the transaction.
-   */  
-  function issueAttribute(
-    address account,
-    uint256 attributeTypeID
-  ) external payable;
-
-  /**
-   * @notice Revoke an attribute of the type with ID `attributeTypeID` from
-   * account `account` on the jurisdiction.
-   * @param account address The account to revoke the attribute from.
-   * @param attributeTypeID uint256 The ID of the attribute type in question.
-   */  
-  function revokeAttribute(address account, uint256 attributeTypeID) external;
 
   /**
    * @notice Get account of utilized jurisdiction and associated attribute

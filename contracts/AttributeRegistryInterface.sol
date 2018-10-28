@@ -1,5 +1,6 @@
 pragma solidity ^0.4.25;
 
+
 /**
  * @title Attribute Registry interface. EIP-165 ID: 0x5f46473f
  */

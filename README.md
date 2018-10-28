@@ -52,20 +52,20 @@ $ ganache-cli --gasLimit 8000000
 
 Then, to run tests:
 ```sh
+$ yarn linter
 $ yarn test
 $ yarn coverage
-$ yarn linter
 ```
 
-A jurisdiction may then be deployed locally using `yarn deploy basic` or `yarn deploy extended`.
+A jurisdiction may then be deployed locally using `yarn build` followed by `yarn deploy basic` or `yarn deploy extended`. A mock permissioned token that relies on the deployed jurisdiction can then be deployed using `yarn deploy token` (see [config.js](https://github.com/TPL-protocol/tpl-contracts/blob/master/config.js) for a few token configuration options).
 
 ## API
 *NOTE: This documentation is still a work in progress. See the relevant contract source code for additional information.*
 * [AttributeRegistryInterface](#attributeregistryinterface)
-  * [getAttributeTypeID](#function-getattributetypeid)
   * [hasAttribute](#function-hasattribute)
   * [getAttributeValue](#function-getattributevalue)
   * [countAttributeTypes](#function-countattributetypes)
+  * [getAttributeTypeID](#function-getattributetypeid)
 * [BasicJurisdictionInterface](#basicjurisdictioninterface)
   * [getAttributeTypeID](#function-getattributetypeid)
   * [getAttributeValidator](#function-getattributevalidator)
@@ -149,25 +149,6 @@ A jurisdiction may then be deployed locally using `yarn deploy basic` or `yarn d
 ### AttributeRegistryInterface
 ---
 
-#### *function* getAttributeTypeID
-
-AttributeRegistryInterface.getAttributeTypeID(index) `view` `0e62fde6`
-
-**Get the ID of the attribute type at index `index`.**
-
-
-Inputs
-
-| **type** | **name** | **description** |
-|-|-|-|
-| *uint256* | index | uint256 The index of the attribute type in question. |
-
-Outputs
-
-| **type** | **name** | **description** |
-|-|-|-|
-| *uint256* |  | undefined |
-
 #### *function* hasAttribute
 
 AttributeRegistryInterface.hasAttribute(account, attributeTypeID) `view` `4b5f297a`
@@ -223,7 +204,24 @@ Outputs
 |-|-|-|
 | *uint256* |  | undefined |
 
+#### *function* getAttributeTypeID
 
+AttributeRegistryInterface.getAttributeTypeID(index) `view` `0e62fde6`
+
+**Get the ID of the attribute type at index `index`.**
+
+
+Inputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* | index | uint256 The index of the attribute type in question. |
+
+Outputs
+
+| **type** | **name** | **description** |
+|-|-|-|
+| *uint256* |  | undefined |
 
 ### BasicJurisdictionInterface
 ---
