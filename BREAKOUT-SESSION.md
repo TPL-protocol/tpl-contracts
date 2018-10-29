@@ -40,7 +40,13 @@ yarn tx liquidate -1
 ```
 yarn deploy CryptoCopycats
 yarn tx tokenOfOwnerByIndex 0 0
-(new tab copycats) REACT_APP_DNA=<tokenId> yarn start
+
+(new tab in current directory)
+cd copycats
+yarn install
+REACT_APP_DNA=<tokenId> yarn start
+
+(back to old tab)
 yarn transferFrom 0 1 <tokenId>
 yarn deploy CCC
 yarn tx getValidAttributeID721
