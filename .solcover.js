@@ -1,5 +1,5 @@
 module.exports = {
-  testCommand: 'node --max-old-space-size=4096 ./scripts/testBasicCoverage.js && node --max-old-space-size=4096 ./scripts/testExtendedCoverage.js && node --max-old-space-size=4096 ./scripts/testBasicOnExtendedCoverage.js && node --max-old-space-size=4096 ./scripts/testExtraCoverage.js',
+  testCommand: 'node --max-old-space-size=4096 ./scripts/test/testBasicCoverage.js && node --max-old-space-size=4096 ./scripts/test/testExtendedCoverage.js && node --max-old-space-size=4096 ./scripts/test/testBasicOnExtendedCoverage.js && node --max-old-space-size=4096 ./scripts/test/testExtraCoverage.js',
   compileCommand: '../node_modules/.bin/truffle compile',
   copyPackages: ['web3']
 }

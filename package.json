@@ -13,9 +13,10 @@
   },
   "scripts": {
   	"build": "./node_modules/.bin/truffle compile",
-  	"test": "./node_modules/.bin/truffle compile && node scripts/testBasicDirect.js && node scripts/testExtendedDirect.js && node scripts/testBasicOnExtendedDirect.js && node scripts/testExtraDirect.js && echo 'skipping scripts/testOptimizationDisabled.js'",
+  	"test": "./node_modules/.bin/truffle compile && node scripts/test/testBasicDirect.js && node scripts/test/testExtendedDirect.js && node scripts/test/testBasicOnExtendedDirect.js && node scripts/test/testExtraDirect.js && echo 'skipping scripts/test/testOptimizationDisabled.js'",
   	"coverage": "./node_modules/.bin/solidity-coverage",
     "linter": "./node_modules/.bin/solhint 'contracts/**/*.sol'",
-    "deploy": "node scripts/deploy.js"
+    "deploy": "node scripts/deploy/deploy.js",
+    "tx": "node scripts/cli/cli.js"
   }
 }

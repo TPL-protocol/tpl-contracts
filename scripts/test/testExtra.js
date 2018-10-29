@@ -1,8 +1,8 @@
 var assert = require('assert');
-const JurisdictionContractData = require('../build/contracts/ExtendedJurisdiction.json')
-const TPLERC20ContractData = require('../build/contracts/DrinkToken.json')
-const TPLERC721ContractData = require('../build/contracts/CryptoCopycats.json')
-const TPLValidatorContractData = require('../build/contracts/CryptoCopycatsCooperative.json')
+const JurisdictionContractData = require('../../build/contracts/ExtendedJurisdiction.json')
+const TPLERC20ContractData = require('../../build/contracts/DrinkToken.json')
+const TPLERC721ContractData = require('../../build/contracts/CryptoCopycats.json')
+const TPLValidatorContractData = require('../../build/contracts/CryptoCopycatsCooperative.json')
 
 module.exports = {test: async function (provider, testingContext) {
   var web3 = provider
@@ -534,6 +534,18 @@ module.exports = {test: async function (provider, testingContext) {
   )
 
   await runTest(
+    'checking for validator assignment returns false when unassigned',
+    TPLValidator,
+    'isValidator',
+    'call',
+    [],
+    true,
+    value => {
+      assert.strictEqual(value, false)
+    }
+  )
+
+  await runTest(
     'validator contract may be assigned to the jurisdiction',
     Jurisdiction,
     'addValidator',
@@ -543,6 +555,18 @@ module.exports = {test: async function (provider, testingContext) {
       attributeDetails.validator.description
     ],
     true
+  )
+
+  await runTest(
+    'checking for validator assignment returns true when assigned',
+    TPLValidator,
+    'isValidator',
+    'call',
+    [],
+    true,
+    value => {
+      assert.ok(value)
+    }
   )
 
   await runTest(
@@ -585,6 +609,70 @@ module.exports = {test: async function (provider, testingContext) {
   )
 
   await runTest(
+    'validator checks for issuing attributes return false when type is wrong',
+    TPLValidator,
+    'canIssueAttribute',
+    'call',
+    [
+      address,
+      99999
+    ],
+    true,
+    value => {
+      assert.strictEqual(value[0], false)
+      assert.strictEqual(value[1], '0xa0')
+    }
+  )
+
+  await runTest(
+    'validator checks for revoking attributes return false when type is wrong',
+    TPLValidator,
+    'canRevokeAttribute',
+    'call',
+    [
+      address,
+      99999
+    ],
+    true,
+    value => {
+      assert.strictEqual(value[0], false)
+      assert.strictEqual(value[1], '0xa0')
+    }
+  )
+
+  await runTest(
+    'validator checks for issuing attributes return true when it can be issued',
+    TPLValidator,
+    'canIssueAttribute',
+    'call',
+    [
+      address,
+      attributeDetails.validator.typeId
+    ],
+    true,
+    value => {
+      assert.ok(value[0])
+      assert.strictEqual(value[1], '0x01')
+    }
+  )
+
+  await runTest(
+    'validator checks for revoking attributes return false before issued',
+    TPLValidator,
+    'canRevokeAttribute',
+    'call',
+    [
+      address,
+      attributeDetails.validator.typeId 
+    ],
+    true,
+    value => {
+      assert.strictEqual(value[0], false)
+      assert.strictEqual(value[1], '0xb0')
+    }
+  )
+
+  await runTest(
     'validator contract may check that it can add attributes to jurisdiction',
     TPLValidator,
     'canIssueAttributeType',
@@ -596,6 +684,15 @@ module.exports = {test: async function (provider, testingContext) {
     value => {
       assert.ok(value)
     }
+  )
+
+  await runTest(
+    'non-attribute holder cannot mint ERC20 tokens',
+    TPLERC20,
+    'fermint',
+    'send',
+    [],
+    false
   )
 
   await runTest(
@@ -645,6 +742,45 @@ module.exports = {test: async function (provider, testingContext) {
   )
 
   await runTest(
+    'validator contract cannot answer false for question 1',
+    TPLValidator,
+    'issueAttribute',
+    'send',
+    [
+      false,
+      true,
+      false
+    ],
+    false
+  )
+
+  await runTest(
+    'validator contract cannot answer false for question 2',
+    TPLValidator,
+    'issueAttribute',
+    'send',
+    [
+      true,
+      false,
+      false
+    ],
+    false
+  )
+
+  await runTest(
+    'validator contract cannot answer true for question 3',
+    TPLValidator,
+    'issueAttribute',
+    'send',
+    [
+      true,
+      true,
+      true
+    ],
+    false
+  )
+
+  await runTest(
     'validator contract may issue attributes to jurisdiction',
     TPLValidator,
     'issueAttribute',
@@ -655,6 +791,38 @@ module.exports = {test: async function (provider, testingContext) {
       false
     ],
     true
+  )
+
+  await runTest(
+    'validator checks for issuing attributes return false when already issued',
+    TPLValidator,
+    'canIssueAttribute',
+    'call',
+    [
+      address,
+      attributeDetails.validator.typeId 
+    ],
+    true,
+    value => {
+      assert.strictEqual(value[0], false)
+      assert.strictEqual(value[1], '0xb0')
+    }
+  )
+
+  await runTest(
+    'validator checks for revoking attributes return true when already issued',
+    TPLValidator,
+    'canRevokeAttribute',
+    'call',
+    [
+      address,
+      attributeDetails.validator.typeId 
+    ],
+    true,
+    value => {
+      assert.strictEqual(value[0], true)
+      assert.strictEqual(value[1], '0x01')
+    }
   )
 
   await runTest(
@@ -680,6 +848,118 @@ module.exports = {test: async function (provider, testingContext) {
     [address, address, tokenId],
     true
   )
+
+  await runTest(
+    'ERC721 cannot be "adopted" if the account isnt approved',
+    TPLERC721,
+    'adopt',
+    'send',
+    [],
+    false,
+    undefined,
+    attributedAddress
+  )
+
+  await runTest(
+    'ERC721 cannot be "adopted" if account has already been adopted one',
+    TPLERC721,
+    'adopt',
+    'send',
+    [],
+    false
+  )
+
+  await runTest(
+    'validator contract may issue attributes to jurisdiction',
+    TPLValidator,
+    'issueAttribute',
+    'send',
+    [
+      true,
+      true,
+      false
+    ],
+    true,
+    undefined,
+    attributedAddress
+  )
+
+  await runTest(
+    'ERC721 can be "adopted" if the account is approved',
+    TPLERC721,
+    'adopt',
+    'send',
+    [],
+    true,
+    undefined,
+    attributedAddress
+  )
+
+  await runTest(
+    'validator contract may add a "CareCoordinator"',
+    TPLValidator,
+    'addCareCoordinator',
+    'send',
+    [
+      attributedAddress
+    ]
+  )
+
+  await runTest(
+    'ERC721 tokens can be retrieved by owner index',
+    TPLERC721,
+    'tokenOfOwnerByIndex',
+    'call',
+    [attributedAddress, 0],
+    true,
+    value => {
+      tokenId = value
+    }
+  )
+
+  await runTest(
+    'ERC721 cannot be "rescued" if the current owner account is approved',
+    TPLERC721,
+    'rescue',
+    'send',
+    [
+      tokenId
+    ],
+    false
+  )  
+
+  await runTest(
+    'validator contract may remove an attribute',
+    TPLValidator,
+    'revokeAttribute',
+    'send',
+    [
+      attributedAddress
+    ]
+  )
+
+  await runTest(
+    'ERC721 cannot be "rescued" if the receiver is not approved',
+    TPLERC721,
+    'rescue',
+    'send',
+    [
+      tokenId
+    ],
+    false,
+    undefined,
+    inattributedAddress
+  )
+
+  await runTest(
+    'ERC721 can be "rescued" if the owner is not approved and receiver is',
+    TPLERC721,
+    'rescue',
+    'send',
+    [
+      tokenId
+    ]
+  )  
 
   console.log(
     `completed ${passed + failed} test${passed + failed === 1 ? '' : 's'} ` + 
