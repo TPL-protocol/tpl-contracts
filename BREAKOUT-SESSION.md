@@ -57,6 +57,9 @@ yarn tx rescue <tokenId>
 
 # Check out the contracts on mainnet:
   Jurisdiction: devcon4.tplprotocol.eth
+  
   DrinkToken: drinktoken.devcon4.tplprotocol.eth
+  
   CryptoCopycats: cryptocopycats.devcon4.tplprotocol.eth
+  
   CCC (validator): ccc.devcon4.tplprotocol.eth
