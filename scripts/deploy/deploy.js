@@ -1,13 +1,13 @@
 var fs = require('fs');
-const applicationConfig = require('../config.js')
-const connectionConfig = require('../truffle.js')
+const applicationConfig = require('../../config.js')
+const connectionConfig = require('../../truffle.js')
 const connection = connectionConfig.networks[applicationConfig.network]
 
 const deployMetadataFilename = 'build/contractDeploymentAddresses.json'
 
 let deployAddresses
 try {
-  deployAddresses = require(`../${deployMetadataFilename}`)
+  deployAddresses = require(`../../${deployMetadataFilename}`)
 } catch(error) {
   deployAddresses = {}
 }
@@ -21,37 +21,19 @@ if (typeof(deployType) === 'undefined') {
 
 let showAccounts = process.argv[3] // Provide if you'd like to dump accounts
 
-const deployTypeOptions = new Set(['basic', 'extended', 'token'])
+const deployTypeOptions = new Set(['basic', 'extended'])
 if (!deployTypeOptions.has(deployType)) {
-  console.error('must supply "basic", "extended", or "token" as the target!')
+  console.error('must supply "Basic" or "Extended" as the target!')
   process.exit(1)
 }
 
-let args
-if (deployType === 'token') {
-  const jurisdiction = deployAddresses.jurisdiction
-  
-  if (typeof(jurisdiction) === 'undefined') {
-    console.error('must first deploy a jurisdiction before attaching a token!')
-    process.exit(1)
-  }
-
-  args = [
-    applicationConfig.TPLTokenTotalSupply,
-    jurisdiction,
-    applicationConfig.TPLTokenAttributeID
-  ]
-} else {
-  args = []
-}
+args = []
 
 let contractImportLocation
 if (deployType === 'basic') {
-  contractImportLocation = '../build/contracts/BasicJurisdiction.json'
+  contractImportLocation = '../../build/contracts/BasicJurisdiction.json'
 } else if (deployType === 'extended') {
-  contractImportLocation = '../build/contracts/ExtendedJurisdiction.json'
-} else if (deployType === 'token') {
-  contractImportLocation = '../build/contracts/TPLERC20RestrictedReceiverInstance.json'
+  contractImportLocation = '../../build/contracts/ExtendedJurisdiction.json'
 }
 
 const ContractData = require(contractImportLocation)
@@ -64,9 +46,7 @@ async function main() {
   console.log(
     `deploying ${
       deployType
-    }${
-      deployType !== 'token' ? ' jurisdiction' : ''
-    } to ${
+    } jurisdiction to ${
       applicationConfig.network
     } network...`
   )
@@ -78,12 +58,7 @@ async function main() {
   }
   
   const account = accounts[0]
-  if (deployType !== 'token') {
-    deployAddresses.jurisdictionOwner = account
-  } else {
-    deployAddresses.tokenOwner = account
-  }
-  
+  deployAddresses.jurisdictionOwner = account
   console.log(`   deployed by: ${account}`)
 
   const ContractInstance = await Contract.deploy({
@@ -96,13 +71,8 @@ async function main() {
   })
 
   const deployedAddress = ContractInstance.options.address
-  if (deployType !== 'token') {
-    deployAddresses.jurisdiction = deployedAddress
-    console.log(`  jurisdiction: ${deployedAddress}`)
-  } else {
-    deployAddresses.token = deployedAddress
-    console.log(`    mock token: ${deployedAddress}`)
-  }
+  deployAddresses.jurisdiction = deployedAddress
+  console.log(`  jurisdiction: ${deployedAddress}`)
 
   fs.writeFile(
     deployMetadataFilename,
