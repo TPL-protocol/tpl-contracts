@@ -66,7 +66,7 @@ async function main() {
     arguments: args
   }).send({
     from: account,
-    gas: 7000000,
+    gas: 8000000,
     gasPrice: '10000000000'
   })
 
