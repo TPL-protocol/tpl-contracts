@@ -6,8 +6,8 @@ services:
   - docker
 before_install:
   # ganache-cli
-  - docker pull trufflesuite/ganache-cli
-  - docker run -d -p 8545:8545 trufflesuite/ganache-cli:latest -h 0.0.0.0 --gasLimit 8000000
+  - docker pull trufflesuite/ganache-cli:v6.1.8
+  - docker run -d -p 8545:8545 trufflesuite/ganache-cli:v6.1.8 -h 0.0.0.0 --gasLimit 8000000
   # yarn
   - sudo apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg
   - echo "deb http://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
@@ -19,7 +19,7 @@ install:
 script:
   - yarn linter
   - yarn build
-  #- yarn deploy basic && yarn deploy extended
+  - yarn deploy basic && yarn deploy extended
   - yarn coverage && cat coverage/lcov.info | coveralls
   - yarn test
 cache:
