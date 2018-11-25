@@ -19,7 +19,7 @@ install:
 script:
   - yarn linter
   - yarn build
-  - yarn deploy basic && yarn deploy extended && yarn deploy token
+  - yarn deploy basic && yarn deploy extended
   - yarn coverage && cat coverage/lcov.info | coveralls
   - yarn test
 cache:
