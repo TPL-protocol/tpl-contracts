@@ -20,7 +20,7 @@ contract TPLERC721Permissioned is ERC721, TPLERC721PermissionedInterface {
 
   // `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
   // i.e. `IERC721Receiver(0).onERC721Received.selector`
-  bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
+  bytes4 private constant ERC721_RECEIVED = 0x150b7a02;
 
   /**
   * @notice The constructor function, with an associated attribute registry at
@@ -73,7 +73,7 @@ contract TPLERC721Permissioned is ERC721, TPLERC721PermissionedInterface {
     }
 
     // The receiver must return the required magic number (if it is a contract).
-    if (_safeCheckOnERC721Received(from, to, tokenId, data) != _ERC721_RECEIVED) {
+    if (_safeCheckOnERC721Received(from, to, tokenId, data) != ERC721_RECEIVED) {
       return (false, bytes1(hex"A0")); // NOTE: error codes are not standardized
     }
 
@@ -119,7 +119,7 @@ contract TPLERC721Permissioned is ERC721, TPLERC721PermissionedInterface {
     }
 
     // The receiver must return the required magic number (if it is a contract).
-    if (_safeCheckOnERC721Received(from, to, tokenId, "") != _ERC721_RECEIVED) {
+    if (_safeCheckOnERC721Received(from, to, tokenId, "") != ERC721_RECEIVED) {
       return (false, bytes1(hex"A0")); // NOTE: error codes are not standardized
     }
 
@@ -269,11 +269,11 @@ contract TPLERC721Permissioned is ERC721, TPLERC721PermissionedInterface {
     bytes data
   ) internal view returns (bytes4 result) {
     if (!to.isContract()) {
-        return _ERC721_RECEIVED;
+      return ERC721_RECEIVED;
     }
 
     bytes memory encodedParams = abi.encodeWithSelector(
-      _ERC721_RECEIVED,
+      ERC721_RECEIVED,
       msg.sender,
       from,
       tokenId,
