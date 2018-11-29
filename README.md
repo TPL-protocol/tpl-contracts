@@ -50,6 +50,11 @@ To interact with these contracts, start up a testRPC node in a seperate terminal
 $ ganache-cli --gasLimit 8000000
 ```
 
+*NOTE: if you have trouble getting the latest version of ganache-cli to work, try running against the following docker image instead:*
+```sh
+$ docker run -p 8545:8545 trufflesuite/ganache-cli:v6.1.8 -h 0.0.0.0 --gasLimit 8000000
+```
+
 Then, to run tests:
 ```sh
 $ yarn linter
