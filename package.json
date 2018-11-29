@@ -4,12 +4,12 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "openzeppelin-solidity": "2.0.0",
-    "web3": "^1.0.0-beta.35",
-    "solhint": "1.4.0",
-    "truffle": "5.0.0-beta.1",
     "coveralls": "^3.0.2",
-    "solidity-coverage": "^0.5.11"
+    "openzeppelin-solidity": "2.0.0",
+    "solhint": "1.4.0",
+    "solidity-coverage": "^0.5.11",
+    "truffle": "5.0.0-beta.1",
+    "web3": "^1.0.0-beta.36"
   },
   "scripts": {
     "build": "./node_modules/.bin/truffle compile",

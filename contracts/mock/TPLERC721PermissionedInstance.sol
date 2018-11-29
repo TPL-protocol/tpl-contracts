@@ -30,8 +30,7 @@ contract TPLERC721PermissionedInstance is TPLERC721Permissioned, ERC721Enumerabl
       keccak256(
         abi.encodePacked(
           msg.sender,
-          blockhash(block.number - 1),
-          now
+          blockhash(block.number - 1)
         )
       )
     );

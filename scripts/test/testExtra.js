@@ -1,6 +1,6 @@
 var assert = require('assert');
 const JurisdictionContractData = require('../../build/contracts/ExtendedJurisdiction.json')
-const TPLERC20ContractData = require('../../build/contracts/TPLERC20RestrictedReceiverInstance.json')
+const TPLERC20ContractData = require('../../build/contracts/TPLERC20PermissionedInstance.json')
 const TPLERC721ContractData = require('../../build/contracts/TPLERC721PermissionedInstance.json')
 const TPLValidatorContractData = require('../../build/contracts/TPLBasicValidatorInstance.json')
 
@@ -11,7 +11,7 @@ module.exports = {test: async function (provider, testingContext) {
   console.log('running extra tests...')
   // get available addresses and assign them to various roles
   const addresses = await Promise.resolve(web3.eth.getAccounts())
-  if (addresses.length < 4) {
+  if (addresses.length < 5) {
     console.log('cannot find enough addresses to run tests...')
     return false
   }
@@ -53,7 +53,7 @@ module.exports = {test: async function (provider, testingContext) {
     } catch(error) {
       assertionsPassed = false
     }
-    
+
     return assertionsPassed
   }
 
@@ -151,7 +151,7 @@ module.exports = {test: async function (provider, testingContext) {
         10 ** 1,
         shouldSucceed,
         assertionCallback
-      )      
+      )
     } else {
       console.error('must use call or send!')
       process.exit(1)
@@ -170,6 +170,7 @@ module.exports = {test: async function (provider, testingContext) {
   const validatorAddress = addresses[1]
   const attributedAddress = addresses[2]
   const inattributedAddress = addresses[3]
+  const extraAttributedAddress = addresses[4]
   const nullAddress = '0x0000000000000000000000000000000000000000'
   const badAddress = '0xbAd00BAD00BAD00bAD00bAD00bAd00BaD00bAD00'
   const unownedAddress = '0x1010101010101010101010101010101010101010'
@@ -193,10 +194,17 @@ module.exports = {test: async function (provider, testingContext) {
 
   const attributeDetails = {
     ERC20: {
-      name: "Mock ERC20 Restricted Receiver Token",
-      typeId: '11111',
-      description: 'Valid token recipient',
-      initialBalance: 100
+      name: "Mock ERC20 Permissioned Token",
+      ownerTypeId: '11111',
+      ownerDescription: 'Valid token owner',
+      operatorTypeId: '33333',
+      operatorDescription: 'Valid token operator',
+      maximumOwnersTypeId: '44444',
+      maximumOwnersDescription: 'Maximum number of allowed token holders',
+      ownershipLimitTypeId: '55555',
+      ownershipLimitDescription: 'Maximum allowed balance per token holder',
+      transfersPausedTypeId: '66666',
+      transfersPausedTypeDescription: 'Designates that all transfers are paused'
     },
     ERC721: {
       name: "Mock ERC721 Permissioned Token",
@@ -247,9 +255,12 @@ module.exports = {test: async function (provider, testingContext) {
       data: TPLERC20Deployer.deploy({
         data: TPLERC20ContractData.bytecode,
         arguments: [
-          attributeDetails.ERC20.initialBalance,
           Jurisdiction.options.address,
-          attributeDetails.ERC20.typeId
+          attributeDetails.ERC20.ownerTypeId,
+          attributeDetails.ERC20.operatorTypeId,
+          attributeDetails.ERC20.maximumOwnersTypeId,
+          attributeDetails.ERC20.ownershipLimitTypeId,
+          attributeDetails.ERC20.transfersPausedTypeId
         ]
       }).encodeABI()
   })
@@ -263,9 +274,12 @@ module.exports = {test: async function (provider, testingContext) {
     {
       data: TPLERC20ContractData.bytecode,
       arguments: [
-        attributeDetails.ERC20.initialBalance,
         Jurisdiction.options.address,
-        attributeDetails.ERC20.typeId
+        attributeDetails.ERC20.ownerTypeId,
+        attributeDetails.ERC20.operatorTypeId,
+        attributeDetails.ERC20.maximumOwnersTypeId,
+        attributeDetails.ERC20.ownershipLimitTypeId,
+        attributeDetails.ERC20.transfersPausedTypeId
       ]
     }
   ).send({
@@ -408,14 +422,74 @@ module.exports = {test: async function (provider, testingContext) {
   )
 
   await runTest(
-    'attribute ID required by ERC20 is set to the correct value',
+    'owner attribute ID required by ERC20 is set to the correct value',
     TPLERC20,
-    'getValidAttributeID',
+    'getValidOwnerAttributeTypeID',
     'call',
     [],
     true,
     value => {
-      assert.strictEqual(value, attributeDetails.ERC20.typeId.toString())
+      assert.strictEqual(value, attributeDetails.ERC20.ownerTypeId.toString())
+    }
+  )
+
+  await runTest(
+    'operator attribute ID required by ERC20 is set to the correct value',
+    TPLERC20,
+    'getValidOperatorAttributeTypeID',
+    'call',
+    [],
+    true,
+    value => {
+      assert.strictEqual(value, attributeDetails.ERC20.operatorTypeId.toString())
+    }
+  )
+
+  await runTest(
+    'maximum owners attribute ID required by ERC20 is set to the correct value',
+    TPLERC20,
+    'getMaximumOwnersAttributeTypeID',
+    'call',
+    [],
+    true,
+    value => {
+      assert.strictEqual(value, attributeDetails.ERC20.maximumOwnersTypeId.toString())
+    }
+  )
+
+  await runTest(
+    'attribute ID required by ERC20 is set to the correct value',
+    TPLERC20,
+    'getOwnershipLimitAttributeTypeID',
+    'call',
+    [],
+    true,
+    value => {
+      assert.strictEqual(value, attributeDetails.ERC20.ownershipLimitTypeId.toString())
+    }
+  )
+
+  await runTest(
+    'total owners on ERC20 are initially set to zero',
+    TPLERC20,
+    'getTotalOwners',
+    'call',
+    [],
+    true,
+    value => {
+      assert.strictEqual(value, '0')
+    }
+  )
+
+  await runTest(
+    'transfers paused is initially false',
+    TPLERC20,
+    'transfersPaused',
+    'call',
+    [],
+    true,
+    value => {
+      assert.strictEqual(value, false)
     }
   )
 
@@ -478,13 +552,61 @@ module.exports = {test: async function (provider, testingContext) {
   )
 
   await runTest(
-    'ERC20 attribute type may be assigned to the jurisdiction',
+    'ERC20 owner attribute type may be assigned to the jurisdiction',
     Jurisdiction,
     'addAttributeType',
     'send',
     [
-      attributeDetails.ERC20.typeId,
-      attributeDetails.ERC20.description
+      attributeDetails.ERC20.ownerTypeId,
+      attributeDetails.ERC20.ownerDescription
+    ],
+    true
+  )
+
+  await runTest(
+    'ERC20 operator attribute type may be assigned to the jurisdiction',
+    Jurisdiction,
+    'addAttributeType',
+    'send',
+    [
+      attributeDetails.ERC20.operatorTypeId,
+      attributeDetails.ERC20.operatorDescription
+    ],
+    true
+  )
+
+  await runTest(
+    'ERC20 maximum owners attribute type may be assigned to the jurisdiction',
+    Jurisdiction,
+    'addAttributeType',
+    'send',
+    [
+      attributeDetails.ERC20.maximumOwnersTypeId,
+      attributeDetails.ERC20.maximumOwnersDescription
+    ],
+    true
+  )
+
+  await runTest(
+    'ERC20 ownership limit attribute type may be assigned to the jurisdiction',
+    Jurisdiction,
+    'addAttributeType',
+    'send',
+    [
+      attributeDetails.ERC20.ownershipLimitTypeId,
+      attributeDetails.ERC20.ownershipLimitDescription
+    ],
+    true
+  )
+
+  await runTest(
+    'ERC20 transfers paused attribute type may be assigned to the jurisdiction',
+    Jurisdiction,
+    'addAttributeType',
+    'send',
+    [
+      attributeDetails.ERC20.transfersPausedTypeId,
+      attributeDetails.ERC20.transfersPausedTypeDescription
     ],
     true
   )
@@ -508,7 +630,7 @@ module.exports = {test: async function (provider, testingContext) {
     'send',
     [
       address,
-      attributeDetails.ERC20.typeId
+      attributeDetails.ERC20.ownerTypeId
     ],
     true
   )
@@ -550,13 +672,61 @@ module.exports = {test: async function (provider, testingContext) {
   )
 
   await runTest(
-    'regular validator may be approved to issue attributes on jurisdiction',
+    'regular validator may be approved to issue attributes on jurisdiction (1)',
     Jurisdiction,
     'addValidatorApproval',
     'send',
     [
       address,
-      attributeDetails.ERC20.typeId
+      attributeDetails.ERC20.ownerTypeId
+    ],
+    true
+  )
+
+  await runTest(
+    'regular validator may be approved to issue attributes on jurisdiction (2)',
+    Jurisdiction,
+    'addValidatorApproval',
+    'send',
+    [
+      address,
+      attributeDetails.ERC20.operatorTypeId
+    ],
+    true
+  )
+
+  await runTest(
+    'regular validator may be approved to issue attributes on jurisdiction (3)',
+    Jurisdiction,
+    'addValidatorApproval',
+    'send',
+    [
+      address,
+      attributeDetails.ERC20.maximumOwnersTypeId
+    ],
+    true
+  )
+
+  await runTest(
+    'regular validator may be approved to issue attributes on jurisdiction (4)',
+    Jurisdiction,
+    'addValidatorApproval',
+    'send',
+    [
+      address,
+      attributeDetails.ERC20.ownershipLimitTypeId
+    ],
+    true
+  )
+
+  await runTest(
+    'regular validator may be approved to issue attributes on jurisdiction (5)',
+    Jurisdiction,
+    'addValidatorApproval',
+    'send',
+    [
+      address,
+      attributeDetails.ERC20.transfersPausedTypeId
     ],
     true
   )
@@ -580,7 +750,7 @@ module.exports = {test: async function (provider, testingContext) {
     'call',
     [
       address,
-      attributeDetails.ERC20.typeId
+      attributeDetails.ERC20.ownerTypeId
     ],
     true,
     value => {
@@ -643,7 +813,7 @@ module.exports = {test: async function (provider, testingContext) {
     'call',
     [
       address,
-      attributeDetails.validator.typeId 
+      attributeDetails.validator.typeId
     ],
     true,
     value => {
@@ -667,16 +837,540 @@ module.exports = {test: async function (provider, testingContext) {
   )
 
   await runTest(
-    'regular validator may issue attributes to jurisdiction',
+    'regular validator may issue attributes to jurisdiction (1)',
     Jurisdiction,
     'issueAttribute',
     'send',
     [
       address,
-      attributeDetails.ERC20.typeId,
+      attributeDetails.ERC20.ownerTypeId,
       0 // Value is not needed
+    ]
+  )
+
+  await runTest(
+    'regular validator may issue attributes to jurisdiction (1 +)',
+    Jurisdiction,
+    'issueAttribute',
+    'send',
+    [
+      attributedAddress,
+      attributeDetails.ERC20.ownerTypeId,
+      0 // Value is not needed
+    ]
+  )
+
+  await runTest(
+    'regular validator may issue attributes to jurisdiction (1 ++)',
+    Jurisdiction,
+    'issueAttribute',
+    'send',
+    [
+      extraAttributedAddress,
+      attributeDetails.ERC20.ownerTypeId,
+      0 // Value is not needed
+    ]
+  )
+
+  await runTest(
+    'ERC20 tokens may be minted with 0 value',
+    TPLERC20,
+    'mint',
+    'send',
+    [
+      address,
+      0
+    ]
+  )
+
+  await runTest(
+    'ERC20 tokens may be burned with 0 value',
+    TPLERC20,
+    'burn',
+    'send',
+    [
+      address,
+      0
+    ]
+  )
+
+  await runTest(
+    'ERC20 tokens may be burnFrom-ed with 0 value',
+    TPLERC20,
+    'burnFrom',
+    'send',
+    [
+      address,
+      0
+    ]
+  )
+
+  await runTest(
+    'ERC20 token minting will fail w/ positive value before max holders is set',
+    TPLERC20,
+    'mint',
+    'send',
+    [
+      address,
+      1
+    ],
+    false
+  )
+
+  await runTest(
+    'ERC20 canTransfer will fail when trying to send to the null address',
+    TPLERC20,
+    'canTransfer',
+    'call',
+    [
+      nullAddress,
+      0
+    ],
+    true,
+    value => {
+      assert.strictEqual(value[0], false)
+      assert.strictEqual(value[1], '0x57')
+    }
+  )
+
+  await runTest(
+    'ERC20 canTransfer will fail when trying to send from unapproved address',
+    TPLERC20,
+    'canTransfer',
+    'call',
+    [
+      address,
+      0
+    ],
+    true,
+    value => {
+      assert.strictEqual(value[0], false)
+      assert.strictEqual(value[1], '0x56')
+    },
+    inattributedAddress
+  )
+
+  await runTest(
+    'ERC20 transfer will fail when trying to send from an unapproved address',
+    TPLERC20,
+    'transfer',
+    'send',
+    [
+      address,
+      0
+    ],
+    false,
+    {},
+    inattributedAddress
+  )
+
+  await runTest(
+    'ERC20 canTransfer will fail when trying to send to an unapproved address',
+    TPLERC20,
+    'canTransfer',
+    'call',
+    [
+      inattributedAddress,
+      0
+    ],
+    true,
+    value => {
+      assert.strictEqual(value[0], false)
+      assert.strictEqual(value[1], '0x57')
+    }
+  )
+
+  await runTest(
+    'ERC20 transfer will fail when trying to send to an unapproved address',
+    TPLERC20,
+    'transfer',
+    'send',
+    [
+      inattributedAddress,
+      0
+    ],
+    false
+  )
+
+  await runTest(
+    'ERC20 canTransfer succeeds when checking 0 value between approved address',
+    TPLERC20,
+    'canTransfer',
+    'call',
+    [
+      address,
+      0
+    ],
+    true,
+    value => {
+      assert.strictEqual(value[0], true)
+      assert.strictEqual(value[1], '0x51')
+    }
+  )
+
+  await runTest(
+    'ERC20 transfer will succeed when sending 0 value between approved address',
+    TPLERC20,
+    'transfer',
+    'send',
+    [
+      address,
+      0
     ],
     true
+  )
+
+  await runTest(
+    'ERC20 canTransferFrom fails when trying to send from unapproved operator',
+    TPLERC20,
+    'canTransferFrom',
+    'call',
+    [
+      address,
+      address,
+      1
+    ],
+    true,
+    value => {
+      assert.strictEqual(value[0], false)
+      assert.strictEqual(value[1], '0x58')
+    }
+  )
+
+  await runTest(
+    'ERC20 transferFrom fails when trying to send from an unapproved operator',
+    TPLERC20,
+    'transferFrom',
+    'send',
+    [
+      address,
+      address,
+      0
+    ],
+    false
+  )
+
+  await runTest(
+    'regular validator may issue attributes to jurisdiction (2)',
+    Jurisdiction,
+    'issueAttribute',
+    'send',
+    [
+      address,
+      attributeDetails.ERC20.operatorTypeId,
+      0 // Value is not needed
+    ]
+  )
+
+  await runTest(
+    'ERC20 canTransferFrom succeeds when sending from approved operator',
+    TPLERC20,
+    'canTransferFrom',
+    'call',
+    [
+      address,
+      address,
+      0
+    ],
+    true,
+    value => {
+      assert.strictEqual(value[0], true)
+      assert.strictEqual(value[1], '0x51')
+    }
+  )
+
+  await runTest(
+    'ERC20 transferFrom succeeds when sending from approved operator',
+    TPLERC20,
+    'transferFrom',
+    'send',
+    [
+      address,
+      address,
+      0
+    ]
+  )
+
+  await runTest(
+    'ERC20 canTransferFrom fails when sending with insufficient allowance',
+    TPLERC20,
+    'canTransferFrom',
+    'call',
+    [
+      address,
+      address,
+      1
+    ],
+    true,
+    value => {
+      assert.strictEqual(value[0], false)
+      assert.strictEqual(value[1], '0x53')
+    }
+  )
+
+  await runTest(
+    'regular validator may issue attributes to jurisdiction (3)',
+    Jurisdiction,
+    'issueAttribute',
+    'send',
+    [
+      TPLERC20.options.address,
+      attributeDetails.ERC20.maximumOwnersTypeId,
+      2
+    ]
+  )
+
+  await runTest(
+    'ERC20 tokens may not be minted if ownership limit is exceeded',
+    TPLERC20,
+    'mint',
+    'send',
+    [
+      address,
+      10
+    ],
+    false
+  )
+
+  await runTest(
+    'regular validator may issue attributes to jurisdiction (4)',
+    Jurisdiction,
+    'issueAttribute',
+    'send',
+    [
+      TPLERC20.options.address,
+      attributeDetails.ERC20.ownershipLimitTypeId,
+      10
+    ]
+  )
+
+  await runTest(
+    'ERC20 tokens may be minted if all requirements are met',
+    TPLERC20,
+    'mint',
+    'send',
+    [
+      address,
+      10
+    ]
+  )
+
+  await runTest(
+    'ERC20 tokens may be burned if all requirements are met',
+    TPLERC20,
+    'burn',
+    'send',
+    [
+      address,
+      10
+    ]
+  )
+
+  await runTest(
+    'balance is set back to zero after burning',
+    TPLERC20,
+    'balanceOf',
+    'call',
+    [address],
+    true,
+    value => {
+      assert.strictEqual(value, '0')
+    }
+  )  
+
+  await runTest(
+    'ERC20 tokens may be reminted if all requirements are met',
+    TPLERC20,
+    'mint',
+    'send',
+    [
+      address,
+      10
+    ]
+  )
+
+  await runTest(
+    'ERC20 canTransfer succeeds when checking value between approved address',
+    TPLERC20,
+    'canTransfer',
+    'call',
+    [
+      address,
+      1
+    ],
+    true,
+    value => {
+      assert.strictEqual(value[0], true)
+      assert.strictEqual(value[1], '0x51')
+    }
+  )
+
+  await runTest(
+    'ERC20 transfer will succeed when sending value between approved addresses',
+    TPLERC20,
+    'transfer',
+    'send',
+    [
+      address,
+      1
+    ]
+  )
+
+  await runTest(
+    'ERC20 canTransfer will fail if total balance is insufficient',
+    TPLERC20,
+    'canTransfer',
+    'call',
+    [
+      attributedAddress,
+      11
+    ],
+    true,
+    value => {
+      assert.strictEqual(value[0], false)
+      assert.strictEqual(value[1], '0x52')
+    }
+  )
+
+  await runTest(
+    'ERC20 addresses can be approved to make transfers via an operator',
+    TPLERC20,
+    'approve',
+    'send',
+    [
+      address,
+      10
+    ]
+  )
+
+  await runTest(
+    'ERC20 transferFrom succeeds when sending value between approved address',
+    TPLERC20,
+    'transferFrom',
+    'send',
+    [
+      address,
+      attributedAddress,
+      10
+    ]
+  )
+
+  await runTest(
+    'ERC20 tokens may be reminted if all requirements are met (2)',
+    TPLERC20,
+    'mint',
+    'send',
+    [
+      address,
+      5
+    ]
+  )
+
+  await runTest(
+    'ERC20 tokens may be reminted if all requirements are met (3)',
+    TPLERC20,
+    'mint',
+    'send',
+    [
+      address,
+      5
+    ]
+  )
+
+  await runTest(
+    'ERC20 canTransfer will fail if recipient would exceed the ownership limit',
+    TPLERC20,
+    'canTransfer',
+    'call',
+    [
+      attributedAddress,
+      1
+    ],
+    true,
+    value => {
+      assert.strictEqual(value[0], false)
+      assert.strictEqual(value[1], '0x59')
+    }
+  )
+
+  await runTest(
+    'ERC20 transfer will fail if recipient would exceed the ownership limit',
+    TPLERC20,
+    'transfer',
+    'send',
+    [
+      attributedAddress,
+      1
+    ],
+    false
+  )
+
+  await runTest(
+    'ERC20 canTransfer will fail if maximum owners would be exceeded',
+    TPLERC20,
+    'canTransfer',
+    'call',
+    [
+      extraAttributedAddress,
+      1
+    ],
+    true,
+    value => {
+      assert.strictEqual(value[0], false)
+      assert.strictEqual(value[1], '0x5a')
+    }
+  )
+
+  await runTest(
+    'ERC20 transfer will fail if maximum owners would be exceeded',
+    TPLERC20,
+    'transfer',
+    'send',
+    [
+      extraAttributedAddress,
+      1
+    ],
+    false
+  )
+
+  await runTest(
+    'regular validator may issue attributes to jurisdiction (5)',
+    Jurisdiction,
+    'issueAttribute',
+    'send',
+    [
+      TPLERC20.options.address,
+      attributeDetails.ERC20.transfersPausedTypeId,
+      10
+    ]
+  )
+
+  await runTest(
+    'ERC20 canTransfer will fail if transfers are paused',
+    TPLERC20,
+    'canTransfer',
+    'call',
+    [
+      address,
+      1
+    ],
+    true,
+    value => {
+      assert.strictEqual(value[0], false)
+      assert.strictEqual(value[1], '0x54')
+    }
+  )
+
+  await runTest(
+    'ERC20 transfer will fail if transfers are paused',
+    TPLERC20,
+    'transfer',
+    'send',
+    [
+      address,
+      1
+    ],
+    false
   )
 
   await runTest(
@@ -692,7 +1386,7 @@ module.exports = {test: async function (provider, testingContext) {
     'call',
     [
       address,
-      attributeDetails.validator.typeId 
+      attributeDetails.validator.typeId
     ],
     true,
     value => {
@@ -708,7 +1402,7 @@ module.exports = {test: async function (provider, testingContext) {
     'call',
     [
       address,
-      attributeDetails.validator.typeId 
+      attributeDetails.validator.typeId
     ],
     true,
     value => {
@@ -820,7 +1514,7 @@ module.exports = {test: async function (provider, testingContext) {
     'call',
     [
       address,
-      attributeDetails.validator.typeId 
+      attributeDetails.validator.typeId
     ],
     true,
     value => {
@@ -928,7 +1622,7 @@ module.exports = {test: async function (provider, testingContext) {
     [
       address,
       address,
-      tokenId 
+      tokenId
     ],
     true
   )
@@ -1032,7 +1726,7 @@ module.exports = {test: async function (provider, testingContext) {
     [
       address,
       address,
-      tokenId 
+      tokenId
     ],
     true
   )
@@ -1142,7 +1836,7 @@ module.exports = {test: async function (provider, testingContext) {
       address,
       address,
       tokenId,
-      '0x01' 
+      '0x01'
     ],
     true
   )
@@ -1213,7 +1907,7 @@ module.exports = {test: async function (provider, testingContext) {
   )
 
   console.log(
-    `completed ${passed + failed} test${passed + failed === 1 ? '' : 's'} ` + 
+    `completed ${passed + failed} test${passed + failed === 1 ? '' : 's'} ` +
     `with ${failed} failure${failed === 1 ? '' : 's'}.`
   )
 

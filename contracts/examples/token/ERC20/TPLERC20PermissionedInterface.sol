@@ -12,7 +12,10 @@ interface TPLERC20PermissionedInterface {
    * @param value uint256 The amount to transfer.
    * @return Bool indicating if transfer will succeed & byte with a status code.
    */
-  function canTransfer(address to, uint256 value) external returns (bool, bytes1);
+  function canTransfer(
+    address to,
+    uint256 value
+  ) external view returns (bool, bytes1);
 
   /**
    * @notice Check if an account is approved to transfer tokens on behalf of
@@ -26,7 +29,7 @@ interface TPLERC20PermissionedInterface {
     address from,
     address to,
     uint256 value
-  ) external returns (bool, bytes1);
+  ) external view returns (bool, bytes1);
 
   /**
    * @notice Get the account of the utilized attribute registry.
