@@ -365,6 +365,12 @@ contract TPLERC20Permissioned is ERC20, TPLERC20PermissionedInterface {
    * @param value The amount that will be created.
    */
   function _mint(address account, uint256 value) internal whenNotPaused {
+    // The receiving account must have the correct attribute assigned.
+    require(
+      _registry.hasAttribute(account, _validOwnerAttributeTypeID),
+      "Mint failed - recipient is not approved."
+    );
+
     if (value > 0) {
       uint256 accountBalance = balanceOf(account);
 

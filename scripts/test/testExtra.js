@@ -1133,6 +1133,18 @@ module.exports = {test: async function (provider, testingContext) {
   )
 
   await runTest(
+    'ERC20 tokens may not be minted if recipient is not approved',
+    TPLERC20,
+    'mint',
+    'send',
+    [
+      inattributedAddress,
+      10
+    ],
+    false
+  )
+
+  await runTest(
     'regular validator may issue attributes to jurisdiction (4)',
     Jurisdiction,
     'issueAttribute',
