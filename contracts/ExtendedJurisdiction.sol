@@ -4,6 +4,7 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/cryptography/ECDSA.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "./AttributeRegistryInterface.sol";
 import "./BasicJurisdictionInterface.sol";
 import "./ExtendedJurisdictionInterface.sol";
@@ -77,6 +78,9 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
 
   // addresses for all designated validators are also held in an array
   address[] private _validatorAccounts;
+
+  // track any recoverable funds locked in the contract 
+  uint256 private _recoverableFunds;
 
   /**
   * @notice Add an attribute type with ID `ID` and description `description` to
@@ -605,6 +609,8 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
       // configured fallback function could block addition of an attribute
       if (owner().send(jurisdictionFee)) {
         emit FeePaid(owner(), msg.sender, attributeTypeID, jurisdictionFee);
+      } else {
+        _recoverableFunds = _recoverableFunds.add(jurisdictionFee);
       }
     }
   }
@@ -680,6 +686,8 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
             attributeTypeID,
             stake.sub(transactionCost)
           );
+        } else {
+          _recoverableFunds = _recoverableFunds.add(stake.sub(transactionCost));
         }
 
         // refund the cost of the transaction to the trasaction submitter
@@ -690,6 +698,8 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
             attributeTypeID,
             transactionCost
           );
+        } else {
+          _recoverableFunds = _recoverableFunds.add(transactionCost);
         }
 
       // otherwise, allocate entire stake to partially refunding the transaction
@@ -701,6 +711,8 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
             attributeTypeID,
             stake
           );
+        } else {
+          _recoverableFunds = _recoverableFunds.add(stake);
         }
       }
     }
@@ -806,6 +818,8 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
       // configured fallback function could block addition of an attribute
       if (owner().send(jurisdictionFee)) {
         emit FeePaid(owner(), msg.sender, attributeTypeID, jurisdictionFee);
+      } else {
+        _recoverableFunds = _recoverableFunds.add(jurisdictionFee);
       }
     }
 
@@ -815,6 +829,8 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
       // configured fallback function could block addition of an attribute
       if (validator.send(validatorFee)) {
         emit FeePaid(validator, msg.sender, attributeTypeID, validatorFee);
+      } else {
+        _recoverableFunds = _recoverableFunds.add(validatorFee);
       }
     }
   }
@@ -867,6 +883,8 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
       // fallback function could forcibly block an attribute's removal
       if (refundAddress.send(stake)) {
         emit StakeRefunded(refundAddress, attributeTypeID, stake);
+      } else {
+        _recoverableFunds = _recoverableFunds.add(stake);
       }
     }
   }
@@ -982,6 +1000,8 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
       // configured fallback function could block addition of an attribute
       if (owner().send(jurisdictionFee)) {
         emit FeePaid(owner(), msg.sender, attributeTypeID, jurisdictionFee);
+      } else {
+        _recoverableFunds = _recoverableFunds.add(jurisdictionFee);
       }
     }
 
@@ -991,6 +1011,8 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
       // configured fallback function could block addition of an attribute
       if (validator.send(validatorFee)) {
         emit FeePaid(validator, msg.sender, attributeTypeID, validatorFee);
+      } else {
+        _recoverableFunds = _recoverableFunds.add(validatorFee);
       }
     }
   }
@@ -1038,6 +1060,8 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
       // fallback function could forcibly block an attribute's removal
       if (msg.sender.send(stake)) {
         emit StakeRefunded(msg.sender, attributeTypeID, stake);
+      } else {
+        _recoverableFunds = _recoverableFunds.add(stake);
       }
     }
   }
@@ -1477,6 +1501,64 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
    */
   function isValidator(address account) public view returns (bool) {
     return _validators[account].exists;
+  }
+
+  /**
+   * @notice Check for recoverable funds that have become locked in the
+   * jurisdiction as a result of improperly configured receivers for payments of
+   * fees or remaining stake. Note that funds sent into the jurisdiction as a 
+   * result of coinbase assignment or as the recipient of a selfdestruct will
+   * not be recoverable.
+   * @return The total tracked recoverable funds.
+   */
+  function recoverableFunds() public view returns (uint256) {
+    // return the total tracked recoverable funds.
+    return _recoverableFunds;
+  }
+
+  /**
+   * @notice Check for recoverable tokens that are owned by the jurisdiction at
+   * the token contract address of `token`.
+   * @param token address The account where token contract is located.
+   * @return The total recoverable tokens.
+   */
+  function recoverableTokens(address token) public view returns (uint256) {
+    // return the total tracked recoverable tokens.
+    return IERC20(token).balanceOf(address(this));
+  }
+
+  /**
+   * @notice Recover funds that have become locked in the jurisdiction as a
+   * result of improperly configured receivers for payments of fees or remaining
+   * stake by transferring an amount of `value` to the address at `account`.
+   * Note that funds sent into the jurisdiction as a result of coinbase
+   * assignment or as the recipient of a selfdestruct will not be recoverable.
+   * @param account address The account to send recovered tokens.
+   * @param value uint256 The amount of tokens to be sent.
+   */
+  function recoverFunds(address account, uint256 value) public onlyOwner {    
+    // safely deduct the value from the total tracked recoverable funds.
+    _recoverableFunds = _recoverableFunds.sub(value);
+    
+    // transfer the value to the specified account & revert if any error occurs.
+    account.transfer(value);
+  }
+
+  /**
+   * @notice Recover tokens that are owned by the jurisdiction at the token
+   * contract address of `token`, transferring an amount of `value` to the
+   * address at `account`.
+   * @param token address The account where token contract is located.
+   * @param account address The account to send recovered funds.
+   * @param value uint256 The amount of ether to be sent.
+   */
+  function recoverTokens(
+    address token,
+    address account,
+    uint256 value
+  ) public onlyOwner {
+    // transfer the value to the specified account & revert if any error occurs.
+    require(IERC20(token).transfer(account, value));
   }
 
   /**
