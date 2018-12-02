@@ -2,10 +2,10 @@
 
 ![banner](images/TPL_01@3x.png)
 
-![GitHub](https://img.shields.io/github/license/tpl-protocol/tpl-contracts.svg)
+![GitHub](https://img.shields.io/github/license/tpl-protocol/tpl-contracts-brightgreen.svg)
 [![Build Status](https://travis-ci.com/TPL-protocol/tpl-contracts.svg?branch=master)](https://travis-ci.com/TPL-protocol/tpl-contracts)
 ![Coverage Status](https://img.shields.io/coveralls/github/TPL-protocol/tpl-contracts.svg)
-[![standard-readme compliant](https://img.shields.io/badge/standard--readme-OK-green.svg)](https://github.com/RichardLitt/standard-readme)
+[![standard-readme compliant](https://img.shields.io/badge/standard--readme-OK-brightgreen.svg)](https://github.com/RichardLitt/standard-readme)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
 > Contracts implementing a TPL jurisdiction and an ERC20-enforced TPL.
