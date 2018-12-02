@@ -249,7 +249,19 @@ module.exports = {test: async function (provider, testingContext) {
     )
     passed++
   })
-  
+
+  await Jurisdiction.methods.recoverableTokens(TPLToken.options.address).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 1
+  }).then(tokens => {
+    assert.strictEqual(tokens, '0')
+    console.log(
+      ' ✓  - recoverable token balance of registry is initially zero'
+    )
+    passed++
+  })
+
   await TPLToken.methods.balanceOf(address).call({
     from: address,
     gas: 5000000,
@@ -267,6 +279,21 @@ module.exports = {test: async function (provider, testingContext) {
   }).catch(error => {
     console.log(
       " ✓  - tokens can't be transferred before valid attributes are assigned"
+    )
+    passed++
+  })
+
+  await Jurisdiction.methods.recoverTokens(
+    TPLToken.options.address,
+    inattributedAddress,
+    0
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 1
+  }).catch(error => {
+    console.log(
+      ' ✓  - tokens cannot be recovered before attribute is assigned'
     )
     passed++
   })
@@ -889,6 +916,21 @@ module.exports = {test: async function (provider, testingContext) {
       " ✘  - tokens can be transferred between addresses with valid attributes"
     )
     failed++
+  })
+
+  await Jurisdiction.methods.recoverTokens(
+    TPLToken.options.address,
+    attributedAddress,
+    0
+  ).call({
+    from: address,
+    gas: 5000000,
+    gasPrice: 10 ** 1
+  }).then(receipt => {
+    console.log(
+      ' ✓  - tokens can be "recovered" once attribute is assigned'
+    )
+    passed++
   })
 
   await Jurisdiction.methods.issueAttribute(

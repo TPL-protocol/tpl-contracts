@@ -33,7 +33,7 @@ module.exports = {test: async function (provider, testingContext) {
       from: from,
       value: value,
       gas: gas,
-      gasPrice:gasPrice
+      gasPrice: gasPrice
     }).catch(error => {
       succeeded = false
     })
@@ -818,7 +818,7 @@ module.exports = {test: async function (provider, testingContext) {
     attributeValue
   )
   await runTest(
-    'operators can issue signed attribute that requires a stake',
+    'operators can issue signed attribute that requires a stake (1)',
     Jurisdiction,
     'addAttributeFor',
     'send',
@@ -854,6 +854,194 @@ module.exports = {test: async function (provider, testingContext) {
     },
     attributedAddress,
     minimumRequiredStake
+  )
+
+  await runTest(
+    'jurisdiction owner can then revoke the attribute (2)',
+    Jurisdiction,
+    'revokeAttribute',
+    'send',
+    [attributedAddress, attributeId]
+  )
+
+  signature = await signValidation(
+    validatorAddress,
+    Jurisdiction.options.address,
+    attributedAddress,
+    attributedAddress, // operator
+    minimumRequiredStake + 1, // stake + jurisdiction fee + validator fee
+    0,
+    attributeId,
+    attributeValue
+  )
+  await runTest(
+    'operators can issue signed attribute that requires a stake (2)',
+    Jurisdiction,
+    'addAttributeFor',
+    'send',
+    [
+      attributedAddress,
+      attributeId,
+      attributeValue,
+      0,
+      signature
+    ],
+    true,
+    value => {
+      assert.strictEqual(
+        value.events.StakeAllocated.returnValues.staker,
+        attributedAddress
+      )
+      assert.strictEqual(
+        value.events.AttributeAdded.returnValues.validator,
+        validatorAddress
+      )
+      assert.strictEqual(
+        value.events.AttributeAdded.returnValues.attributee,
+        attributedAddress
+      )
+      assert.strictEqual(
+        value.events.AttributeAdded.returnValues.attributeTypeID,
+        attributeId.toString()
+      )
+      assert.strictEqual(
+        value.events.AttributeAdded.returnValues.attributeValue,
+        attributeValue.toString()
+      )
+    },
+    attributedAddress,
+    minimumRequiredStake + 1
+  )
+
+  await runTest(
+    'attribute operator can revoke the attribute (1)',
+    Jurisdiction,
+    'removeAttributeFor',
+    'send',
+    [attributedAddress, attributeId],
+    true,
+    value => {
+      assert.strictEqual(
+        value.events.AttributeRemoved.returnValues.attributeTypeID,
+        attributeId.toString()
+      )
+    },
+    attributedAddress
+  )
+
+  signature = await signValidation(
+    validatorAddress,
+    Jurisdiction.options.address,
+    attributedAddress,
+    PaymentRejector.options.address, // operator
+    minimumRequiredStake, // stake + jurisdiction fee + validator fee
+    0,
+    attributeId,
+    attributeValue
+  )
+  await runTest(
+    'operators can issue signed attribute that requires a stake (3)',
+    PaymentRejector,
+    'addAttributeFor',
+    'send',
+    [
+      attributedAddress,
+      attributeId,
+      attributeValue,
+      0,
+      signature
+    ],
+    true,
+    value => {},
+    attributedAddress,
+    minimumRequiredStake
+  )
+
+  await runTest(
+    'attribute operator can revoke the attribute (2)',
+    PaymentRejector,
+    'removeAttributeFor',
+    'send',
+    [attributedAddress, attributeId],
+    true,
+    value => {},
+    attributedAddress
+  )  
+
+  signature = await signValidation(
+    validatorAddress,
+    Jurisdiction.options.address,
+    attributedAddress,
+    PaymentRejector.options.address, // operator
+    minimumRequiredStake + 1, // stake + jurisdiction fee + validator fee
+    0,
+    attributeId,
+    attributeValue
+  )
+  await runTest(
+    'operators can issue signed attribute that requires a stake (4)',
+    PaymentRejector,
+    'addAttributeFor',
+    'send',
+    [
+      attributedAddress,
+      attributeId,
+      attributeValue,
+      0,
+      signature
+    ],
+    true,
+    value => {},
+    attributedAddress,
+    minimumRequiredStake + 1
+  )
+
+  await runTest(
+    'attribute holder can revoke the attribute (5)',
+    Jurisdiction,
+    'removeAttribute',
+    'send',
+    [attributeId],
+    true,
+    value => {},
+    attributedAddress
+  )
+
+  // stake > tx rebate
+  signature = await signValidation(
+    validatorAddress,
+    Jurisdiction.options.address,
+    attributedAddress,
+    PaymentRejector.options.address, // operator
+    377001,
+    0,
+    attributeId,
+    attributeValue
+  )
+  await runTest(
+    'operators can issue signed attribute that requires a stake (5)',
+    PaymentRejector,
+    'addAttributeFor',
+    'send',
+    [
+      attributedAddress,
+      attributeId,
+      attributeValue,
+      0,
+      signature
+    ],
+    true,
+    value => {},
+    attributedAddress,
+    377001
+  )
+
+  await runTest(
+    'jurisdiction owner can then revoke the attribute (3)',
+    Jurisdiction,
+    'revokeAttribute',
+    'send',
+    [attributedAddress, attributeId]
   )
 
   console.log(

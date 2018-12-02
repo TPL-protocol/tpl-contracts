@@ -690,30 +690,29 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
           _recoverableFunds = _recoverableFunds.add(stake.sub(transactionCost));
         }
 
+        // emit an event for the payment of the transaction rebate
+        emit TransactionRebatePaid(
+          tx.origin,
+          refundAddress,
+          attributeTypeID,
+          transactionCost
+        );
+
         // refund the cost of the transaction to the trasaction submitter
-        if (tx.origin.send(transactionCost)) {
-          emit TransactionRebatePaid(
-            tx.origin,
-            refundAddress,
-            attributeTypeID,
-            transactionCost
-          );
-        } else {
-          _recoverableFunds = _recoverableFunds.add(transactionCost);
-        }
+        tx.origin.transfer(transactionCost);
 
       // otherwise, allocate entire stake to partially refunding the transaction
-      } else if (stake > 0 && address(this).balance >= stake) {
-        if (tx.origin.send(stake)) {
-          emit TransactionRebatePaid(
-            tx.origin,
-            refundAddress,
-            attributeTypeID,
-            stake
-          );
-        } else {
-          _recoverableFunds = _recoverableFunds.add(stake);
-        }
+      } else {
+        // emit an event for the payment of the partial transaction rebate
+        emit TransactionRebatePaid(
+          tx.origin,
+          refundAddress,
+          attributeTypeID,
+          stake
+        );
+
+        // refund the partial cost of the transaction to trasaction submitter
+        tx.origin.transfer(stake);
       }
     }
   }

@@ -20,4 +20,30 @@ contract PaymentRejector {
   function setValidatorSigningKey(address newKey) public {
     _jurisdiction.setValidatorSigningKey(newKey);
   }
+
+  function addAttributeFor(
+    address account,
+    uint256 attributeTypeID,
+    uint256 value,
+    uint256 validatorFee,
+    bytes signature
+  ) public payable {
+    _jurisdiction.addAttributeFor.value(msg.value)(
+      account,
+      attributeTypeID,
+      value,
+      validatorFee,
+      signature
+    );
+  }
+
+  function removeAttributeFor(
+    address account,
+    uint256 attributeTypeID
+  ) public {
+    _jurisdiction.removeAttributeFor(
+      account,
+      attributeTypeID
+    );
+  }
 }
