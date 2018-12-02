@@ -2,7 +2,7 @@
 
 ![banner](images/TPL_01@3x.png)
 
-![GitHub](https://img.shields.io/github/license/tpl-protocol/tpl-contracts-brightgreen.svg)
+![GitHub](https://img.shields.io/github/license/tpl-protocol/tpl-contracts.svg?colorB=brightgreen)
 [![Build Status](https://travis-ci.com/TPL-protocol/tpl-contracts.svg?branch=master)](https://travis-ci.com/TPL-protocol/tpl-contracts)
 ![Coverage Status](https://img.shields.io/coveralls/github/TPL-protocol/tpl-contracts.svg)
 [![standard-readme compliant](https://img.shields.io/badge/standard--readme-OK-brightgreen.svg)](https://github.com/RichardLitt/standard-readme)
