@@ -1,4 +1,4 @@
-# Transaction Permission Layer v1.1.1 (tpl-contracts)
+# Transaction Permission Layer v1.1 (tpl-contracts)
 
 ![banner](images/TPL_01@3x.png)
 
@@ -43,7 +43,6 @@ To create a new project with TPL contracts as a dependency:
 ```sh
 $ yarn global add truffle@5.0.0-beta.1 # or $ npm install -g truffle@5.0.0-beta.1
 $ truffle init && yarn init # or npm init
-$ yarn add openzeppelin-solidity # or npm install openzeppelin-solidity
 $ yarn add tpl-contracts # or $ npm install tpl-contracts
 ```
 

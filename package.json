@@ -1,6 +1,6 @@
 {
   "name": "tpl-contracts",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "license": "MIT",
   "description": "Solidity smart contract implementing TPL (the Transaction Layer Protocol).",
   "homepage": "https://tplprotocol.org/",
@@ -28,11 +28,12 @@
   },
   "devDependencies": {
     "coveralls": "^3.0.2",
-    "openzeppelin-solidity": "2.0.0",
     "solhint": "1.4.0",
     "solidity-coverage": "^0.5.11",
     "truffle": "5.0.0-beta.1",
     "web3": "^1.0.0-beta.36"
   },
-  "dependencies": {}
+  "dependencies": {
+    "openzeppelin-solidity": "2.0.0"
+  }
 }
