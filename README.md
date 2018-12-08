@@ -1,4 +1,4 @@
-# Transaction Permission Layer v1.1 (tpl-contracts)
+# Transaction Permission Layer v1.1.1 (tpl-contracts)
 
 ![banner](images/TPL_01@3x.png)
 
