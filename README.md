@@ -37,7 +37,34 @@ TPL is designed to be flexible enough for a wide variety of use-cases beyond jus
 
 
 ## Install
-First, ensure that [Node.js](https://nodejs.org/en/download/current/), [Yarn](https://yarnpkg.com/en/docs/install), and [ganache-cli](https://github.com/trufflesuite/ganache-cli#installation) are installed. Next, clone the repository and install dependencies:
+### Install via NPM to import contracts
+To create a new project with TPL contracts as a dependency:
+
+```sh
+$ yarn global add truffle@5.0.0-beta.1 # or $ npm install -g truffle@5.0.0-beta.1
+$ truffle init && yarn init # or npm init
+$ yarn add openzeppelin-solidity # or npm install openzeppelin-solidity
+$ yarn add tpl-contracts # or $ npm install tpl-contracts
+```
+
+Then, import it in your contracts like so:
+```solidity
+pragma solidity ^0.4.25;
+
+import "tpl-contracts/contracts/BasicJurisdiction.sol";
+
+
+contract Test is BasicJurisdiction {
+  string public name;
+
+  constructor() public {
+    name = "My First Jurisdiction";
+  }
+}
+```
+
+### Install directly to run tests or develop
+To install directly, first ensure that [Node.js](https://nodejs.org/en/download/current/), [Yarn](https://yarnpkg.com/en/docs/install), and [ganache-cli](https://github.com/trufflesuite/ganache-cli#installation) are installed. Next, clone the repository and install dependencies:
 
 ```sh
 $ git clone https://github.com/TPL-protocol/tpl-contracts
