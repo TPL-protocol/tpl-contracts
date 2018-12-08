@@ -1,18 +1,19 @@
-# Transaction Permission Layer v1.0 (tpl-contracts)
+# Transaction Permission Layer v1.1 (tpl-contracts)
 
 ![banner](images/TPL_01@3x.png)
 
+![npm](https://img.shields.io/npm/v/tpl-contracts.svg)
 ![GitHub](https://img.shields.io/github/license/tpl-protocol/tpl-contracts.svg?colorB=brightgreen)
 [![Build Status](https://travis-ci.com/TPL-protocol/tpl-contracts.svg?branch=master)](https://travis-ci.com/TPL-protocol/tpl-contracts)
 ![Coverage Status](https://img.shields.io/coveralls/github/TPL-protocol/tpl-contracts.svg)
 [![standard-readme compliant](https://img.shields.io/badge/standard--readme-OK-brightgreen.svg)](https://github.com/RichardLitt/standard-readme)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
-> Contracts implementing a TPL jurisdiction and an ERC20-enforced TPL.
+> Solidity contracts implementing TPL jurisdictions, example permissioned ERC20 & ERC721 tokens, and validators.
 
 TPL is a method for assigning metadata (or **“attributes”**) to Ethereum addresses. These attributes then form the basis for designing systems that enforce permissions when performing certain transactions. For instance, using TPL, securities tokens can require that attributes be present and have an appropriate value every time a token is sent or received. This allows projects to remain compliant with regulations by **validating every single exchange between participants**, beyond just the initial offering.
 
-At the core of TPL is the [jurisdiction](https://github.com/TPL-protocol/tpl-contracts/blob/master/contracts/ExtendedJurisdiction.sol) — a single smart contract that links attributes to addresses. It implements an [Attribute Registry interface](https://github.com/TPL-protocol/tpl-contracts/blob/master/contracts/AttributeRegistryInterface.sol), where attributes are registered to addresses as a key-value pair with a single canonical value. [Implementing tokens](https://github.com/TPL-protocol/tpl-contracts/blob/master/contracts/examples/token/ERC20/TPLERC20PermissionedInterface.sol) then use this interface to request attributes that will inform whether to permit or reject the token transfer. Furthermore, implementers do not need to know any additional information on who set the attribute or how, and can check for the attribute value in a straightforward and efficient manner.
+At the core of TPL is the [jurisdiction](https://github.com/TPL-protocol/tpl-contracts/blob/master/contracts/ExtendedJurisdiction.sol) — a single smart contract that links attributes to addresses. It implements an [ERC-1616 Attribute Registry Standard](https://eips.ethereum.org/EIPS/eip-1616) [interface](https://github.com/TPL-protocol/tpl-contracts/blob/master/contracts/AttributeRegistryInterface.sol), where attributes are registered to addresses as a key-value pair with a single canonical value. [Implementing tokens](https://github.com/TPL-protocol/tpl-contracts/blob/master/contracts/examples/token/ERC20/TPLERC20PermissionedInterface.sol) then use this interface to request attributes that will inform whether to permit or reject the token transfer. Furthermore, implementers do not need to know any additional information on who set the attribute or how, and can check for the attribute value in a straightforward and efficient manner.
 
 This jurisdiction does not set attributes itself, but rather defines a valid set of attribute types and designates [validators](https://github.com/TPL-protocol/tpl-contracts/blob/master/contracts/examples/validator/TPLBasicValidatorInterface.sol) that are approved to issue specific attribute types. The validators then either add attributes directly, or sign off-chain attribute approvals that can be relayed to the jurisdiction by the attribute holder or a designated third party. Considerable focus is also paid to ensuring that the jurisdiction and validators can revoke attributes, or entire categories of attributes, when necessary.
 
