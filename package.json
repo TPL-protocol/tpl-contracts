@@ -1,15 +1,22 @@
 {
-  "name": "TPL-1.0.1",
-  "version": "1.0.1",
-  "main": "index.js",
+  "name": "tpl-contracts",
+  "version": "1.1.0",
   "license": "MIT",
-  "dependencies": {
-    "coveralls": "^3.0.2",
-    "openzeppelin-solidity": "2.0.0",
-    "solhint": "1.4.0",
-    "solidity-coverage": "^0.5.11",
-    "truffle": "5.0.0-beta.1",
-    "web3": "^1.0.0-beta.36"
+  "description": "Solidity smart contract implementing TPL (the Transaction Layer Protocol).",
+  "homepage": "https://tplprotocol.org/",
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "smart",
+    "contracts",
+    "TPL"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TPL-protocol/tpl-contracts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TPL-protocol/tpl-contracts/issues"
   },
   "scripts": {
     "build": "./node_modules/.bin/truffle compile",
@@ -18,5 +25,14 @@
     "linter": "./node_modules/.bin/solhint 'contracts/**/*.sol'",
     "deploy": "node scripts/deploy/deploy.js",
     "tx": "node scripts/cli/cli.js"
-  }
+  },
+  "devDependencies": {
+    "coveralls": "^3.0.2",
+    "openzeppelin-solidity": "2.0.0",
+    "solhint": "1.4.0",
+    "solidity-coverage": "^0.5.11",
+    "truffle": "5.0.0-beta.1",
+    "web3": "^1.0.0-beta.36"
+  },
+  "dependencies": {}
 }
