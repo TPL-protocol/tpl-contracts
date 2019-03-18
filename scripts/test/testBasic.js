@@ -595,7 +595,8 @@ module.exports = {test: async function (provider, testingContext) {
   ).send({
     from: validatorAddress,
     gas: 5000000,
-    gasPrice: 10 ** 9
+    gasPrice: 10 ** 9,
+    value: 0
   }).then(receipt => {
     assert.ok(receipt.status)
     console.log(' ✓ validator is able to directly assign approved attributes')
@@ -608,6 +609,9 @@ module.exports = {test: async function (provider, testingContext) {
     assert.strictEqual(logs.attributeValue, attribute.targetValue.toString())
     console.log(' ✓ AttributeAdded event is logged correctly')
     passed++
+  }).catch(error => {
+    console.error(error)
+    failed++
   })
 
   await Jurisdiction.methods.getAttributeValidator(
@@ -622,7 +626,10 @@ module.exports = {test: async function (provider, testingContext) {
     assert.ok(attributeValidator[1])
     console.log(' ✓ external calls can check for the validator of an attribute')
     passed++
-  }) 
+  }).catch(error => {
+    console.error(error)
+    failed++
+  })
 
   await Jurisdiction.methods.issueAttribute(
     attributedAddress,
@@ -631,7 +638,8 @@ module.exports = {test: async function (provider, testingContext) {
   ).send({
     from: validatorTwo.address,
     gas: 5000000,
-    gasPrice: 10 ** 9
+    gasPrice: 10 ** 9,
+    value: 0
   }).then(receipt => {
     assert.ok(receipt.status)
     console.log(' ✓ multiple attributes can be added to an address')

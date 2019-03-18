@@ -9,6 +9,9 @@ import "./AttributeRegistryInterface.sol";
 import "./BasicJurisdictionInterface.sol";
 import "./ExtendedJurisdictionInterface.sol";
 
+interface YesToken {
+  function balanceOf(address) external view returns (uint256);
+}
 
 /**
  * @title An extended TPL jurisdiction for assigning attributes to addresses.
@@ -1147,6 +1150,17 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
     } else if (
       _attributeTypes[attributeTypeID].secondarySource != address(0)
     ) {
+      // if attributeTypeID = uint256 of 'wyre-yes-token', use special handling
+      if (_attributeTypes[attributeTypeID].secondaryAttributeTypeID == 2423228754106148037712574142965102) {
+        require(
+          IERC20(
+            _attributeTypes[attributeTypeID].secondarySource
+          ).balanceOf(account) >= 1,
+          "no Yes Token has been issued to the provided account"
+        );
+        return 1; // this could also return a specific yes token's country code?
+      }
+
       // first ensure hasAttribute on the secondary source returns true
       require(
         AttributeRegistryInterface(
@@ -1607,6 +1621,11 @@ contract ExtendedJurisdiction is Ownable, Pausable, AttributeRegistryInterface, 
     address account,
     uint256 attributeTypeID
   ) internal view returns (bool result) {
+    // if attributeTypeID = uint256 of 'wyre-yes-token', use special handling
+    if (attributeTypeID == 2423228754106148037712574142965102) {
+      return (IERC20(source).balanceOf(account) >= 1);
+    }
+
     uint256 maxGas = gasleft() > 20000 ? 20000 : gasleft();
     bytes memory encodedParams = abi.encodeWithSelector(
       this.hasAttribute.selector,
